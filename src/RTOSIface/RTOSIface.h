@@ -71,7 +71,18 @@ public:
 
 	TaskHandle GetHandle() const { return static_cast<TaskHandle>(handle); }
 	void Suspend() const { vTaskSuspend(handle); }
+	void Resume() const { vTaskResume(handle); }
 	const TaskBase *GetNext() const { return next; }
+
+	void GiveFromISR()		// wake up this task from an ISR
+	{
+		BaseType_t higherPriorityTaskWoken = pdFALSE;
+		vTaskNotifyGiveFromISR(handle, &higherPriorityTaskWoken);
+		portYIELD_FROM_ISR(higherPriorityTaskWoken);
+	}
+
+	void Give() { xTaskNotifyGive(handle); }							// wake up this task from an ISR
+	static uint32_t Take(uint32_t timeout) { return ulTaskNotifyTake(pdTRUE, timeout); }
 
 	TaskBase(const TaskBase&) = delete;				// it's not safe to copy these
 	TaskBase& operator=(const TaskBase&) = delete;	// it's not safe to assign these
@@ -87,6 +98,8 @@ public:
 
 	static constexpr int SpinPriority = 1;			// priority for tasks that rarely block
 	static constexpr int HeatPriority = 2;
+	static constexpr int TmcPriority = 2;
+	static constexpr int AinPriority = 2;
 
 protected:
 	TaskHandle_t handle;
