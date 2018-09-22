@@ -100,6 +100,8 @@ public:
 	static constexpr int HeatPriority = 2;
 	static constexpr int TmcPriority = 2;
 	static constexpr int AinPriority = 2;
+	static constexpr int CanSenderPriority = 3;
+	static constexpr int CanReceiverPriority = 3;
 
 protected:
 	TaskHandle_t handle;
