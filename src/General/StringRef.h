@@ -38,6 +38,7 @@ public:
 	int catf(const char *fmt, ...) const __attribute__ ((format (printf, 2, 3)));
 	int vcatf(const char *fmt, va_list vargs) const;
 	bool copy(const char* src) const;						// returns true if buffer is too small
+	bool copy(const char *src, size_t maxlen) const;		// returns true if buffer is too small
 	bool cat(const char *src) const;						// returns true if buffer is too small
 	bool cat(char c) const;									// returns true if buffer is too small
 	size_t StripTrailingSpaces() const;
@@ -66,6 +67,7 @@ public:
 	int catf(const char *fmt, ...) __attribute__ ((format (printf, 2, 3)));
 	int vcatf(const char *fmt, va_list vargs);
 	bool copy(const char *src) { return GetRef().copy(src); }	// returns true if buffer is too small
+	bool copy(const char *src, size_t maxlen) { return GetRef().copy(src, maxlen); }	// returns true if buffer is too small
 	bool cat(const char *src) { return GetRef().cat(src); }		// returns true if buffer is too small
 	bool cat(char c) { return GetRef().cat(c); }				// returns true if buffer is too small
 	bool Prepend(const char *src) const;						// returns true if buffer is too small
