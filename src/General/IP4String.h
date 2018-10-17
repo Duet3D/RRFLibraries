@@ -17,7 +17,7 @@ class IP4String
 public:
 	IP4String(const uint8_t ip[4]);
 	IP4String(uint32_t ip);
-	IP4String(IPAddress ip) : IP4String(ip.GetV4()) {}
+	IP4String(IPAddress ip) : IP4String(ip.GetV4LittleEndian()) {}
 
 	const char *c_str() const { return buf; }
 
