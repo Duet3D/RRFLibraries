@@ -26,11 +26,14 @@ void Mutex::Create(const char *pName)
 	}
 }
 
+// Take ownership of a mutex returning true if successful
 bool Mutex::Take(uint32_t timeout) const
 {
 	return xSemaphoreTakeRecursive(handle, timeout) == pdTRUE;
 }
 
+// Release a mutex returning true if successful.
+// Note that the return value does not indicate whether the mutex is still owned, because it may have been taken more than once.
 bool Mutex::Release() const
 {
 	return xSemaphoreGiveRecursive(handle) == pdTRUE;
@@ -95,7 +98,7 @@ void MutexLocker::Release()
 	if (acquired && handle != nullptr)
 	{
 		handle->Release();
-		acquired = false;
+		acquired = (handle->GetHolder() == TaskBase::GetCallerTaskHandle());
 	}
 #endif
 }
