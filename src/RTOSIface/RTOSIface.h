@@ -84,6 +84,8 @@ public:
 	void Give() { xTaskNotifyGive(handle); }							// wake up this task from an ISR
 	static uint32_t Take(uint32_t timeout) { return ulTaskNotifyTake(pdTRUE, timeout); }
 
+	static TaskHandle GetCallerTaskHandle() { return (TaskHandle)xTaskGetCurrentTaskHandle(); }
+
 	TaskBase(const TaskBase&) = delete;				// it's not safe to copy these
 	TaskBase& operator=(const TaskBase&) = delete;	// it's not safe to assign these
 	// Ideally we would declare the destructor as deleted too, because it's unsafe to delete these because they are linked together via the 'next' field.
