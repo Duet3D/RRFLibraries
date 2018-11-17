@@ -119,10 +119,22 @@ public:
 	// The Create function assumes that only the main task creates other tasks, so we don't need a mutex to protect the task list
 	void Create(TaskFunction_t pxTaskCode, const char * pcName, void *pvParameters, unsigned int uxPriority)
 	{
+		handle = xTaskCreateStatic(pxTaskCode, pcName, StackWords, pvParameters, uxPriority, stack, &storage);
+		AddToList();
+	}
+
+	// This function is called directly for tasks that are created by FreeRTOS
+	void AddToList()
+	{
+		handle = &storage;
 		next = taskList;
 		taskList = this;
-		handle = xTaskCreateStatic(pxTaskCode, pcName, StackWords, pvParameters, uxPriority, stack, &storage);
 	}
+
+	// These functions should be used only to tell FreeRTOS where the corresponding data is
+	StaticTask_t *GetTaskMemory() { return &storage; }
+	uint32_t *GetStackBase() { return stack; }
+	uint32_t GetStackSize() const { return StackWords; }
 
 private:
 	uint32_t stack[StackWords];
