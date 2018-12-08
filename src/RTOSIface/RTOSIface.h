@@ -20,6 +20,7 @@ typedef Task_undefined *TaskHandle;
 # include "task.h"
 # include "semphr.h"
 #else
+# define DONT_USE_CMSIS_INIT
 # include "asf.h"
 #endif
 
