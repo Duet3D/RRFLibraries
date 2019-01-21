@@ -4,7 +4,6 @@
 		<cconfiguration id="cdt.managedbuild.config.gnu.cross.lib.release.1693990866">
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.config.gnu.cross.lib.release.1693990866" moduleId="org.eclipse.cdt.core.settings" name="SAM4E_RTOS">
 				<macros>
-					<stringMacro name="GccPath" type="VALUE_TEXT" value="C:\Program Files (x86)\GNU Tools ARM Embedded\7 2018-q2-update\bin"/>
 				</macros>
 				<externalSettings>
 					<externalSetting>
@@ -69,7 +68,6 @@
 		<cconfiguration id="cdt.managedbuild.config.gnu.cross.lib.release.1693990866.1176679643">
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.config.gnu.cross.lib.release.1693990866.1176679643" moduleId="org.eclipse.cdt.core.settings" name="SAM4S_RTOS">
 				<macros>
-					<stringMacro name="GccPath" type="VALUE_TEXT" value="C:\Program Files (x86)\GNU Tools ARM Embedded\7 2018-q2-update\bin"/>
 				</macros>
 				<externalSettings>
 					<externalSetting>
@@ -134,7 +132,6 @@
 		<cconfiguration id="cdt.managedbuild.config.gnu.cross.lib.release.1693990866.1913177425">
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.config.gnu.cross.lib.release.1693990866.1913177425" moduleId="org.eclipse.cdt.core.settings" name="SAME70_RTOS">
 				<macros>
-					<stringMacro name="GccPath" type="VALUE_TEXT" value="C:\Program Files (x86)\GNU Tools ARM Embedded\7 2018-q2-update\bin"/>
 				</macros>
 				<externalSettings>
 					<externalSetting>
@@ -199,7 +196,6 @@
 		<cconfiguration id="cdt.managedbuild.config.gnu.cross.lib.release.1693990866.1129583112">
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.config.gnu.cross.lib.release.1693990866.1129583112" moduleId="org.eclipse.cdt.core.settings" name="SAME51_RTOS">
 				<macros>
-					<stringMacro name="GccPath" type="VALUE_TEXT" value="C:\Program Files (x86)\GNU Tools ARM Embedded\7 2018-q2-update\bin"/>
 				</macros>
 				<externalSettings>
 					<externalSetting>
@@ -264,7 +260,6 @@
 		<cconfiguration id="cdt.managedbuild.config.gnu.cross.lib.release.1693990866.1176679643.1620965831">
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.config.gnu.cross.lib.release.1693990866.1176679643.1620965831" moduleId="org.eclipse.cdt.core.settings" name="SAM3X_RTOS">
 				<macros>
-					<stringMacro name="GccPath" type="VALUE_TEXT" value="C:\Program Files (x86)\GNU Tools ARM Embedded\7 2018-q2-update\bin"/>
 				</macros>
 				<externalSettings>
 					<externalSetting>
@@ -329,7 +324,6 @@
 		<cconfiguration id="cdt.managedbuild.config.gnu.cross.lib.release.1693990866.1176679643.1620965831.1699527086">
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.config.gnu.cross.lib.release.1693990866.1176679643.1620965831.1699527086" moduleId="org.eclipse.cdt.core.settings" name="SAM3X">
 				<macros>
-					<stringMacro name="GccPath" type="VALUE_TEXT" value="C:\Program Files (x86)\GNU Tools ARM Embedded\7 2018-q2-update\bin"/>
 				</macros>
 				<externalSettings>
 					<externalSetting>
