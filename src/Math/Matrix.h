@@ -105,7 +105,7 @@ template<class T, size_t ROWS, size_t COLS> bool FixedMatrix<T, ROWS, COLS>::Gau
 
 		// Use row i to eliminate the element in the ith column from previous and subsequent rows
 		const T v = data[i][i];
-		if (v == (T)0)
+		if (v == (T)0.0)
 		{
 			return false;
 		}
@@ -113,7 +113,7 @@ template<class T, size_t ROWS, size_t COLS> bool FixedMatrix<T, ROWS, COLS>::Gau
 		for (size_t j = 0; j < i; ++j)
 		{
 			const T factor = data[j][i]/v;
-			data[j][i] = 0.0;
+			data[j][i] = (T)0.0;
 			for (size_t k = i + 1; k < numCols; ++k)
 			{
 				data[j][k] -= data[i][k] * factor;
@@ -123,7 +123,7 @@ template<class T, size_t ROWS, size_t COLS> bool FixedMatrix<T, ROWS, COLS>::Gau
 		for (size_t j = i + 1; j < numRows; ++j)
 		{
 			const T factor = data[j][i]/v;
-			data[j][i] = 0.0;
+			data[j][i] = (T)0.0;
 			for (size_t k = i + 1; k < numCols; ++k)
 			{
 				data[j][k] -= data[i][k] * factor;
@@ -138,6 +138,7 @@ template<class T, size_t ROWS, size_t COLS> bool FixedMatrix<T, ROWS, COLS>::Gau
 		{
 			data[r][c] /= val;
 		}
+		data[r][r] = (T)1.0;
 	}
 
 	return true;
