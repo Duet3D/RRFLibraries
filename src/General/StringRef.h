@@ -43,6 +43,7 @@ public:
 	bool cat(char c) const;									// returns true if buffer is too small
 	size_t StripTrailingSpaces() const;
 	bool Prepend(const char *src) const;					// returns true if buffer is too small
+	void Truncate(size_t pos) const;
 };
 
 // Class to describe a string which we can get a StringRef reference to
@@ -77,6 +78,9 @@ public:
 
 	void Truncate(size_t len);
 	void Erase(size_t pos, size_t count = 1);
+
+	char *Pointer() { return storage; }							// use this one only exceptionally and with great care!
+	void EnsureNullTerminated() { storage[Len] = 0; }
 
 private:
 	char storage[Len + 1];
@@ -130,7 +134,7 @@ template<size_t Len> int String<Len>::catf(const char *fmt, ...)
 
 template<size_t Len> void String<Len>::Truncate(size_t len)
 {
-	if (len < strlen())
+	if (len < Len)
 	{
 		storage[len] = 0;
 	}
