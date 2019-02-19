@@ -70,7 +70,7 @@ bool StringRef::copy(const char* src) const
 // This is quicker than printf for printing constant strings
 bool StringRef::copy(const char* src, size_t maxlen) const
 {
-	const size_t slen = ::strnlen(src, maxlen);
+	const size_t slen = Strnlen(src, maxlen);
 	const bool overflow = (slen >= len);
 	const size_t length = (overflow) ? len - 1 : slen;
 	memcpy(p, src, length);
