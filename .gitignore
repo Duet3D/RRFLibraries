@@ -33,11 +33,3 @@
 
 # Misc
 .settings/language.settings.xml
-/SAM3X_RTOS/
-/SAM4E_RTOS/
-/SAM4S_RTOS/
-/SAME51_RTOS/
-/SAME70_RTOS/
-
-# Eclipse
-.settings/language.settings.xml
