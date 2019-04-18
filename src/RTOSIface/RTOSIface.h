@@ -69,6 +69,17 @@ class TaskBase
 {
 public:
 	TaskBase() { handle = nullptr; }
+	~TaskBase() { TerminateAndUnlink(); }
+
+	// This function is called directly for tasks that are created by FreeRTOS, so it must be public
+	void AddToList()
+	{
+		handle = &storage;
+		next = taskList;
+		taskList = this;
+	}
+
+	void TerminateAndUnlink();
 
 	TaskHandle GetHandle() const { return static_cast<TaskHandle>(handle); }
 	void Suspend() const { vTaskSuspend(handle); }
@@ -83,7 +94,7 @@ public:
 	}
 
 	void Give() { xTaskNotifyGive(handle); }							// wake up this task from an ISR
-	static uint32_t Take(uint32_t timeout) { return ulTaskNotifyTake(pdTRUE, timeout); }
+	static uint32_t Take(uint32_t timeout = TimeoutUnlimited) { return ulTaskNotifyTake(pdTRUE, timeout); }
 
 	static TaskHandle GetCallerTaskHandle() { return (TaskHandle)xTaskGetCurrentTaskHandle(); }
 
@@ -99,10 +110,13 @@ public:
 
 	static const TaskBase *GetTaskList() { return taskList; }
 
+	static constexpr uint32_t TimeoutUnlimited = 0xFFFFFFFF;
+
 	static constexpr int SpinPriority = 1;			// priority for tasks that rarely block
 	static constexpr int HeatPriority = 2;
 	static constexpr int TmcPriority = 2;
 	static constexpr int AinPriority = 2;
+	static constexpr int LaserPriority = 3;
 	static constexpr int CanSenderPriority = 3;
 	static constexpr int CanReceiverPriority = 3;
 
@@ -122,14 +136,6 @@ public:
 	{
 		handle = xTaskCreateStatic(pxTaskCode, pcName, StackWords, pvParameters, uxPriority, stack, &storage);
 		AddToList();
-	}
-
-	// This function is called directly for tasks that are created by FreeRTOS
-	void AddToList()
-	{
-		handle = &storage;
-		next = taskList;
-		taskList = this;
 	}
 
 	// These functions should be used only to tell FreeRTOS where the corresponding data is
