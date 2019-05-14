@@ -27,7 +27,11 @@ typedef Task_undefined *TaskHandle;
 class Mutex
 {
 public:
-	Mutex() { handle = nullptr; }
+	Mutex() : handle(nullptr)
+#ifdef RTOS
+		, next(nullptr), name(nullptr)
+#endif
+	{ }
 
 	void Create(const char *pName);
 	bool Take(uint32_t timeout = TimeoutUnlimited) const;
@@ -68,7 +72,7 @@ private:
 class TaskBase
 {
 public:
-	TaskBase() { handle = nullptr; }
+	TaskBase() : handle (nullptr), next(nullptr) { }
 	~TaskBase() { TerminateAndUnlink(); }
 
 	// This function is called directly for tasks that are created by FreeRTOS, so it must be public
@@ -111,14 +115,6 @@ public:
 	static const TaskBase *GetTaskList() { return taskList; }
 
 	static constexpr uint32_t TimeoutUnlimited = 0xFFFFFFFF;
-
-	static constexpr int SpinPriority = 1;			// priority for tasks that rarely block
-	static constexpr int HeatPriority = 2;
-	static constexpr int TmcPriority = 2;
-	static constexpr int AinPriority = 2;
-	static constexpr int LaserPriority = 3;
-	static constexpr int CanSenderPriority = 3;
-	static constexpr int CanReceiverPriority = 3;
 
 protected:
 	TaskHandle_t handle;
