@@ -44,6 +44,8 @@ public:
 	size_t StripTrailingSpaces() const;
 	bool Prepend(const char *src) const;					// returns true if buffer is too small
 	void Truncate(size_t pos) const;
+	void Erase(size_t pos, size_t count = 1) const;
+	bool Insert(size_t pos, char c) const;					// returns true if buffer is too small
 };
 
 // Class to describe a string which we can get a StringRef reference to
@@ -78,6 +80,7 @@ public:
 
 	void Truncate(size_t len);
 	void Erase(size_t pos, size_t count = 1);
+	bool Insert(size_t pos, char c) { return GetRef().Insert(pos, c); }	// returns true if buffer is too small
 
 	char *Pointer() { return storage; }							// use this one only exceptionally and with great care!
 	void EnsureNullTerminated() { storage[Len] = 0; }
