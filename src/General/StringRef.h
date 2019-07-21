@@ -73,7 +73,7 @@ public:
 	bool copy(const char *src, size_t maxlen) { return GetRef().copy(src, maxlen); }	// returns true if buffer is too small
 	bool cat(const char *src) { return GetRef().cat(src); }		// returns true if buffer is too small
 	bool cat(char c) { return GetRef().cat(c); }				// returns true if buffer is too small
-	bool Prepend(const char *src) const;						// returns true if buffer is too small
+	bool Prepend(const char *src);								// returns true if buffer is too small
 
 	void CopyAndPad(const char *src);
 	bool ConstantTimeEquals(String<Len> other) const;
@@ -115,6 +115,11 @@ template<size_t Len> inline int String<Len>::vprintf(const char *fmt, va_list va
 template<size_t Len> inline int String<Len>::vcatf(const char *fmt, va_list vargs)
 {
 	return GetRef().vcatf(fmt, vargs);
+}
+
+template<size_t Len> inline bool String<Len>::Prepend(const char *src)
+{
+	return GetRef().Prepend(src);
 }
 
 template<size_t Len> int String<Len>::printf(const char *fmt, ...)
