@@ -72,16 +72,20 @@ private:
 class TaskBase
 {
 public:
-	TaskBase() : handle (nullptr), next(nullptr) { }
+	// Type of a short-form task ID. Task IDs start at 1 and each task takes the next available number.
+	// If tasks are never deleted except at shutdown then we can guarantee that task IDs will be small number, because it won't exceed the number of tasks.
+	// This is used by the CAN subsystem, so that we can use 8-bit task IDs to identify a sending task, instead of needing to use 32-bits.
+	typedef uint32_t TaskId;
+
+	TaskBase() : handle(nullptr), next(nullptr) { }
 	~TaskBase() { TerminateAndUnlink(); }
 
+	// Get the short-form task ID. This is a small number, used to send a task ID in 1 byte or less i a CAN packet. It is guaranteed not to be zero.
+	TaskId GetTaskId() const { return taskId; }
+
 	// This function is called directly for tasks that are created by FreeRTOS, so it must be public
-	void AddToList()
-	{
-		handle = &storage;
-		next = taskList;
-		taskList = this;
-	}
+	// Link the task into the thread list and allocate a short task ID to it
+	void AddToList();
 
 	void TerminateAndUnlink();
 
@@ -102,6 +106,8 @@ public:
 
 	static TaskHandle GetCallerTaskHandle() { return (TaskHandle)xTaskGetCurrentTaskHandle(); }
 
+	static TaskId GetCallerTaskId();
+
 	TaskBase(const TaskBase&) = delete;				// it's not safe to copy these
 	TaskBase& operator=(const TaskBase&) = delete;	// it's not safe to assign these
 	// Ideally we would declare the destructor as deleted too, because it's unsafe to delete these because they are linked together via the 'next' field.
@@ -119,9 +125,11 @@ public:
 protected:
 	TaskHandle_t handle;
 	TaskBase *next;
+	TaskId taskId;
 	StaticTask_t storage;
 
 	static TaskBase *taskList;
+	static TaskId numTasks;
 };
 
 template<unsigned int StackWords> class Task : public TaskBase

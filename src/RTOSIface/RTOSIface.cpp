@@ -45,6 +45,8 @@ TaskHandle Mutex::GetHolder() const
 }
 
 TaskBase *TaskBase::taskList = nullptr;
+TaskBase::TaskId TaskBase::numTasks = 0;
+
 Mutex *Mutex::mutexList = nullptr;
 
 #else
@@ -116,6 +118,18 @@ MutexLocker::~MutexLocker()
 
 #ifdef RTOS
 
+// Link the task into the thread list and allocate a short task ID to it. Task IDs start at 1.
+void TaskBase::AddToList()
+{
+	TaskCriticalSectionLocker lock;
+
+	++numTasks;
+	taskId = numTasks;
+	handle = &storage;
+	next = taskList;
+	taskList = this;
+}
+
 // Terminate a task and remove it from the thread list
 void TaskBase::TerminateAndUnlink()
 {
@@ -135,6 +149,24 @@ void TaskBase::TerminateAndUnlink()
 			}
 		}
 	}
+}
+
+// Get the short-form task ID
+/*static*/ TaskBase::TaskId TaskBase::GetCallerTaskId()
+{
+	TaskHandle_t currentTaskHandle = xTaskGetCurrentTaskHandle();
+
+	// We need to get the task ID given the task handle.
+	// We could cheat and rely on the fact the the task ID should be 4 bytes before the storage that the task handle points to.
+	// But we'll do it properly and search the task list instead.
+	for (TaskBase** tpp = &taskList; *tpp != nullptr; tpp = &(*tpp)->next)
+	{
+		if ((*tpp)->handle == currentTaskHandle)
+		{
+			return (*tpp)->taskId;
+		}
+	}
+	return 0;				// won't happen unless the current task hasn't been linked nito the task list
 }
 
 #endif
