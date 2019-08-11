@@ -20,8 +20,28 @@ typedef Task_undefined *TaskHandle;
 # include "task.h"
 # include "semphr.h"
 #else
-# define DONT_USE_CMSIS_INIT
-# include "asf.h"
+
+/** \brief  Enable IRQ Interrupts
+
+  This function enables IRQ interrupts by clearing the I-bit in the CPSR.
+  Can only be executed in Privileged modes.
+ */
+__attribute__( ( always_inline ) ) static inline void __enable_irq()
+{
+  __asm volatile ("cpsie i" : : : "memory");
+}
+
+
+/** \brief  Disable IRQ Interrupts
+
+  This function disables IRQ interrupts by setting the I-bit in the CPSR.
+  Can only be executed in Privileged modes.
+ */
+__attribute__( ( always_inline ) ) static inline void __disable_irq()
+{
+  __asm volatile ("cpsid i" : : : "memory");
+}
+
 #endif
 
 class Mutex
@@ -187,7 +207,7 @@ namespace RTOSIface
 #ifdef RTOS
 		taskENTER_CRITICAL();
 #else
-		cpu_irq_disable();
+		__disable_irq();
 		++interruptCriticalSectionNesting;
 #endif
 	}
@@ -201,7 +221,7 @@ namespace RTOSIface
 		--interruptCriticalSectionNesting;
 		if (interruptCriticalSectionNesting == 0)
 		{
-			cpu_irq_enable();
+			__enable_irq();
 		}
 #endif
 	}
