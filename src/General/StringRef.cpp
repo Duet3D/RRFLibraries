@@ -90,6 +90,18 @@ bool StringRef::cat(const char* src) const
 	return overflow;
 }
 
+// Concatenate with a limit on the number of characters read
+bool StringRef::catn(const char *src, size_t n) const
+{
+	const size_t length = strlen();
+	const size_t slen = Strnlen(src, n);
+	const bool overflow = (length + slen >= len);
+	const size_t toCopy = (overflow) ? len - length - 1 : slen;
+	memcpy(p + length, src, toCopy);
+	p[length + toCopy] = 0;
+	return overflow;
+}
+
 // Append a character
 bool StringRef::cat(char c) const
 {

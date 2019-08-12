@@ -40,6 +40,7 @@ public:
 	bool copy(const char* src) const;						// returns true if buffer is too small
 	bool copy(const char *src, size_t maxlen) const;		// returns true if buffer is too small
 	bool cat(const char *src) const;						// returns true if buffer is too small
+	bool catn(const char *src, size_t n) const;				// returns true if buffer is too small
 	bool cat(char c) const;									// returns true if buffer is too small
 	size_t StripTrailingSpaces() const;
 	bool Prepend(const char *src) const;					// returns true if buffer is too small
@@ -72,6 +73,7 @@ public:
 	bool copy(const char *src) { return GetRef().copy(src); }	// returns true if buffer is too small
 	bool copy(const char *src, size_t maxlen) { return GetRef().copy(src, maxlen); }	// returns true if buffer is too small
 	bool cat(const char *src) { return GetRef().cat(src); }		// returns true if buffer is too small
+	bool catn(const char *src, size_t n) { return GetRef().catn(src, n); }		// returns true if buffer is too small
 	bool cat(char c) { return GetRef().cat(c); }				// returns true if buffer is too small
 	bool Prepend(const char *src);								// returns true if buffer is too small
 
