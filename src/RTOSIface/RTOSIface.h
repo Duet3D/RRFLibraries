@@ -130,8 +130,17 @@ public:
 		portYIELD_FROM_ISR(higherPriorityTaskWoken);
 	}
 
-	void Give() { xTaskNotifyGive(handle); }							// wake up this task from an ISR
-	static uint32_t Take(uint32_t timeout = TimeoutUnlimited) { return ulTaskNotifyTake(pdTRUE, timeout); }
+	// Wake up this task but not from an ISR
+	void Give()
+	{
+		xTaskNotifyGive(handle);
+	}
+
+	// Wait until we have been woken up
+	static uint32_t Take(uint32_t timeout = TimeoutUnlimited)
+	{
+		return ulTaskNotifyTake(pdTRUE, timeout);
+	}
 
 	static TaskHandle GetCallerTaskHandle() { return (TaskHandle)xTaskGetCurrentTaskHandle(); }
 
