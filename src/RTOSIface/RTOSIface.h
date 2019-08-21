@@ -198,7 +198,8 @@ class MutexLocker
 public:
 	MutexLocker(const Mutex *pm, uint32_t timeout = Mutex::TimeoutUnlimited);	// acquire lock
 	MutexLocker(const Mutex& pm, uint32_t timeout = Mutex::TimeoutUnlimited);	// acquire lock
-	void Release();															// release the lock early (else gets released by destructor)
+	void Release();																// release the lock early (also gets released by destructor)
+	bool ReAcquire(uint32_t timeout = Mutex::TimeoutUnlimited);					// acquire it again, if it isn't already owned (non-counting)
 	~MutexLocker();
 	operator bool() const { return acquired; }
 

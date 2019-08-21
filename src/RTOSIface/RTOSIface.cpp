@@ -77,7 +77,7 @@ MutexLocker::MutexLocker(const Mutex *m, uint32_t timeout)
 	handle = m;
 	acquired =
 #ifdef RTOS
-				m == nullptr || m->Take(timeout);
+				(m == nullptr) || m->Take(timeout);
 #else
 				true;
 #endif
@@ -94,26 +94,40 @@ MutexLocker::MutexLocker(const Mutex& m, uint32_t timeout)
 #endif
 }
 
+// Release the lock early (non-counting)
 void MutexLocker::Release()
 {
 #ifdef RTOS
-	if (acquired && handle != nullptr)
+	if (acquired)
 	{
-		handle->Release();
-		acquired = (handle->GetHolder() == TaskBase::GetCallerTaskHandle());
+		if (handle != nullptr)
+		{
+			handle->Release();
+		}
+		acquired = false;
 	}
+#else
+	acquired = false;
 #endif
+}
+
+// Acquire it again, if it isn't already owned (non-counting)
+bool MutexLocker::ReAcquire(uint32_t timeout)
+{
+#ifdef RTOS
+	if (!acquired)
+	{
+		acquired = (handle == nullptr) || handle->Take(timeout);
+	}
+#else
+	acquired = true;
+#endif
+	return acquired;
 }
 
 MutexLocker::~MutexLocker()
 {
 	Release();
-#ifdef RTOS
-	if (acquired && handle != nullptr)
-	{
-		handle->Release();
-	}
-#endif
 }
 
 #ifdef RTOS
