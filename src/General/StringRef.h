@@ -36,11 +36,14 @@ public:
 	int printf(const char *fmt, ...) const __attribute__ ((format (printf, 2, 3)));
 	int vprintf(const char *fmt, va_list vargs) const;
 	int catf(const char *fmt, ...) const __attribute__ ((format (printf, 2, 3)));
+	int lcatf(const char *fmt, ...) const __attribute__ ((format (printf, 2, 3)));
 	int vcatf(const char *fmt, va_list vargs) const;
 	bool copy(const char* src) const;						// returns true if buffer is too small
 	bool copy(const char *src, size_t maxlen) const;		// returns true if buffer is too small
 	bool cat(const char *src) const;						// returns true if buffer is too small
+	bool lcat(const char *src) const;						// returns true if buffer is too small
 	bool catn(const char *src, size_t n) const;				// returns true if buffer is too small
+	bool lcatn(const char *src, size_t n) const;			// returns true if buffer is too small
 	bool cat(char c) const;									// returns true if buffer is too small
 	size_t StripTrailingSpaces() const;
 	bool Prepend(const char *src) const;					// returns true if buffer is too small

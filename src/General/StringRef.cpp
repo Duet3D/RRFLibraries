@@ -46,6 +46,29 @@ int StringRef::catf(const char *fmt, ...) const
 	return 0;
 }
 
+// This is like catf but it adds a newline first if the string being appended to is not empty. Useful for building error messages that may describe more than one error.
+int StringRef::lcatf(const char *fmt, ...) const
+{
+	size_t n = strlen();
+	if (n != 0)
+	{
+		if (cat('\n'))
+		{
+			return 0;
+		}
+		++n;
+	}
+	if (n + 1 < len)		// if room for at least 1 more character and a null
+	{
+		va_list vargs;
+		va_start(vargs, fmt);
+		const int ret = SafeVsnprintf(p + n, len - n, fmt, vargs);
+		va_end(vargs);
+		return ret + n;
+	}
+	return 0;
+}
+
 int StringRef::vcatf(const char *fmt, va_list vargs) const
 {
 	const size_t n = strlen();
@@ -90,6 +113,19 @@ bool StringRef::cat(const char* src) const
 	return overflow;
 }
 
+// As cat but add a newline first if the string being appended to is not empty
+bool StringRef::lcat(const char* src) const
+{
+	if (!IsEmpty())
+	{
+		if (cat('\n'))
+		{
+			return true;
+		}
+	}
+	return cat(src);
+}
+
 // Concatenate with a limit on the number of characters read
 bool StringRef::catn(const char *src, size_t n) const
 {
@@ -100,6 +136,19 @@ bool StringRef::catn(const char *src, size_t n) const
 	memcpy(p + length, src, toCopy);
 	p[length + toCopy] = 0;
 	return overflow;
+}
+
+// As catn but add a newline first if the string being appended to is not empty
+bool StringRef::lcatn(const char *src, size_t n) const
+{
+	if (!IsEmpty())
+	{
+		if (cat('\n'))
+		{
+			return true;
+		}
+	}
+	return catn(src, n);
 }
 
 // Append a character
