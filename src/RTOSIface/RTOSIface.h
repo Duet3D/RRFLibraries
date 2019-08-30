@@ -136,6 +136,11 @@ public:
 		xTaskNotifyGive(handle);
 	}
 
+	static void Give(TaskHandle handle)
+	{
+		xTaskNotifyGive(handle);
+	}
+
 	// Wait until we have been woken up
 	static uint32_t Take(uint32_t timeout = TimeoutUnlimited)
 	{
