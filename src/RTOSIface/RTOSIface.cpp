@@ -180,7 +180,7 @@ void TaskBase::TerminateAndUnlink()
 			return (*tpp)->taskId;
 		}
 	}
-	return 0;				// won't happen unless the current task hasn't been linked nito the task list
+	return 0;				// won't happen unless the current task hasn't been linked into the task list
 }
 
 #endif
