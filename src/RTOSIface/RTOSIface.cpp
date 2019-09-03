@@ -12,6 +12,7 @@
 # include "FreeRTOS.h"
 # include "task.h"
 # include "semphr.h"
+# include <atomic>
 
 static_assert(Mutex::TimeoutUnlimited == portMAX_DELAY, "Bad value for TimeoutUnlimited");
 
@@ -204,6 +205,63 @@ namespace RTOSIface
 
 #endif
 
+}
+
+void ReadWriteLock::LockForReading()
+{
+#ifdef RTOS
+	for (;;)
+	{
+		uint8_t nr = numReaders;
+		if (nr & 0x80)
+		{
+			vTaskDelay(1);					// delay while writing is pending or active
+		}
+		else if (numReaders.compare_exchange_strong(nr, nr + 1))
+		{
+			break;
+		}
+	}
+#endif
+}
+
+void ReadWriteLock::ReleaseReader()
+{
+#ifdef RTOS
+	--numReaders;
+#endif
+}
+
+void ReadWriteLock::LockForWriting()
+{
+#ifdef RTOS
+	// First wait for other writers to finish, then grab the write lock
+	for (;;)
+	{
+		uint8_t nr = numReaders;
+		if (nr & 0x80)
+		{
+			vTaskDelay(1);					// delay while writing is pending or active
+		}
+		else if (numReaders.compare_exchange_strong(nr, nr | 0x80))
+		{
+			break;
+		}
+	}
+
+	// Now wait for readers to finish
+	while (numReaders != 0x80)
+	{
+		vTaskDelay(1);
+	}
+#endif
+}
+
+void ReadWriteLock::ReleaseWriter()
+{
+#ifdef RTOS
+	numReaders = 0;
+#endif
 }
 
 // End
