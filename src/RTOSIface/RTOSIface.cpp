@@ -132,6 +132,21 @@ MutexLocker::~MutexLocker()
 
 #ifdef RTOS
 
+BinarySemaphore::BinarySemaphore()
+{
+	 handle = xSemaphoreCreateBinaryStatic(&storage);
+}
+
+bool BinarySemaphore::Take(uint32_t timeout) const
+{
+	return xSemaphoreTake(handle, timeout);
+}
+
+bool BinarySemaphore::Give() const
+{
+	return xSemaphoreGive(handle);
+}
+
 // Link the task into the thread list and allocate a short task ID to it. Task IDs start at 1.
 void TaskBase::AddToList()
 {

@@ -87,6 +87,24 @@ private:
 
 };
 
+class BinarySemaphore
+{
+public:
+	BinarySemaphore();
+
+	bool Take(uint32_t timeout = TimeoutUnlimited) const;
+	bool Give() const;
+
+	static constexpr uint32_t TimeoutUnlimited = 0xFFFFFFFF;
+
+private:
+
+#ifdef RTOS
+	SemaphoreHandle_t handle;
+	StaticSemaphore_t storage;
+#endif
+};
+
 #ifdef RTOS
 
 class TaskBase
@@ -132,11 +150,6 @@ public:
 
 	// Wake up this task but not from an ISR
 	void Give()
-	{
-		xTaskNotifyGive(handle);
-	}
-
-	static void Give(TaskHandle handle)
 	{
 		xTaskNotifyGive(handle);
 	}
