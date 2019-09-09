@@ -22,14 +22,14 @@ typedef Task_undefined *TaskHandle;
 # include "task.h"
 # include "semphr.h"
 # include <atomic>
-#else
+#endif
 
 /** \brief  Enable IRQ Interrupts
 
   This function enables IRQ interrupts by clearing the I-bit in the CPSR.
   Can only be executed in Privileged modes.
  */
-__attribute__( ( always_inline ) ) static inline void __enable_irq()
+__attribute__( ( always_inline ) ) static inline void EnableInterrupts()
 {
   __asm volatile ("cpsie i" : : : "memory");
 }
@@ -40,12 +40,10 @@ __attribute__( ( always_inline ) ) static inline void __enable_irq()
   This function disables IRQ interrupts by setting the I-bit in the CPSR.
   Can only be executed in Privileged modes.
  */
-__attribute__( ( always_inline ) ) static inline void __disable_irq()
+__attribute__( ( always_inline ) ) static inline void DisableInterrupts()
 {
   __asm volatile ("cpsid i" : : : "memory");
 }
-
-#endif
 
 class Mutex
 {
@@ -249,7 +247,7 @@ namespace RTOSIface
 #ifdef RTOS
 		taskENTER_CRITICAL();
 #else
-		__disable_irq();
+		DisableInterrupts();
 		++interruptCriticalSectionNesting;
 #endif
 	}
@@ -263,7 +261,7 @@ namespace RTOSIface
 		--interruptCriticalSectionNesting;
 		if (interruptCriticalSectionNesting == 0)
 		{
-			__enable_irq();
+			EnableInterrupts();
 		}
 #endif
 	}
@@ -335,8 +333,10 @@ public:
 private:
 
 #ifdef RTOS
+# if __SAMC21G18A__
+	volatile uint8_t numReaders;			// SAMC21 doesn't support atomic operations, neither does the library
+# else
 	std::atomic_uint8_t numReaders;			// MSB is set if a task is writing or write pending, lower bits are the number of readers
-# if !__SAMC21G18A__
 	static_assert(std::atomic_uint8_t::is_always_lock_free);
 # endif
 #endif
