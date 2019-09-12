@@ -227,7 +227,7 @@ void ReadWriteLock::LockForReading()
 #ifdef RTOS
 	for (;;)
 	{
-# if __SAMC21G18A__
+# if RRFLIBS_SAMC21
 		DisableInterrupts();
 		const uint8_t nr = numReaders;
 		if ((nr & 0x80) == 0)
@@ -256,7 +256,7 @@ void ReadWriteLock::LockForReading()
 void ReadWriteLock::ReleaseReader()
 {
 #ifdef RTOS
-# if __SAMC21G18A__
+# if RRFLIBS_SAMC21
 	DisableInterrupts();
 	--numReaders;
 	EnableInterrupts();
@@ -272,7 +272,7 @@ void ReadWriteLock::LockForWriting()
 	// First wait for other writers to finish, then grab the write lock
 	for (;;)
 	{
-# if __SAMC21G18A__
+# if RRFLIBS_SAMC21
 		DisableInterrupts();
 		const uint8_t nr = numReaders;
 		if ((nr & 0x80) == 0)

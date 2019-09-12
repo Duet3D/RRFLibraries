@@ -24,6 +24,8 @@ typedef Task_undefined *TaskHandle;
 # include <atomic>
 #endif
 
+#define RRFLIBS_SAMC21	(defined(__SAMC21G18A__) && __SAMC21G18A__)
+
 /** \brief  Enable IRQ Interrupts
 
   This function enables IRQ interrupts by clearing the I-bit in the CPSR.
@@ -333,7 +335,7 @@ public:
 private:
 
 #ifdef RTOS
-# if __SAMC21G18A__
+# if RRFLIBS_SAMC21
 	volatile uint8_t numReaders;			// SAMC21 doesn't support atomic operations, neither does the library
 # else
 	std::atomic_uint8_t numReaders;			// MSB is set if a task is writing or write pending, lower bits are the number of readers
