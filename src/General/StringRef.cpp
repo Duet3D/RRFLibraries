@@ -219,17 +219,19 @@ bool StringRef::Insert(size_t pos, char c) const
 	{
 		return false;										// insert point is out of range, but return success anyway
 	}
-	else if (slen + 1 < len)
+
+	if (slen + 1 < len)										// check there is space for the existing string + null + inserted character
 	{
 		// There is space for the extra character
 		memmove(p + pos + 1, p + pos, slen - pos + 1);		// copy the data up including the null terminator
 		p[pos] = c;
 		return false;
 	}
-	else if (pos < len)
+
+	if (pos < slen)
 	{
 		// The buffer is full, but we haven't been asked to insert the character right at the end
-		memmove(p + pos + 1, p + pos, slen - pos - 1);		// leave the null terminator intact
+		memmove(p + pos + 1, p + pos, slen - pos - 1);		// leave the null terminator intact and drop the last character
 		p[pos] = c;
 	}
 	return true;
