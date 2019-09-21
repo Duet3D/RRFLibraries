@@ -135,20 +135,26 @@ public:
 	void Resume() const { vTaskResume(handle); }
 	const TaskBase *GetNext() const { return next; }
 
-	// Wake up this task from an ISR
-	void GiveFromISR()
-	{
-		BaseType_t higherPriorityTaskWoken = pdFALSE;
-		vTaskNotifyGiveFromISR(handle, &higherPriorityTaskWoken);
-		portYIELD_FROM_ISR(higherPriorityTaskWoken);
-	}
-
 	// Wake up a task identified by its handle from an ISR
 	static inline void GiveFromISR(TaskHandle h)
 	{
-		BaseType_t higherPriorityTaskWoken = pdFALSE;
-		vTaskNotifyGiveFromISR(h, &higherPriorityTaskWoken);
-		portYIELD_FROM_ISR(higherPriorityTaskWoken);
+		if (h != nullptr)			// check that the task has been created
+		{
+			BaseType_t higherPriorityTaskWoken = pdFALSE;
+			vTaskNotifyGiveFromISR(h, &higherPriorityTaskWoken);
+			portYIELD_FROM_ISR(higherPriorityTaskWoken);
+		}
+	}
+
+	// Wake up this task from an ISR
+	void GiveFromISR()
+	{
+		if (handle != nullptr)			// check that the task has been created
+		{
+			BaseType_t higherPriorityTaskWoken = pdFALSE;
+			vTaskNotifyGiveFromISR(handle, &higherPriorityTaskWoken);
+			portYIELD_FROM_ISR(higherPriorityTaskWoken);
+		}
 	}
 
 	// Wake up this task but not from an ISR

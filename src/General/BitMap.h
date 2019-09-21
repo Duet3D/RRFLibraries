@@ -60,4 +60,78 @@ template<typename BitmapType> BitmapType UnsignedArrayToBitMap(const uint32_t *a
 	return res;
 }
 
+// Find the lowest set bit. Returns the lowest set bit number, undefined if no bits are set.
+// GCC provides intrinsics, but unhelpfully they are in terms of int, long and long long instead of uint32_t, uint64_t etc.
+inline unsigned int LowestSetBit(unsigned int val)
+{
+	return (unsigned int)__builtin_ctz(val);
+}
+
+inline unsigned int LowestSetBit(unsigned long val)
+{
+	return (unsigned int)__builtin_ctzl(val);
+}
+
+inline unsigned int LowestSetBit(unsigned long long val)
+{
+	return (unsigned int)__builtin_ctzll(val);
+}
+
+// Class to hold a bitmap that won't fit into a single object f integral type
+template<unsigned int N> class LargeBitmap
+{
+public:
+	void ClearAll();
+
+	void SetBit(unsigned int n)
+	{
+		if (n < N)
+		{
+			data[n >> 5] |= (1ul << (n & 31));
+		}
+	}
+
+	void ClearBit(unsigned int n)
+	{
+		if (n < N)
+		{
+			data[n >> 5] &= ~(1ul << (n & 31));
+		}
+	}
+
+	bool IsBitSet(unsigned int n) const
+	{
+		return n < N && (data[n >> 5] & (1ul << (n & 31))) != 0;
+	}
+
+	unsigned int FindLowestSetBit() const;
+
+	static constexpr unsigned int NumBits() { return N; }
+
+private:
+	static constexpr size_t numDwords = (N + 31/32);
+
+	uint32_t data[numDwords];
+};
+
+template<unsigned int N> void LargeBitmap<N>::ClearAll()
+{
+	for (uint32_t& v : data)
+	{
+		v = 0;
+	}
+}
+
+template<unsigned int N> unsigned int LargeBitmap<N>::FindLowestSetBit() const
+{
+	for (unsigned int i = 0; i < numDwords; ++i)
+	{
+		if (data[i] != 0)
+		{
+			return (i << 5) + LowestSetBit(data[i]);
+		}
+	}
+	return N;
+}
+
 #endif /* SRC_GENERAL_BITMAP_H_ */
