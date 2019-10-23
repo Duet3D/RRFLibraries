@@ -225,30 +225,33 @@ namespace RTOSIface
 void ReadWriteLock::LockForReading()
 {
 #ifdef RTOS
-	for (;;)
+	if (writeLockOwner != TaskBase::GetCallerTaskHandle())
 	{
+		for (;;)
+		{
 # if RRFLIBS_SAMC21
-		DisableInterrupts();
-		const uint8_t nr = numReaders;
-		if ((nr & 0x80) == 0)
-		{
-			numReaders = nr + 1;
+			DisableInterrupts();
+			const uint8_t nr = numReaders;
+			if ((nr & 0x80) == 0)
+			{
+				numReaders = nr + 1;
+				EnableInterrupts();
+				break;
+			}
 			EnableInterrupts();
-			break;
-		}
-		EnableInterrupts();
-		vTaskDelay(1);
+			vTaskDelay(1);
 # else
-		uint8_t nr = numReaders;
-		if (nr & 0x80)
-		{
-			vTaskDelay(1);					// delay while writing is pending or active
-		}
-		else if (numReaders.compare_exchange_strong(nr, nr + 1))
-		{
-			break;
-		}
+			uint8_t nr = numReaders;
+			if (nr & 0x80)
+			{
+				vTaskDelay(1);					// delay while writing is pending or active
+			}
+			else if (numReaders.compare_exchange_strong(nr, nr + 1))
+			{
+				break;
+			}
 # endif
+		}
 	}
 #endif
 }
@@ -256,13 +259,16 @@ void ReadWriteLock::LockForReading()
 void ReadWriteLock::ReleaseReader()
 {
 #ifdef RTOS
+	if (writeLockOwner != TaskBase::GetCallerTaskHandle())
+	{
 # if RRFLIBS_SAMC21
-	DisableInterrupts();
-	--numReaders;
-	EnableInterrupts();
+		DisableInterrupts();
+		--numReaders;
+		EnableInterrupts();
 # else
-	--numReaders;
+		--numReaders;
 # endif
+	}
 #endif
 }
 
@@ -301,13 +307,35 @@ void ReadWriteLock::LockForWriting()
 	{
 		vTaskDelay(1);
 	}
+
+	writeLockOwner = TaskBase::GetCallerTaskHandle();
 #endif
 }
 
 void ReadWriteLock::ReleaseWriter()
 {
 #ifdef RTOS
-	numReaders = 0;
+	if (writeLockOwner == TaskBase::GetCallerTaskHandle())
+	{
+		writeLockOwner = nullptr;
+		numReaders = 0;
+	}
+	else if ((numReaders & 0x7F) != 0)
+	{
+		// We must have downgraded to a read lock
+		--numReaders;
+	}
+#endif
+}
+
+void ReadWriteLock::DowngradeWriter()
+{
+#ifdef RTOS
+	if (writeLockOwner == TaskBase::GetCallerTaskHandle())
+	{
+		numReaders = 1;
+		writeLockOwner = nullptr;
+	}
 #endif
 }
 

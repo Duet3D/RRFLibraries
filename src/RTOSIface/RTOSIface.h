@@ -324,12 +324,17 @@ public:
 
 // Class to represent a lock that allows multiple readers but only one writer
 // This is designed to be efficient when writing is rare
+// Rules:
+// - Read locks are recursive. You can request a read lock on an object multiple times, but you must release it the same number of times.
+// - Write locks are not recursive.
+// - If you have a write lock on an object, you can request a read lock on the same object and it will be granted automatically.
+// - If you have a read lock, you can't ask for a write lock on the same object, it will deadlock if you do.
 class ReadWriteLock
 {
 public:
 	ReadWriteLock()
 #ifdef RTOS
-		: numReaders(0)
+		: numReaders(0), writeLockOwner(nullptr)
 #endif
 	{ }
 
@@ -337,6 +342,7 @@ public:
 	void ReleaseReader();
 	void LockForWriting();
 	void ReleaseWriter();
+	void DowngradeWriter();					// turn a write lock into a read lock (but you can't go back again)
 
 private:
 
@@ -347,6 +353,7 @@ private:
 	std::atomic_uint8_t numReaders;			// MSB is set if a task is writing or write pending, lower bits are the number of readers
 	static_assert(std::atomic_uint8_t::is_always_lock_free);
 # endif
+	volatile TaskHandle writeLockOwner;		// handle of the task that owns the write lock
 #endif
 };
 
@@ -368,6 +375,8 @@ class WriteLocker
 public:
 	WriteLocker(ReadWriteLock& p_lock) : lock(&p_lock) { lock->LockForWriting(); }
 	~WriteLocker() { if (lock != nullptr) { lock->ReleaseWriter(); } }
+
+	void Downgrade() { if (lock != nullptr) { lock->DowngradeWriter(); } }
 
 	WriteLocker(const WriteLocker&) = delete;
 	WriteLocker(WriteLocker&& other) : lock(other.lock) { other.lock = nullptr; }
