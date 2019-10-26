@@ -119,7 +119,6 @@ public:
 	typedef uint32_t TaskId;
 
 	TaskBase() : handle(nullptr), next(nullptr) { }
-	~TaskBase() { TerminateAndUnlink(); }
 
 	// Get the short-form task ID. This is a small number, used to send a task ID in 1 byte or less i a CAN packet. It is guaranteed not to be zero.
 	TaskId GetTaskId() const { return taskId; }
@@ -127,8 +126,6 @@ public:
 	// This function is called directly for tasks that are created by FreeRTOS, so it must be public
 	// Link the task into the thread list and allocate a short task ID to it
 	void AddToList();
-
-	void TerminateAndUnlink();
 
 	TaskHandle GetHandle() const { return static_cast<TaskHandle>(handle); }
 	void Suspend() const { vTaskSuspend(handle); }
@@ -400,5 +397,67 @@ private:
 	ReadLocker locker;
 	T* ptr;
 };
+
+#ifdef RTOS
+
+// Queue support
+class QueueBase
+{
+public:
+	QueueBase() : handle(nullptr), next(nullptr), name(nullptr) { }
+
+	const QueueBase *GetNext() const { return next; }
+
+	static const QueueBase *GetThread() { return thread; }
+
+protected:
+	QueueHandle_t handle;
+	QueueBase *next;
+	const char *name;
+	StaticQueue_t storage;
+
+	static QueueBase *thread;
+};
+
+template <class Message> class Queue : public QueueBase
+{
+public:
+	Queue() : messageStorage(nullptr) { }
+
+	void Create(const char *p_name, size_t capacity);
+	bool PutToBack(const Message &m, uint32_t timeout);
+	bool PutToFront(const Message &m, uint32_t timeout);
+	bool Get(Message& m, uint32_t timeout);
+	bool IsValid() const { return handle != nullptr; }
+
+private:
+	uint8_t *messageStorage;
+};
+
+template <class Message> void Queue<Message>::Create(const char *p_name, size_t capacity)
+{
+	if (handle == nullptr)
+	{
+		messageStorage = new uint8_t[capacity * sizeof(Message)];
+		handle = xQueueCreateStatic(capacity, sizeof(Message), messageStorage, &storage);
+	}
+}
+
+template <class Message> bool Queue<Message>::PutToBack(const Message &m, uint32_t timeout)
+{
+	return xQueueSendToBack(handle, &m, timeout) == pdTRUE;
+}
+
+template <class Message> bool Queue<Message>::PutToFront(const Message &m, uint32_t timeout)
+{
+	return xQueueSendToFront(handle, &m, timeout) == pdTRUE;
+}
+
+template <class Message> bool Queue<Message>::Get(Message& m, uint32_t timeout)
+{
+	return xQueueReceive(handle, &m, timeout) == pdTRUE;
+}
+
+#endif
 
 #endif /* SRC_RTOSIFACE_H_ */

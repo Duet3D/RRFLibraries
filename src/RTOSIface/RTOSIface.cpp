@@ -160,27 +160,6 @@ void TaskBase::AddToList()
 	taskList = this;
 }
 
-// Terminate a task and remove it from the thread list
-void TaskBase::TerminateAndUnlink()
-{
-	if (handle != nullptr)
-	{
-		vTaskDelete(handle);
-		handle = nullptr;
-
-		// Unlink the task from the thread list
-		TaskCriticalSectionLocker lock;
-		for (TaskBase** tpp = &taskList; *tpp != nullptr; tpp = &(*tpp)->next)
-		{
-			if (*tpp == this)
-			{
-				*tpp = (*tpp)->next;
-				break;
-			}
-		}
-	}
-}
-
 // Get the short-form task ID
 /*static*/ TaskBase::TaskId TaskBase::GetCallerTaskId()
 {
