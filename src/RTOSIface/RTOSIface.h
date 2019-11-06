@@ -358,6 +358,7 @@ class ReadLocker
 {
 public:
 	ReadLocker(ReadWriteLock& p_lock) : lock(&p_lock) { lock->LockForReading(); }
+	ReadLocker(ReadWriteLock *p_lock) : lock(p_lock) { if (lock != nullptr) { lock->LockForReading(); } }
 	~ReadLocker() { if (lock != nullptr) { lock->ReleaseReader(); } }
 
 	ReadLocker(const ReadLocker&) = delete;
