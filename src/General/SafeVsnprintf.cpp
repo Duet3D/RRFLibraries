@@ -205,14 +205,13 @@ static bool printll(SStringBuf& apBuf, long long i)
 	*s = '\0';
 	while (u != 0)
 	{
-		const lldiv_t lldiv_result = lldiv(u, (long long)apBuf.flags.base);
-		unsigned int t = lldiv_result.rem;
+		unsigned int t = u % (unsigned int)apBuf.flags.base;
+		u /= (unsigned int)apBuf.flags.base;
 		if (t >= 10)
 		{
 			t += apBuf.flags.letBase - '0' - 10;
 		}
 		*--s = t + '0';
-		u = lldiv_result.quot;
 	}
 
 	if (neg)
