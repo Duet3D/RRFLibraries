@@ -6,7 +6,7 @@ uint32_t isqrt64(uint64_t num)
 	uint32_t numHigh = (uint32_t)(num >> 32);
 	if (numHigh == 0)
 	{
-		// 32-bit square root - thanks to Wilco Dijksra for this efficient ARM algorithm
+		// 32-bit square root - thanks to Wilco Dijkstra for this efficient ARM algorithm
 		uint32_t num32 = (uint32_t)num;
 		uint32_t res = 0;
 

@@ -9,6 +9,7 @@
 #define SRC_GENERAL_PORTABILITY_H_
 
 #include <cstdint>
+#include <cstddef>
 
 // Functions to allow for processor differences, e.g. endianness and alignment requirements
 
@@ -79,5 +80,82 @@ static inline void StoreBE16(void *p, uint16_t val)
 	*bp++ = (uint8_t)(val >> 8);
 	*bp = (uint8_t)val;
 }
+
+// Template class to declare members as unaligned so as to avoid unaligned memory accesses when reading or writing them
+template<class T> class Unaligned
+{
+public:
+	Unaligned(const Unaligned<T>& arg);
+	Unaligned(const T& arg);
+
+	Unaligned<T>& operator=(const T& rhs);
+	Unaligned<T>& operator=(const Unaligned<T>& rhs);
+
+	T Get() const;
+
+private:
+	T val;
+};
+
+template<class T> Unaligned<T>::Unaligned(const Unaligned<T>& arg)
+{
+	char *p = &arg.val, *q = &val;
+	for (size_t i = 0; i < sizeof(T); ++i)
+	{
+		*q++ = *p++;
+	}
+}
+
+template<class T> Unaligned<T>::Unaligned(const T& arg)
+{
+	char *p = &arg, *q = &val;
+	for (size_t i = 0; i < sizeof(T); ++i)
+	{
+		*q++ = *p++;
+	}
+}
+
+template<class T> Unaligned<T>& Unaligned<T>::operator=(const T& rhs)
+{
+	char *p = &rhs, *q = &val;
+	for (size_t i = 0; i < sizeof(T); ++i)
+	{
+		*q++ = *p++;
+	}
+	return *this;
+}
+
+template<class T> Unaligned<T>& Unaligned<T>::operator=(const Unaligned<T>& rhs)
+{
+	char *p = &rhs.val, *q = &val;
+	for (size_t i = 0; i < sizeof(T); ++i)
+	{
+		*q++ = *p++;
+	}
+	return *this;
+}
+
+template<class T> T Unaligned<T>::Get() const
+{
+	T ret;
+	char *p = &val, *q = &ret;
+	for (size_t i = 0; i < sizeof(T); ++i)
+	{
+		*q++ = *p++;
+	}
+	return ret;
+}
+
+// Pointer to unaligned object
+template<class T> class UnalignedPointer
+{
+public:
+	UnalignedPointer(char* pp) : p(pp) { }
+
+	Unaligned<T>& operator*() { return *reinterpret_cast<Unaligned<T>*>(p); }
+
+private:
+	char *p;
+};
 
 #endif /* SRC_GENERAL_PORTABILITY_H_ */
