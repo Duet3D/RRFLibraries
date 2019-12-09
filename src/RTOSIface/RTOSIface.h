@@ -119,6 +119,7 @@ public:
 	typedef uint32_t TaskId;
 
 	TaskBase() : handle(nullptr), next(nullptr) { }
+	~TaskBase() { TerminateAndUnlink(); }
 
 	// Get the short-form task ID. This is a small number, used to send a task ID in 1 byte or less i a CAN packet. It is guaranteed not to be zero.
 	TaskId GetTaskId() const { return taskId; }
@@ -126,6 +127,7 @@ public:
 	// This function is called directly for tasks that are created by FreeRTOS, so it must be public
 	// Link the task into the thread list and allocate a short task ID to it
 	void AddToList();
+	void TerminateAndUnlink();
 
 	TaskHandle GetHandle() const { return static_cast<TaskHandle>(handle); }
 	void Suspend() const { vTaskSuspend(handle); }
