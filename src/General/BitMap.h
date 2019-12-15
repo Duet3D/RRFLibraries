@@ -16,37 +16,37 @@
 // The primary purpose of these is to allow us to switch between 16, 32 and 64-bit bitmaps.
 
 // Convert an unsigned integer to a bit in a bitmap
-template<typename BitmapType> inline constexpr BitmapType MakeBitmap(unsigned int n)
+template<typename BitmapType> inline constexpr BitmapType MakeBitmap(unsigned int n) noexcept
 {
 	return (BitmapType)1u << n;
 }
 
 // Make a bitmap with the lowest n bits set
-template<typename BitmapType> inline constexpr BitmapType LowestNBits(unsigned int n)
+template<typename BitmapType> inline constexpr BitmapType LowestNBits(unsigned int n) noexcept
 {
 	return ((BitmapType)1u << n) - 1;
 }
 
 // Check if a particular bit is set in a bitmap
-template<typename BitmapType> inline constexpr bool IsBitSet(BitmapType b, unsigned int n)
+template<typename BitmapType> inline constexpr bool IsBitSet(BitmapType b, unsigned int n) noexcept
 {
 	return (b & ((BitmapType)1u << n)) != 0;
 }
 
 // Set a bit in a bitmap
-template<typename BitmapType> inline void SetBit(BitmapType &b, unsigned int n)
+template<typename BitmapType> inline void SetBit(BitmapType &b, unsigned int n) noexcept
 {
 	b |= ((BitmapType)1u << n);
 }
 
 // Clear a bit in a bitmap
-template<typename BitmapType> inline void ClearBit(BitmapType &b, unsigned int n)
+template<typename BitmapType> inline void ClearBit(BitmapType &b, unsigned int n) noexcept
 {
 	b &= ~((BitmapType)1u << n);
 }
 
 // Convert an array of longs to a bit map with overflow checking
-template<typename BitmapType> BitmapType UnsignedArrayToBitMap(const uint32_t *arr, size_t numEntries)
+template<typename BitmapType> BitmapType UnsignedArrayToBitMap(const uint32_t *arr, size_t numEntries) noexcept
 {
 	BitmapType res = 0;
 	for (size_t i = 0; i < numEntries; ++i)
@@ -62,22 +62,22 @@ template<typename BitmapType> BitmapType UnsignedArrayToBitMap(const uint32_t *a
 
 // Find the lowest set bit. Returns the lowest set bit number, undefined if no bits are set.
 // GCC provides intrinsics, but unhelpfully they are in terms of int, long and long long instead of uint32_t, uint64_t etc.
-inline unsigned int LowestSetBit(unsigned short int val)
+inline unsigned int LowestSetBit(unsigned short int val) noexcept
 {
 	return (unsigned int)__builtin_ctz(val);
 }
 
-inline unsigned int LowestSetBit(unsigned int val)
+inline unsigned int LowestSetBit(unsigned int val) noexcept
 {
 	return (unsigned int)__builtin_ctz(val);
 }
 
-inline unsigned int LowestSetBit(unsigned long val)
+inline unsigned int LowestSetBit(unsigned long val) noexcept
 {
 	return (unsigned int)__builtin_ctzl(val);
 }
 
-inline unsigned int LowestSetBit(unsigned long long val)
+inline unsigned int LowestSetBit(unsigned long long val) noexcept
 {
 	return (unsigned int)__builtin_ctzll(val);
 }
@@ -86,9 +86,9 @@ inline unsigned int LowestSetBit(unsigned long long val)
 template<unsigned int N> class LargeBitmap
 {
 public:
-	void ClearAll();
+	void ClearAll() noexcept;
 
-	void SetBit(unsigned int n)
+	void SetBit(unsigned int n) noexcept
 	{
 		if (n < N)
 		{
@@ -96,7 +96,7 @@ public:
 		}
 	}
 
-	void ClearBit(unsigned int n)
+	void ClearBit(unsigned int n) noexcept
 	{
 		if (n < N)
 		{
@@ -104,14 +104,14 @@ public:
 		}
 	}
 
-	bool IsBitSet(unsigned int n) const
+	bool IsBitSet(unsigned int n) const noexcept
 	{
 		return n < N && (data[n >> 5] & (1ul << (n & 31))) != 0;
 	}
 
-	unsigned int FindLowestSetBit() const;
+	unsigned int FindLowestSetBit() const noexcept;
 
-	static constexpr unsigned int NumBits() { return N; }
+	static constexpr unsigned int NumBits() noexcept { return N; }
 
 private:
 	static constexpr size_t numDwords = (N + 31/32);
@@ -119,7 +119,7 @@ private:
 	uint32_t data[numDwords];
 };
 
-template<unsigned int N> void LargeBitmap<N>::ClearAll()
+template<unsigned int N> void LargeBitmap<N>::ClearAll() noexcept
 {
 	for (uint32_t& v : data)
 	{
@@ -127,7 +127,7 @@ template<unsigned int N> void LargeBitmap<N>::ClearAll()
 	}
 }
 
-template<unsigned int N> unsigned int LargeBitmap<N>::FindLowestSetBit() const
+template<unsigned int N> unsigned int LargeBitmap<N>::FindLowestSetBit() const noexcept
 {
 	for (unsigned int i = 0; i < numDwords; ++i)
 	{

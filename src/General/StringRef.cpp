@@ -13,12 +13,12 @@
 //*************************************************************************************************
 // StringRef class member implementations
 
-size_t StringRef::strlen() const
+size_t StringRef::strlen() const noexcept
 {
 	return Strnlen(p, len - 1);
 }
 
-int StringRef::printf(const char *fmt, ...) const
+int StringRef::printf(const char *fmt, ...) const noexcept
 {
 	va_list vargs;
 	va_start(vargs, fmt);
@@ -27,12 +27,12 @@ int StringRef::printf(const char *fmt, ...) const
 	return ret;
 }
 
-int StringRef::vprintf(const char *fmt, va_list vargs) const
+int StringRef::vprintf(const char *fmt, va_list vargs) const noexcept
 {
 	return SafeVsnprintf(p, len, fmt, vargs);
 }
 
-int StringRef::catf(const char *fmt, ...) const
+int StringRef::catf(const char *fmt, ...) const noexcept
 {
 	const size_t n = strlen();
 	if (n + 1 < len)		// if room for at least 1 more character and a null
@@ -47,7 +47,7 @@ int StringRef::catf(const char *fmt, ...) const
 }
 
 // This is like catf but it adds a newline first if the string being appended to is not empty. Useful for building error messages that may describe more than one error.
-int StringRef::lcatf(const char *fmt, ...) const
+int StringRef::lcatf(const char *fmt, ...) const noexcept
 {
 	size_t n = strlen();
 	if (n != 0)
@@ -69,7 +69,7 @@ int StringRef::lcatf(const char *fmt, ...) const
 	return 0;
 }
 
-int StringRef::vcatf(const char *fmt, va_list vargs) const
+int StringRef::vcatf(const char *fmt, va_list vargs) const noexcept
 {
 	const size_t n = strlen();
 	if (n + 1 < len)		// if room for at least 1 more character and a null
@@ -80,7 +80,7 @@ int StringRef::vcatf(const char *fmt, va_list vargs) const
 }
 
 // This is quicker than printf for printing constant strings
-bool StringRef::copy(const char* src) const
+bool StringRef::copy(const char* src) const noexcept
 {
 	const size_t slen = ::strlen(src);
 	const bool overflow = (slen >= len);
@@ -91,7 +91,7 @@ bool StringRef::copy(const char* src) const
 }
 
 // This is quicker than printf for printing constant strings
-bool StringRef::copy(const char* src, size_t maxlen) const
+bool StringRef::copy(const char* src, size_t maxlen) const noexcept
 {
 	const size_t slen = Strnlen(src, maxlen);
 	const bool overflow = (slen >= len);
@@ -102,7 +102,7 @@ bool StringRef::copy(const char* src, size_t maxlen) const
 }
 
 // This is quicker than catf for printing constant strings
-bool StringRef::cat(const char* src) const
+bool StringRef::cat(const char* src) const noexcept
 {
 	const size_t length = strlen();
 	const size_t slen = ::strlen(src);
@@ -114,7 +114,7 @@ bool StringRef::cat(const char* src) const
 }
 
 // As cat but add a newline first if the string being appended to is not empty
-bool StringRef::lcat(const char* src) const
+bool StringRef::lcat(const char* src) const noexcept
 {
 	if (!IsEmpty())
 	{
@@ -127,7 +127,7 @@ bool StringRef::lcat(const char* src) const
 }
 
 // Concatenate with a limit on the number of characters read
-bool StringRef::catn(const char *src, size_t n) const
+bool StringRef::catn(const char *src, size_t n) const noexcept
 {
 	const size_t length = strlen();
 	const size_t slen = Strnlen(src, n);
@@ -139,7 +139,7 @@ bool StringRef::catn(const char *src, size_t n) const
 }
 
 // As catn but add a newline first if the string being appended to is not empty
-bool StringRef::lcatn(const char *src, size_t n) const
+bool StringRef::lcatn(const char *src, size_t n) const noexcept
 {
 	if (!IsEmpty())
 	{
@@ -152,7 +152,7 @@ bool StringRef::lcatn(const char *src, size_t n) const
 }
 
 // Append a character
-bool StringRef::cat(char c) const
+bool StringRef::cat(char c) const noexcept
 {
 	const size_t length = strlen();
 	if (length + 1 < len)
@@ -165,7 +165,7 @@ bool StringRef::cat(char c) const
 }
 
 // Remove trailing spaces from the string and return its new length
-size_t StringRef::StripTrailingSpaces() const
+size_t StringRef::StripTrailingSpaces() const noexcept
 {
 	size_t slen = strlen();
 	while (slen != 0 && p[slen - 1] == ' ')
@@ -176,7 +176,7 @@ size_t StringRef::StripTrailingSpaces() const
 	return slen;
 }
 
-bool StringRef::Prepend(const char *src) const
+bool StringRef::Prepend(const char *src) const noexcept
 {
 	const size_t slen = ::strlen(src);
 	const size_t dlen = strlen();
@@ -189,7 +189,7 @@ bool StringRef::Prepend(const char *src) const
 	return true;
 }
 
-void StringRef::Truncate(size_t pos) const
+void StringRef::Truncate(size_t pos) const noexcept
 {
 	if (pos < len)
 	{
@@ -197,7 +197,7 @@ void StringRef::Truncate(size_t pos) const
 	}
 }
 
-void StringRef::Erase(size_t pos, size_t count) const
+void StringRef::Erase(size_t pos, size_t count) const noexcept
 {
 	const size_t slen = strlen();
 	if (pos < slen)
@@ -212,7 +212,7 @@ void StringRef::Erase(size_t pos, size_t count) const
 }
 
 // Insert a character, returning true if the string was truncated
-bool StringRef::Insert(size_t pos, char c) const
+bool StringRef::Insert(size_t pos, char c) const noexcept
 {
 	const size_t slen = strlen();
 	if (pos > slen)

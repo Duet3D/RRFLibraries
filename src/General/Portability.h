@@ -14,57 +14,57 @@
 // Functions to allow for processor differences, e.g. endianness and alignment requirements
 
 // Load a uint32 from unaligned memory in little endian format
-static inline uint32_t LoadLE32(const void *p)
+static inline uint32_t LoadLE32(const void *p) noexcept
 {
 	return *reinterpret_cast<const uint32_t*>(p);			// the processors we currently support are little endian and support unaligned accesses
 }
 
 // Load a uint16 from unaligned memory in little endian format
-static inline uint16_t LoadLE16(const void *p)
+static inline uint16_t LoadLE16(const void *p) noexcept
 {
 	return *reinterpret_cast<const uint16_t*>(p);			// the processors we currently support are little endian and support unaligned accesses
 }
 
 // Load a float from unaligned memory in little endian format
-static inline float LoadLEFloat(const void *p)
+static inline float LoadLEFloat(const void *p) noexcept
 {
 	return *reinterpret_cast<const float*>(p);				// the processors we currently support are little endian and support unaligned accesses
 }
 
 // Store a uint32 into unaligned memory in little endian format
-static inline void StoreLE32(void *p, uint32_t val)
+static inline void StoreLE32(void *p, uint32_t val) noexcept
 {
 	*reinterpret_cast<uint32_t*>(p) = val;					// the processors we currently support are little endian and support unaligned accesses
 }
 
 // Store a uint16 into unaligned memory in little endian format
-static inline void StoreLE16(void *p, uint16_t val)
+static inline void StoreLE16(void *p, uint16_t val) noexcept
 {
 	*reinterpret_cast<uint16_t*>(p) = val;					// the processors we currently support are little endian and support unaligned accesses
 }
 
 // Store a uint16 into unaligned memory in little endian format
-static inline void StoreLEFloat(void *p, float val)
+static inline void StoreLEFloat(void *p, float val) noexcept
 {
 	*reinterpret_cast<float*>(p) = val;						// the processors we currently support are little endian and support unaligned accesses
 }
 
 // Load a uint32 from unaligned memory in big endian format
-static inline uint32_t LoadBE32(const void *p)
+static inline uint32_t LoadBE32(const void *p) noexcept
 {
 	const uint8_t* const bp = (const uint8_t*)p;
 	return ((((((uint32_t)*bp << 8) | (uint32_t)*(bp + 1)) << 8) | (uint32_t)*(bp + 2)) << 8) | (uint32_t)*(bp + 3);
 }
 
 // Load a uint16 from unaligned memory in big endian format
-static inline uint16_t LoadBE16(const void *p)
+static inline uint16_t LoadBE16(const void *p) noexcept
 {
 	const uint8_t* const bp = (const uint8_t*)p;
 	return ((uint16_t)*bp << 8) | (uint16_t)*(bp + 1);
 }
 
 // Store a uint32 into unaligned memory in big endian format
-static inline void StoreBE32(void *p, uint32_t val)
+static inline void StoreBE32(void *p, uint32_t val) noexcept
 {
 	uint8_t* bp = (uint8_t*)p;
 	*bp++ = (uint8_t)(val >> 24);
@@ -74,7 +74,7 @@ static inline void StoreBE32(void *p, uint32_t val)
 }
 
 // Store a uint16 into unaligned memory in big endian format
-static inline void StoreBE16(void *p, uint16_t val)
+static inline void StoreBE16(void *p, uint16_t val) noexcept
 {
 	uint8_t* bp = (uint8_t*)p;
 	*bp++ = (uint8_t)(val >> 8);
@@ -85,19 +85,19 @@ static inline void StoreBE16(void *p, uint16_t val)
 template<class T> class Unaligned
 {
 public:
-	Unaligned(const Unaligned<T>& arg);
-	Unaligned(const T& arg);
+	Unaligned(const Unaligned<T>& arg) noexcept;
+	Unaligned(const T& arg) noexcept;
 
-	Unaligned<T>& operator=(const T& rhs);
-	Unaligned<T>& operator=(const Unaligned<T>& rhs);
+	Unaligned<T>& operator=(const T& rhs) noexcept;
+	Unaligned<T>& operator=(const Unaligned<T>& rhs) noexcept;
 
-	T Get() const;
+	T Get() const noexcept;
 
 private:
 	T val;
 };
 
-template<class T> Unaligned<T>::Unaligned(const Unaligned<T>& arg)
+template<class T> Unaligned<T>::Unaligned(const Unaligned<T>& arg) noexcept
 {
 	char *p = &arg.val, *q = &val;
 	for (size_t i = 0; i < sizeof(T); ++i)
@@ -106,7 +106,7 @@ template<class T> Unaligned<T>::Unaligned(const Unaligned<T>& arg)
 	}
 }
 
-template<class T> Unaligned<T>::Unaligned(const T& arg)
+template<class T> Unaligned<T>::Unaligned(const T& arg) noexcept
 {
 	char *p = &arg, *q = &val;
 	for (size_t i = 0; i < sizeof(T); ++i)
@@ -115,7 +115,7 @@ template<class T> Unaligned<T>::Unaligned(const T& arg)
 	}
 }
 
-template<class T> Unaligned<T>& Unaligned<T>::operator=(const T& rhs)
+template<class T> Unaligned<T>& Unaligned<T>::operator=(const T& rhs) noexcept
 {
 	char *p = &rhs, *q = &val;
 	for (size_t i = 0; i < sizeof(T); ++i)
@@ -125,7 +125,7 @@ template<class T> Unaligned<T>& Unaligned<T>::operator=(const T& rhs)
 	return *this;
 }
 
-template<class T> Unaligned<T>& Unaligned<T>::operator=(const Unaligned<T>& rhs)
+template<class T> Unaligned<T>& Unaligned<T>::operator=(const Unaligned<T>& rhs) noexcept
 {
 	char *p = &rhs.val, *q = &val;
 	for (size_t i = 0; i < sizeof(T); ++i)
@@ -135,7 +135,7 @@ template<class T> Unaligned<T>& Unaligned<T>::operator=(const Unaligned<T>& rhs)
 	return *this;
 }
 
-template<class T> T Unaligned<T>::Get() const
+template<class T> T Unaligned<T>::Get() const noexcept
 {
 	T ret;
 	char *p = &val, *q = &ret;
@@ -150,9 +150,9 @@ template<class T> T Unaligned<T>::Get() const
 template<class T> class UnalignedPointer
 {
 public:
-	UnalignedPointer(char* pp) : p(pp) { }
+	UnalignedPointer(char* pp) noexcept : p(pp) { }
 
-	Unaligned<T>& operator*() { return *reinterpret_cast<Unaligned<T>*>(p); }
+	Unaligned<T>& operator*() noexcept { return *reinterpret_cast<Unaligned<T>*>(p); }
 
 private:
 	char *p;

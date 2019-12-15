@@ -18,34 +18,34 @@
 template<class T> class RingBuffer
 {
 public:
-	RingBuffer();
+	RingBuffer() noexcept;
 
 	// Initialise and allocate the buffer. numSlots must be a power of 2.
-	void Init(size_t numSlots);
+	void Init(size_t numSlots) noexcept;
 
 	// Store one item returning true if successful
-	bool PutItem(T val);
+	bool PutItem(T val) noexcept;
 
 	// Store a block returning the number of items actually stored
-	size_t PutBlock(const T* buffer, size_t buflen);
+	size_t PutBlock(const T* buffer, size_t buflen) noexcept;
 
 	// Get one item returning true if successful
-	bool GetItem(T& val);
+	bool GetItem(T& val) noexcept;
 
 	// Get a block returning the number of items actually fetched
-	size_t GetBlock(T* buffer, size_t buflen);
+	size_t GetBlock(T* buffer, size_t buflen) noexcept;
 
 	// Return the number of items we could currently add to the buffer
-	size_t SpaceLeft() const;
+	size_t SpaceLeft() const noexcept;
 
 	// Return the number of items in the buffer
-	size_t ItemsPresent() const;
+	size_t ItemsPresent() const noexcept;
 
 	// Return true if there are no items in the buffer
-	bool IsEmpty() const;
+	bool IsEmpty() const noexcept;
 
 	// Return the capacity
-	size_t GetCapacity() const { return capacity; }
+	size_t GetCapacity() const noexcept { return capacity; }
 
 private:
 	size_t capacity;			// must be one less than a power of 2
@@ -55,12 +55,12 @@ private:
 	volatile T *data;
 };
 
-template<class T> RingBuffer<T>::RingBuffer()
+template<class T> RingBuffer<T>::RingBuffer() noexcept
 	: capacity(0), putIndex(0), getIndex(0), data(nullptr)
 {
 }
 
-template<class T> void RingBuffer<T>::Init(size_t numSlots)
+template<class T> void RingBuffer<T>::Init(size_t numSlots) noexcept
 {
 	putIndex = 0;
 	getIndex = 0;
@@ -76,7 +76,7 @@ template<class T> void RingBuffer<T>::Init(size_t numSlots)
 	}
 }
 
-template<class T> inline bool RingBuffer<T>::PutItem(T val)
+template<class T> inline bool RingBuffer<T>::PutItem(T val) noexcept
 {
 	const size_t oldPutIndex = putIndex;				// capture volatile
 	const size_t newPutIndex = (oldPutIndex + 1) & capacity;
@@ -89,7 +89,7 @@ template<class T> inline bool RingBuffer<T>::PutItem(T val)
 	return false;
 }
 
-template<class T> inline bool RingBuffer<T>::GetItem(T& val)
+template<class T> inline bool RingBuffer<T>::GetItem(T& val) noexcept
 {
 	const size_t currentGetIndex = getIndex;			// capture volatile
 	if (currentGetIndex != putIndex)
@@ -101,22 +101,22 @@ template<class T> inline bool RingBuffer<T>::GetItem(T& val)
 	return false;
 }
 
-template<class T> inline size_t RingBuffer<T>::SpaceLeft() const
+template<class T> inline size_t RingBuffer<T>::SpaceLeft() const noexcept
 {
 	return (getIndex + capacity - putIndex) & capacity;
 }
 
-template<class T> inline size_t RingBuffer<T>::ItemsPresent() const
+template<class T> inline size_t RingBuffer<T>::ItemsPresent() const noexcept
 {
 	return (putIndex - getIndex) & capacity;
 }
 
-template<class T> inline bool RingBuffer<T>::IsEmpty() const
+template<class T> inline bool RingBuffer<T>::IsEmpty() const noexcept
 {
 	return getIndex == putIndex;
 }
 
-template<class T> size_t RingBuffer<T>::PutBlock(const T* buffer, size_t buflen)
+template<class T> size_t RingBuffer<T>::PutBlock(const T* buffer, size_t buflen) noexcept
 {
 	// Capture volatile variables to avoid reloading them unnecessarily
 	const size_t currentGetIndex = getIndex;
@@ -158,7 +158,7 @@ template<class T> size_t RingBuffer<T>::PutBlock(const T* buffer, size_t buflen)
 	return toCopy;
 }
 
-template<class T> size_t RingBuffer<T>::GetBlock(T* buffer, size_t buflen)
+template<class T> size_t RingBuffer<T>::GetBlock(T* buffer, size_t buflen) noexcept
 {
 	// Capture volatile variables to avoid reloading them unnecessarily
 	size_t currentGetIndex = getIndex;

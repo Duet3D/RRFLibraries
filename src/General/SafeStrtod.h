@@ -8,16 +8,16 @@
 #ifndef SRC_LIBRARIES_GENERAL_SAFESTRTOD_H_
 #define SRC_LIBRARIES_GENERAL_SAFESTRTOD_H_
 
-double SafeStrtod(const char *s, const char **p = nullptr);
-float SafeStrtof(const char *s, const char **p = nullptr);
+double SafeStrtod(const char *s, const char **p = nullptr) noexcept;
+float SafeStrtof(const char *s, const char **p = nullptr) noexcept;
 
-inline long SafeStrtol(const char *s, const char **endptr = nullptr, int base = 10)
+inline long SafeStrtol(const char *s, const char **endptr = nullptr, int base = 10) noexcept
 {
 	return strtol(s, const_cast<char**>(endptr), base);
 }
 
-unsigned long SafeStrtoul(const char *s, const char **endptr = nullptr, int base = 10);
-unsigned long SafeStrtoul(char *s, char **endptr = nullptr, int base = 10);
+unsigned long SafeStrtoul(const char *s, const char **endptr = nullptr, int base = 10) noexcept;
+unsigned long SafeStrtoul(char *s, char **endptr = nullptr, int base = 10) noexcept;
 
 #define strtod(s, p) Do_not_use_strtod_use_SafeStrtod_instead
 #define strtof(s, p) Do_not_use_strtof_use_SafeStrtof_instead

@@ -11,6 +11,6 @@
 #include <cstddef>
 
 // 'strnlen' isn't ISO standard, so we define our own
-size_t Strnlen(const char *s, size_t n);
+size_t Strnlen(const char *s, size_t n) noexcept;
 
 #endif /* SRC_LIBRARIES_GENERAL_STRNLEN_H_ */
