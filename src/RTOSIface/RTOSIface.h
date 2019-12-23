@@ -118,7 +118,7 @@ public:
 	// This is used by the CAN subsystem, so that we can use 8-bit task IDs to identify a sending task, instead of needing to use 32-bits.
 	typedef uint32_t TaskId;
 
-	TaskBase() noexcept : handle(nullptr), next(nullptr) { }
+	TaskBase() noexcept : handle(nullptr), next(nullptr), taskId(0) { }
 	~TaskBase() noexcept { TerminateAndUnlink(); }
 
 	// Get the short-form task ID. This is a small number, used to send a task ID in 1 byte or less i a CAN packet. It is guaranteed not to be zero.
