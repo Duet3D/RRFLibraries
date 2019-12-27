@@ -16,7 +16,7 @@
 
 static_assert(Mutex::TimeoutUnlimited == portMAX_DELAY, "Bad value for TimeoutUnlimited");
 
-void Mutex::Create(const char *pName)
+void Mutex::Create(const char *pName) noexcept
 {
 	if (handle == nullptr)
 	{
@@ -28,19 +28,19 @@ void Mutex::Create(const char *pName)
 }
 
 // Take ownership of a mutex returning true if successful
-bool Mutex::Take(uint32_t timeout) const
+bool Mutex::Take(uint32_t timeout) const noexcept
 {
 	return xSemaphoreTakeRecursive(handle, timeout) == pdTRUE;
 }
 
 // Release a mutex returning true if successful.
 // Note that the return value does not indicate whether the mutex is still owned, because it may have been taken more than once.
-bool Mutex::Release() const
+bool Mutex::Release() const noexcept
 {
 	return xSemaphoreGiveRecursive(handle) == pdTRUE;
 }
 
-TaskHandle Mutex::GetHolder() const
+TaskHandle Mutex::GetHolder() const noexcept
 {
 	return static_cast<TaskHandle>(xSemaphoreGetMutexHolder(handle));
 }
@@ -52,28 +52,28 @@ Mutex *Mutex::mutexList = nullptr;
 
 #else
 
-void Mutex::Create(const char *pName)
+void Mutex::Create(const char *pName) noexcept
 {
 }
 
-bool Mutex::Take(uint32_t timeout) const
-{
-	return true;
-}
-
-bool Mutex::Release() const
+bool Mutex::Take(uint32_t timeout) const noexcept
 {
 	return true;
 }
 
-TaskHandle Mutex::GetHolder() const
+bool Mutex::Release() const noexcept
+{
+	return true;
+}
+
+TaskHandle Mutex::GetHolder() const noexcept
 {
 	return nullptr;
 }
 
 #endif
 
-MutexLocker::MutexLocker(const Mutex *m, uint32_t timeout)
+MutexLocker::MutexLocker(const Mutex *m, uint32_t timeout) noexcept
 {
 	handle = m;
 	acquired =
@@ -84,7 +84,7 @@ MutexLocker::MutexLocker(const Mutex *m, uint32_t timeout)
 #endif
 }
 
-MutexLocker::MutexLocker(const Mutex& m, uint32_t timeout)
+MutexLocker::MutexLocker(const Mutex& m, uint32_t timeout) noexcept
 {
 	handle = &m;
 	acquired =
@@ -96,7 +96,7 @@ MutexLocker::MutexLocker(const Mutex& m, uint32_t timeout)
 }
 
 // Release the lock early (non-counting)
-void MutexLocker::Release()
+void MutexLocker::Release() noexcept
 {
 #ifdef RTOS
 	if (acquired)
@@ -113,7 +113,7 @@ void MutexLocker::Release()
 }
 
 // Acquire it again, if it isn't already owned (non-counting)
-bool MutexLocker::ReAcquire(uint32_t timeout)
+bool MutexLocker::ReAcquire(uint32_t timeout) noexcept
 {
 #ifdef RTOS
 	if (!acquired)
@@ -126,30 +126,30 @@ bool MutexLocker::ReAcquire(uint32_t timeout)
 	return acquired;
 }
 
-MutexLocker::~MutexLocker()
+MutexLocker::~MutexLocker() noexcept
 {
 	Release();
 }
 
 #ifdef RTOS
 
-BinarySemaphore::BinarySemaphore()
+BinarySemaphore::BinarySemaphore() noexcept
 {
 	 handle = xSemaphoreCreateBinaryStatic(&storage);
 }
 
-bool BinarySemaphore::Take(uint32_t timeout) const
+bool BinarySemaphore::Take(uint32_t timeout) const noexcept
 {
 	return xSemaphoreTake(handle, timeout);
 }
 
-bool BinarySemaphore::Give() const
+bool BinarySemaphore::Give() const noexcept
 {
 	return xSemaphoreGive(handle);
 }
 
 // Link the task into the thread list and allocate a short task ID to it. Task IDs start at 1.
-void TaskBase::AddToList()
+void TaskBase::AddToList() noexcept
 {
 	TaskCriticalSectionLocker lock;
 
@@ -161,7 +161,7 @@ void TaskBase::AddToList()
 }
 
 // Get the short-form task ID
-/*static*/ TaskBase::TaskId TaskBase::GetCallerTaskId()
+/*static*/ TaskBase::TaskId TaskBase::GetCallerTaskId() noexcept
 {
 	TaskHandle_t currentTaskHandle = xTaskGetCurrentTaskHandle();
 
@@ -179,7 +179,7 @@ void TaskBase::AddToList()
 }
 
 // Terminate a task and remove it from the thread list
-void TaskBase::TerminateAndUnlink()
+void TaskBase::TerminateAndUnlink() noexcept
 {
 	if (handle != nullptr)
 	{
@@ -206,14 +206,14 @@ namespace RTOSIface
 
 #ifdef RTOS
 
-	TaskHandle GetCurrentTask()
+	TaskHandle GetCurrentTask() noexcept
 	{
 		return static_cast<TaskHandle>(xTaskGetCurrentTaskHandle());
 	}
 
 #else
 
-	TaskHandle GetCurrentTask()
+	TaskHandle GetCurrentTask() noexcept
 	{
 		return nullptr;
 	}
@@ -222,7 +222,7 @@ namespace RTOSIface
 
 }
 
-void ReadWriteLock::LockForReading()
+void ReadWriteLock::LockForReading() noexcept
 {
 #ifdef RTOS
 	if (writeLockOwner != TaskBase::GetCallerTaskHandle())
@@ -256,7 +256,7 @@ void ReadWriteLock::LockForReading()
 #endif
 }
 
-void ReadWriteLock::ReleaseReader()
+void ReadWriteLock::ReleaseReader() noexcept
 {
 #ifdef RTOS
 	if (writeLockOwner != TaskBase::GetCallerTaskHandle())
@@ -272,7 +272,7 @@ void ReadWriteLock::ReleaseReader()
 #endif
 }
 
-void ReadWriteLock::LockForWriting()
+void ReadWriteLock::LockForWriting() noexcept
 {
 #ifdef RTOS
 	// First wait for other writers to finish, then grab the write lock
@@ -312,7 +312,7 @@ void ReadWriteLock::LockForWriting()
 #endif
 }
 
-void ReadWriteLock::ReleaseWriter()
+void ReadWriteLock::ReleaseWriter() noexcept
 {
 #ifdef RTOS
 	if (writeLockOwner == TaskBase::GetCallerTaskHandle())
@@ -328,7 +328,7 @@ void ReadWriteLock::ReleaseWriter()
 #endif
 }
 
-void ReadWriteLock::DowngradeWriter()
+void ReadWriteLock::DowngradeWriter() noexcept
 {
 #ifdef RTOS
 	if (writeLockOwner == TaskBase::GetCallerTaskHandle())
