@@ -230,9 +230,46 @@ bool StringRef::Insert(size_t pos, char c) const
 
 	if (pos < slen)
 	{
-		// The buffer is full, but we haven't been asked to insert the character right at the end
+		// The buffer is already full, but we haven't been asked to insert the character right at the end
 		memmove(p + pos + 1, p + pos, slen - pos - 1);		// leave the null terminator intact and drop the last character
 		p[pos] = c;
+	}
+	return true;
+}
+
+// Insert another string, returning true if the string was truncated
+bool StringRef::Insert(size_t pos, const char *s) const
+{
+	const size_t slen = strlen();
+	if (pos > slen)
+	{
+		return false;										// insert point is out of range, but return success anyway
+	}
+
+	const size_t slen2 = ::strlen(s);
+	if (slen + slen2 < len)									// check there is space for the existing string + null + inserted characters
+	{
+		// There is space for the extra characters
+		memmove(p + pos + slen2, p + pos, slen - pos + 1);	// copy the data up including the null terminator
+		memcpy(p + pos, s, slen2);
+		return false;
+	}
+
+	if (pos < slen)
+	{
+		// The buffer doesn't have enough room, but we haven't been asked to insert the characters right at the end
+		if (pos + slen2  < len)
+		{
+			// There is room for the whole inserted string and maybe for some of the characters of the original string after the inserted string
+			memmove(p + pos + slen2, p + pos, len - pos - slen2);		// leave the null terminator intact and drop the last characters
+			memcpy(p + pos, s, slen2);
+		}
+		else
+		{
+			// We can only copy part of the inserted string
+			memcpy(p + pos, s, len - pos - 1);
+		}
+		p[len - 1] = 0;
 	}
 	return true;
 }
