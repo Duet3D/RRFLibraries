@@ -238,7 +238,7 @@ bool StringRef::Insert(size_t pos, char c) const noexcept
 }
 
 // Insert another string, returning true if the string was truncated
-bool StringRef::Insert(size_t pos, const char *s) const
+bool StringRef::Insert(size_t pos, const char *s) const noexcept
 {
 	const size_t slen = strlen();
 	if (pos > slen)
