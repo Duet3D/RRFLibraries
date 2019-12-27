@@ -118,24 +118,24 @@ public:
 	// This is used by the CAN subsystem, so that we can use 8-bit task IDs to identify a sending task, instead of needing to use 32-bits.
 	typedef uint32_t TaskId;
 
-	TaskBase() : handle(nullptr), next(nullptr) { }
-	~TaskBase() { TerminateAndUnlink(); }
+	TaskBase() noexcept : handle(nullptr), next(nullptr), taskId(0) { }
+	~TaskBase() noexcept { TerminateAndUnlink(); }
 
 	// Get the short-form task ID. This is a small number, used to send a task ID in 1 byte or less i a CAN packet. It is guaranteed not to be zero.
-	TaskId GetTaskId() const { return taskId; }
+	TaskId GetTaskId() const noexcept { return taskId; }
 
 	// This function is called directly for tasks that are created by FreeRTOS, so it must be public
 	// Link the task into the thread list and allocate a short task ID to it
-	void AddToList();
-	void TerminateAndUnlink();
+	void AddToList() noexcept;
+	void TerminateAndUnlink() noexcept;
 
-	TaskHandle GetHandle() const { return static_cast<TaskHandle>(handle); }
-	void Suspend() const { vTaskSuspend(handle); }
-	void Resume() const { vTaskResume(handle); }
-	const TaskBase *GetNext() const { return next; }
+	TaskHandle GetHandle() const noexcept { return static_cast<TaskHandle>(handle); }
+	void Suspend() const noexcept { vTaskSuspend(handle); }
+	void Resume() const noexcept { vTaskResume(handle); }
+	const TaskBase *GetNext() const noexcept { return next; }
 
 	// Wake up a task identified by its handle from an ISR
-	static inline void GiveFromISR(TaskHandle h)
+	static inline void GiveFromISR(TaskHandle h) noexcept
 	{
 		if (h != nullptr)			// check that the task has been created
 		{
@@ -146,7 +146,7 @@ public:
 	}
 
 	// Wake up this task from an ISR
-	void GiveFromISR()
+	void GiveFromISR() noexcept
 	{
 		if (handle != nullptr)			// check that the task has been created
 		{
@@ -157,20 +157,20 @@ public:
 	}
 
 	// Wake up this task but not from an ISR
-	void Give()
+	void Give() noexcept
 	{
 		xTaskNotifyGive(handle);
 	}
 
 	// Wait until we have been woken up
-	static uint32_t Take(uint32_t timeout = TimeoutUnlimited)
+	static uint32_t Take(uint32_t timeout = TimeoutUnlimited) noexcept
 	{
 		return ulTaskNotifyTake(pdTRUE, timeout);
 	}
 
-	static TaskHandle GetCallerTaskHandle() { return (TaskHandle)xTaskGetCurrentTaskHandle(); }
+	static TaskHandle GetCallerTaskHandle() noexcept { return (TaskHandle)xTaskGetCurrentTaskHandle(); }
 
-	static TaskId GetCallerTaskId();
+	static TaskId GetCallerTaskId() noexcept;
 
 	TaskBase(const TaskBase&) = delete;				// it's not safe to copy these
 	TaskBase& operator=(const TaskBase&) = delete;	// it's not safe to assign these
@@ -182,7 +182,7 @@ public:
 	// 3. Don't allocate tasks statically, allocate them all using 'new'.
 	//~TaskBase() = delete;							// it's not safe to delete these because they are linked together via the 'next' field
 
-	static const TaskBase *GetTaskList() { return taskList; }
+	static const TaskBase *GetTaskList() noexcept { return taskList; }
 
 	static constexpr uint32_t TimeoutUnlimited = 0xFFFFFFFF;
 
@@ -200,16 +200,16 @@ template<unsigned int StackWords> class Task : public TaskBase
 {
 public:
 	// The Create function assumes that only the main task creates other tasks, so we don't need a mutex to protect the task list
-	void Create(TaskFunction_t pxTaskCode, const char * pcName, void *pvParameters, unsigned int uxPriority)
+	void Create(TaskFunction_t pxTaskCode, const char * pcName, void *pvParameters, unsigned int uxPriority) noexcept
 	{
 		handle = xTaskCreateStatic(pxTaskCode, pcName, StackWords, pvParameters, uxPriority, stack, &storage);
 		AddToList();
 	}
 
 	// These functions should be used only to tell FreeRTOS where the corresponding data is
-	StaticTask_t *GetTaskMemory() { return &storage; }
-	uint32_t *GetStackBase() { return stack; }
-	uint32_t GetStackSize() const { return StackWords; }
+	StaticTask_t *GetTaskMemory() noexcept { return &storage; }
+	uint32_t *GetStackBase() noexcept { return stack; }
+	uint32_t GetStackSize() const noexcept { return StackWords; }
 
 private:
 	uint32_t stack[StackWords];
@@ -222,17 +222,17 @@ private:
 class MutexLocker
 {
 public:
-	MutexLocker(const Mutex *pm, uint32_t timeout = Mutex::TimeoutUnlimited);	// acquire lock
-	MutexLocker(const Mutex& pm, uint32_t timeout = Mutex::TimeoutUnlimited);	// acquire lock
+	MutexLocker(const Mutex *pm, uint32_t timeout = Mutex::TimeoutUnlimited) noexcept;	// acquire lock
+	MutexLocker(const Mutex& pm, uint32_t timeout = Mutex::TimeoutUnlimited) noexcept;	// acquire lock
 
-	void Release();																// release the lock early (also gets released by destructor)
-	bool ReAcquire(uint32_t timeout = Mutex::TimeoutUnlimited);					// acquire it again, if it isn't already owned (non-counting)
-	~MutexLocker();
-	operator bool() const { return acquired; }
+	void Release() noexcept;																// release the lock early (also gets released by destructor)
+	bool ReAcquire(uint32_t timeout = Mutex::TimeoutUnlimited) noexcept;					// acquire it again, if it isn't already owned (non-counting)
+	~MutexLocker() noexcept;
+	operator bool() const noexcept { return acquired; }
 
 	MutexLocker(const MutexLocker&) = delete;
 	MutexLocker& operator=(const MutexLocker&) = delete;
-	MutexLocker(MutexLocker&& other) : handle(other.handle), acquired(other.acquired) { other.handle = nullptr; other.acquired = false; }
+	MutexLocker(MutexLocker&& other) noexcept : handle(other.handle), acquired(other.acquired) { other.handle = nullptr; other.acquired = false; }
 
 private:
 	const Mutex *handle;
@@ -242,14 +242,14 @@ private:
 // Interface to RTOS or RTOS substitute
 namespace RTOSIface
 {
-	TaskHandle GetCurrentTask();
+	TaskHandle GetCurrentTask() noexcept;
 
 #ifndef RTOS
 	static volatile unsigned int interruptCriticalSectionNesting = 0;
 #endif
 
 	// Enter a critical section, where modification to variables by interrupts (and perhaps also other tasks) must be avoided
-	inline void EnterInterruptCriticalSection()
+	inline void EnterInterruptCriticalSection() noexcept
 	{
 #ifdef RTOS
 		taskENTER_CRITICAL();
@@ -260,7 +260,7 @@ namespace RTOSIface
 	}
 
 	// Leave an interrupt-critical section
-	inline void LeaveInterruptCriticalSection()
+	inline void LeaveInterruptCriticalSection() noexcept
 	{
 #ifdef RTOS
 		taskEXIT_CRITICAL();
@@ -275,7 +275,7 @@ namespace RTOSIface
 
 	// Enter a task-critical region. Used to protect concurrent access to variable from different tasks, where the variable are not used/modified by interrupts.
 	// This can be called even if the caller is already in a TaskCriticalSection, because FreeRTOS keeps track of the nesting count.
-	inline void EnterTaskCriticalSection()
+	inline void EnterTaskCriticalSection() noexcept
 	{
 #ifdef RTOS
 		vTaskSuspendAll();
@@ -285,7 +285,7 @@ namespace RTOSIface
 	}
 
 	// Exit a task-critical region, returning true if a task switch occurred
-	inline bool LeaveTaskCriticalSection()
+	inline bool LeaveTaskCriticalSection() noexcept
 	{
 #ifdef RTOS
 		return xTaskResumeAll() == pdTRUE;
@@ -295,7 +295,7 @@ namespace RTOSIface
 #endif
 	}
 
-	inline void Yield()
+	inline void Yield() noexcept
 	{
 #ifdef RTOS
 		taskYIELD();
@@ -306,8 +306,8 @@ namespace RTOSIface
 class InterruptCriticalSectionLocker
 {
 public:
-	InterruptCriticalSectionLocker() { RTOSIface::EnterInterruptCriticalSection(); }
-	~InterruptCriticalSectionLocker() { (void)RTOSIface::LeaveInterruptCriticalSection(); }
+	InterruptCriticalSectionLocker() noexcept { RTOSIface::EnterInterruptCriticalSection(); }
+	~InterruptCriticalSectionLocker() noexcept { (void)RTOSIface::LeaveInterruptCriticalSection(); }
 
 	InterruptCriticalSectionLocker(const InterruptCriticalSectionLocker&) = delete;
 };
@@ -315,8 +315,8 @@ public:
 class TaskCriticalSectionLocker
 {
 public:
-	TaskCriticalSectionLocker() { RTOSIface::EnterTaskCriticalSection(); }
-	~TaskCriticalSectionLocker() { RTOSIface::LeaveTaskCriticalSection(); }
+	TaskCriticalSectionLocker() noexcept { RTOSIface::EnterTaskCriticalSection(); }
+	~TaskCriticalSectionLocker() noexcept { RTOSIface::LeaveTaskCriticalSection(); }
 
 	TaskCriticalSectionLocker(const TaskCriticalSectionLocker&) = delete;
 };
@@ -331,17 +331,17 @@ public:
 class ReadWriteLock
 {
 public:
-	ReadWriteLock()
+	ReadWriteLock() noexcept
 #ifdef RTOS
 		: numReaders(0), writeLockOwner(nullptr)
 #endif
 	{ }
 
-	void LockForReading();
-	void ReleaseReader();
-	void LockForWriting();
-	void ReleaseWriter();
-	void DowngradeWriter();					// turn a write lock into a read lock (but you can't go back again)
+	void LockForReading() noexcept;
+	void ReleaseReader() noexcept;
+	void LockForWriting() noexcept;
+	void ReleaseWriter() noexcept;
+	void DowngradeWriter() noexcept;					// turn a write lock into a read lock (but you can't go back again)
 
 private:
 
@@ -359,12 +359,12 @@ private:
 class ReadLocker
 {
 public:
-	ReadLocker(ReadWriteLock& p_lock) : lock(&p_lock) { lock->LockForReading(); }
-	ReadLocker(ReadWriteLock *p_lock) : lock(p_lock) { if (lock != nullptr) { lock->LockForReading(); } }
-	~ReadLocker() { if (lock != nullptr) { lock->ReleaseReader(); } }
+	ReadLocker(ReadWriteLock& p_lock) noexcept : lock(&p_lock) { lock->LockForReading(); }
+	ReadLocker(ReadWriteLock *p_lock) noexcept : lock(p_lock) { if (lock != nullptr) { lock->LockForReading(); } }
+	~ReadLocker() noexcept { if (lock != nullptr) { lock->ReleaseReader(); } }
 
 	ReadLocker(const ReadLocker&) = delete;
-	ReadLocker(ReadLocker&& other) : lock(other.lock) { other.lock = nullptr; }
+	ReadLocker(ReadLocker&& other) noexcept : lock(other.lock) { other.lock = nullptr; }
 
 private:
 	ReadWriteLock* lock;
@@ -373,13 +373,13 @@ private:
 class WriteLocker
 {
 public:
-	WriteLocker(ReadWriteLock& p_lock) : lock(&p_lock) { lock->LockForWriting(); }
-	~WriteLocker() { if (lock != nullptr) { lock->ReleaseWriter(); } }
+	WriteLocker(ReadWriteLock& p_lock) noexcept : lock(&p_lock) { lock->LockForWriting(); }
+	~WriteLocker() noexcept { if (lock != nullptr) { lock->ReleaseWriter(); } }
 
-	void Downgrade() { if (lock != nullptr) { lock->DowngradeWriter(); } }
+	void Downgrade() noexcept { if (lock != nullptr) { lock->DowngradeWriter(); } }
 
 	WriteLocker(const WriteLocker&) = delete;
-	WriteLocker(WriteLocker&& other) : lock(other.lock) { other.lock = nullptr; }
+	WriteLocker(WriteLocker&& other) noexcept : lock(other.lock) { other.lock = nullptr; }
 
 private:
 	ReadWriteLock* lock;
@@ -388,13 +388,13 @@ private:
 template<class T> class ReadLockedPointer
 {
 public:
-	ReadLockedPointer(ReadLocker& p_locker, T* p_ptr) : locker(std::move(p_locker)), ptr(p_ptr) { }
+	ReadLockedPointer(ReadLocker& p_locker, T* p_ptr) noexcept : locker(std::move(p_locker)), ptr(p_ptr) { }
 	ReadLockedPointer(const ReadLockedPointer&) = delete;
-	ReadLockedPointer(ReadLockedPointer&& other) : locker(other.locker), ptr(other.ptr) { other.ptr = nullptr; }
+	ReadLockedPointer(ReadLockedPointer&& other) noexcept : locker(other.locker), ptr(other.ptr) { other.ptr = nullptr; }
 
-	bool IsNull() const { return ptr == nullptr; }
-	bool IsNotNull() const { return ptr != nullptr; }
-	T* operator->() const { return ptr; }
+	bool IsNull() const noexcept { return ptr == nullptr; }
+	bool IsNotNull() const noexcept { return ptr != nullptr; }
+	T* operator->() const noexcept { return ptr; }
 
 private:
 	ReadLocker locker;
@@ -407,11 +407,11 @@ private:
 class QueueBase
 {
 public:
-	QueueBase() : handle(nullptr), next(nullptr), name(nullptr) { }
+	QueueBase() noexcept : handle(nullptr), next(nullptr), name(nullptr) { }
 
-	const QueueBase *GetNext() const { return next; }
+	const QueueBase *GetNext() const noexcept { return next; }
 
-	static const QueueBase *GetThread() { return thread; }
+	static const QueueBase *GetThread() noexcept { return thread; }
 
 protected:
 	QueueHandle_t handle;
@@ -425,19 +425,19 @@ protected:
 template <class Message> class Queue : public QueueBase
 {
 public:
-	Queue() : messageStorage(nullptr) { }
+	Queue() noexcept : messageStorage(nullptr) { }
 
-	void Create(const char *p_name, size_t capacity);
-	bool PutToBack(const Message &m, uint32_t timeout);
-	bool PutToFront(const Message &m, uint32_t timeout);
-	bool Get(Message& m, uint32_t timeout);
-	bool IsValid() const { return handle != nullptr; }
+	void Create(const char *p_name, size_t capacity) noexcept;
+	bool PutToBack(const Message &m, uint32_t timeout) noexcept;
+	bool PutToFront(const Message &m, uint32_t timeout) noexcept;
+	bool Get(Message& m, uint32_t timeout) noexcept;
+	bool IsValid() const noexcept { return handle != nullptr; }
 
 private:
 	uint8_t *messageStorage;
 };
 
-template <class Message> void Queue<Message>::Create(const char *p_name, size_t capacity)
+template <class Message> void Queue<Message>::Create(const char *p_name, size_t capacity) noexcept
 {
 	if (handle == nullptr)
 	{
@@ -446,17 +446,17 @@ template <class Message> void Queue<Message>::Create(const char *p_name, size_t 
 	}
 }
 
-template <class Message> bool Queue<Message>::PutToBack(const Message &m, uint32_t timeout)
+template <class Message> bool Queue<Message>::PutToBack(const Message &m, uint32_t timeout) noexcept
 {
 	return xQueueSendToBack(handle, &m, timeout) == pdTRUE;
 }
 
-template <class Message> bool Queue<Message>::PutToFront(const Message &m, uint32_t timeout)
+template <class Message> bool Queue<Message>::PutToFront(const Message &m, uint32_t timeout) noexcept
 {
 	return xQueueSendToFront(handle, &m, timeout) == pdTRUE;
 }
 
-template <class Message> bool Queue<Message>::Get(Message& m, uint32_t timeout)
+template <class Message> bool Queue<Message>::Get(Message& m, uint32_t timeout) noexcept
 {
 	return xQueueReceive(handle, &m, timeout) == pdTRUE;
 }

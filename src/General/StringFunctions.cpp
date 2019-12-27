@@ -9,14 +9,14 @@
 #include <cstring>
 #include <cctype>
 
-bool StringEndsWithIgnoreCase(const char* string, const char* ending)
+bool StringEndsWithIgnoreCase(const char* string, const char* ending) noexcept
 {
 	const size_t j = strlen(string);
 	const size_t k = strlen(ending);
 	return k <= j && StringEqualsIgnoreCase(&string[j - k], ending);
 }
 
-bool StringEqualsIgnoreCase(const char* s1, const char* s2)
+bool StringEqualsIgnoreCase(const char* s1, const char* s2) noexcept
 {
 	size_t i = 0;
 	while (s1[i] != 0 && s2[i] != 0)
@@ -31,7 +31,7 @@ bool StringEqualsIgnoreCase(const char* s1, const char* s2)
 	return s1[i] == 0 && s2[i] == 0;
 }
 
-bool ReducedStringEquals(const char* s1, const char* s2)
+bool ReducedStringEquals(const char* s1, const char* s2) noexcept
 {
 	while (*s1 != 0 && *s2 != 0)
 	{
@@ -57,7 +57,7 @@ bool ReducedStringEquals(const char* s1, const char* s2)
 	return *s1 == 0 && *s2 == 0;
 }
 
-bool StringStartsWith(const char* string, const char* starting)
+bool StringStartsWith(const char* string, const char* starting) noexcept
 {
 	const size_t j = strlen(string);
 	const size_t k = strlen(starting);
@@ -77,7 +77,7 @@ bool StringStartsWith(const char* string, const char* starting)
 	return true;
 }
 
-bool StringStartsWithIgnoreCase(const char* string, const char* starting)
+bool StringStartsWithIgnoreCase(const char* string, const char* starting) noexcept
 {
 	const size_t j = strlen(string);
 	const size_t k = strlen(starting);
@@ -97,7 +97,7 @@ bool StringStartsWithIgnoreCase(const char* string, const char* starting)
 	return true;
 }
 
-int StringContains(const char* string, const char* match)
+int StringContains(const char* string, const char* match) noexcept
 {
 	int i = 0;
 	int count = 0;
@@ -122,14 +122,14 @@ int StringContains(const char* string, const char* match)
 }
 
 // Version of strncpy that ensures the result is null terminated
-void SafeStrncpy(char *dst, const char *src, size_t length)
+void SafeStrncpy(char *dst, const char *src, size_t length) noexcept
 {
 	strncpy(dst, src, length);
 	dst[length - 1] = 0;
 }
 
 // Version of strcat that takes the original buffer size as the limit and ensures the result is null terminated
-void SafeStrncat(char *dst, const char *src, size_t length)
+void SafeStrncat(char *dst, const char *src, size_t length) noexcept
 {
 	dst[length - 1] = 0;
 	const size_t index = strlen(dst);

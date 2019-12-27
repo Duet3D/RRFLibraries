@@ -21,7 +21,7 @@
 #include "SafeStrtod.h"
 #undef strtoul		// Undo the macro definition of strtoul in SafeStrtod.h so that we can call it in this file
 
-double SafeStrtod(const char *s, const char **p)
+double SafeStrtod(const char *s, const char **p) noexcept
 {
 	// 0. Skip white space
 	while (*s == ' ' || *s == '\t')
@@ -130,12 +130,12 @@ double SafeStrtod(const char *s, const char **p)
 	return (negative) ? -retvalue : retvalue;
 }
 
-float SafeStrtof(const char *s, const char **p)
+float SafeStrtof(const char *s, const char **p) noexcept
 {
 	return (float)SafeStrtod(s, p);
 }
 
-unsigned long SafeStrtoul(const char *s, const char **endptr, int base)
+unsigned long SafeStrtoul(const char *s, const char **endptr, int base) noexcept
 {
 	// strtoul() accepts a leading minus-sign, which we don't want to allow
 	while (*s == ' ' || *s == '\t')
@@ -153,7 +153,7 @@ unsigned long SafeStrtoul(const char *s, const char **endptr, int base)
 	return strtoul(s, const_cast<char**>(endptr), base);
 }
 
-unsigned long SafeStrtoul(char *s, char **endptr, int base)
+unsigned long SafeStrtoul(char *s, char **endptr, int base) noexcept
 {
 	// strtoul() accepts a leading minus-sign, which we don't want to allow
 	while (*s == ' ' || *s == '\t')

@@ -1,7 +1,7 @@
 #include <cstdint>
 
 // Fast 62-bit integer square root function (thanks dmould)
-uint32_t isqrt64(uint64_t num)
+uint32_t isqrt64(uint64_t num) noexcept
 {
 	uint32_t numHigh = (uint32_t)(num >> 32);
 	if (numHigh == 0)

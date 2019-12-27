@@ -15,65 +15,65 @@
 template<class T> class MathMatrix
 {
 public:
-	virtual size_t rows() const = 0;
-	virtual size_t cols() const = 0;
-	virtual T& operator() (size_t r, size_t c) = 0;
-	virtual const T& operator() (size_t r, size_t c) const = 0;
-	virtual ~MathMatrix() { }		// to keep Eclipse code analysis happy
+	virtual size_t rows() const noexcept = 0;
+	virtual size_t cols() const noexcept = 0;
+	virtual T& operator() (size_t r, size_t c) noexcept = 0;
+	virtual const T& operator() (size_t r, size_t c) const noexcept = 0;
+	virtual ~MathMatrix() noexcept { }		// to keep Eclipse code analysis happy
 };
 
 // Fixed size matrix class
 template<class T, size_t ROWS, size_t COLS> class FixedMatrix : public MathMatrix<T>
 {
 public:
-	size_t rows() const override { return ROWS; }
-	size_t cols() const override { return COLS; }
+	size_t rows() const noexcept override { return ROWS; }
+	size_t cols() const noexcept override { return COLS; }
 
 	// Indexing operator, non-const version
-	T& operator() (size_t r, size_t c) override
+	T& operator() (size_t r, size_t c) noexcept override
 	pre(r < ROWS; c < COLS)
 	{
 		return data[r][c];
 	}
 
 	// Indexing operator, const version
-	const T& operator() (size_t r, size_t c) const override
+	const T& operator() (size_t r, size_t c) const noexcept override
 	pre(r < ROWS; c < COLS)
 	{
 		return data[r][c];
 	}
 
-	void SwapRows(size_t i, size_t j, size_t numCols = COLS)
+	void SwapRows(size_t i, size_t j, size_t numCols = COLS) noexcept
 	pre(i < ROWS; j < ROWS)
 	;
 
-	bool GaussJordan(size_t numRows, size_t numCols)
+	bool GaussJordan(size_t numRows, size_t numCols) noexcept
 	pre(numRows <= ROWS; numRows < numCols; numCols <= COLS)
 	;
 
 	// Return a pointer to a specified row, non-const version
-	T* GetRow(size_t r)
+	T* GetRow(size_t r) noexcept
 	pre(r < ROWS)
 	{
 		return data[r];
 	}
 
 	// Return a pointer to a specified row, const version
-	const T* GetRow(size_t r) const
+	const T* GetRow(size_t r) const noexcept
 	pre(r < ROWS)
 	{
 		return data[r];
 	}
 
 	// Set all elements to a specified value
-	void Fill(T val);
+	void Fill(T val) noexcept;
 
 private:
 	T data[ROWS][COLS];
 };
 
 // Swap 2 rows of a matrix
-template<class T, size_t ROWS, size_t COLS> inline void FixedMatrix<T, ROWS, COLS>::SwapRows(size_t i, size_t j, size_t numCols)
+template<class T, size_t ROWS, size_t COLS> inline void FixedMatrix<T, ROWS, COLS>::SwapRows(size_t i, size_t j, size_t numCols) noexcept
 {
 	if (i != j)
 	{
@@ -87,7 +87,7 @@ template<class T, size_t ROWS, size_t COLS> inline void FixedMatrix<T, ROWS, COL
 }
 
 // Perform Gauss-Jordan elimination on a N x (N+M) matrix. Return true if successful, false if not possible.
-template<class T, size_t ROWS, size_t COLS> bool FixedMatrix<T, ROWS, COLS>::GaussJordan(size_t numRows, size_t numCols)
+template<class T, size_t ROWS, size_t COLS> bool FixedMatrix<T, ROWS, COLS>::GaussJordan(size_t numRows, size_t numCols) noexcept
 {
 	for (size_t i = 0; i < numRows; ++i)
 	{
@@ -145,7 +145,7 @@ template<class T, size_t ROWS, size_t COLS> bool FixedMatrix<T, ROWS, COLS>::Gau
 }
 
 // Set all elements to a specified value
-template<class T, size_t ROWS, size_t COLS>void FixedMatrix<T, ROWS, COLS>::Fill(T val)
+template<class T, size_t ROWS, size_t COLS>void FixedMatrix<T, ROWS, COLS>::Fill(T val) noexcept
 {
 	for (size_t i = 0; i < ROWS; ++i)
 	{

@@ -64,7 +64,7 @@ struct SStringBuf
 	void Init();
 };
 
-SStringBuf::SStringBuf(char *apBuf, size_t maxLen)
+SStringBuf::SStringBuf(char *apBuf, size_t maxLen) noexcept
 {
 	str = apBuf;
 	orgStr = apBuf;
@@ -73,7 +73,7 @@ SStringBuf::SStringBuf(char *apBuf, size_t maxLen)
 	Init();
 }
 
-void SStringBuf::Init()
+void SStringBuf::Init() noexcept
 {
 	memset(&flags, 0, sizeof(flags));
 }
@@ -84,7 +84,7 @@ void SStringBuf::Init()
 // If it won't fit leaving room for a null, store a null and return false.
 // If it is null, store it and return false.
 // Else store it and return true.
-static bool strbuf_printchar(SStringBuf& apStr, char c)
+static bool strbuf_printchar(SStringBuf& apStr, char c) noexcept
 {
 	if (c != 0 && apStr.str < apStr.nulPos)
 	{
@@ -99,7 +99,7 @@ static bool strbuf_printchar(SStringBuf& apStr, char c)
 /*-----------------------------------------------------------*/
 
 // Print the string s to the string buffer adding any necessary padding
-static bool prints(SStringBuf& apBuf, const char *apString )
+static bool prints(SStringBuf& apBuf, const char *apString) noexcept
 {
 	int count;
 	if (apBuf.flags.printLimit > 0 && apBuf.flags.isString)
@@ -184,7 +184,7 @@ static bool prints(SStringBuf& apBuf, const char *apString )
 
 /*-----------------------------------------------------------*/
 
-static bool printll(SStringBuf& apBuf, long long i)
+static bool printll(SStringBuf& apBuf, long long i) noexcept
 {
 	apBuf.flags.isNumber = true;	/* Parameter for prints */
 	if (i == 0LL)
@@ -235,7 +235,7 @@ static bool printll(SStringBuf& apBuf, long long i)
 
 /*-----------------------------------------------------------*/
 
-static bool printi(SStringBuf& apBuf, int i)
+static bool printi(SStringBuf& apBuf, int i) noexcept
 {
 	apBuf.flags.isNumber = true;	/* Parameter for prints */
 
@@ -324,7 +324,7 @@ static bool printi(SStringBuf& apBuf, int i)
 
 // Print a number in scientific format
 // apBuf.flags.printLimit is the number of decimal digits required
-static bool printFloat(SStringBuf& apBuf, double d, char formatLetter)
+static bool printFloat(SStringBuf& apBuf, double d, char formatLetter) noexcept
 {
 	if (std::isnan(d))
 	{
@@ -450,7 +450,7 @@ static bool printFloat(SStringBuf& apBuf, double d, char formatLetter)
 
 /*-----------------------------------------------------------*/
 
-static void tiny_print(SStringBuf& apBuf, const char *format, va_list args)
+static void tiny_print(SStringBuf& apBuf, const char *format, va_list args) noexcept
 {
 	for (;;)
 	{
@@ -621,14 +621,14 @@ static void tiny_print(SStringBuf& apBuf, const char *format, va_list args)
 
 /*-----------------------------------------------------------*/
 
-int SafeVsnprintf(char *apBuf, size_t aMaxLen, const char *apFmt, va_list args)
+int SafeVsnprintf(char *apBuf, size_t aMaxLen, const char *apFmt, va_list args) noexcept
 {
 	SStringBuf strBuf(apBuf, aMaxLen);
 	tiny_print(strBuf, apFmt, args);
 	return strBuf.curLen;
 }
 
-int SafeSnprintf(char* buffer, size_t buf_size, const char* format, ...)
+int SafeSnprintf(char* buffer, size_t buf_size, const char* format, ...) noexcept
 {
 	va_list vargs;
 	va_start(vargs, format);

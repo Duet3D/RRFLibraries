@@ -16,8 +16,8 @@
 template<size_t Sz> class FreelistManager
 {
 public:
-	static void *Allocate();
-	static void Release(void *p);
+	static void *Allocate() noexcept;
+	static void Release(void *p) noexcept;
 
 private:
 	static void *freelist;
@@ -25,7 +25,7 @@ private:
 
 template<size_t Sz> void *FreelistManager<Sz>::freelist = nullptr;
 
-template<size_t Sz> void *FreelistManager<Sz>::Allocate()
+template<size_t Sz> void *FreelistManager<Sz>::Allocate() noexcept
 {
 	if (freelist != nullptr)
 	{
@@ -36,7 +36,7 @@ template<size_t Sz> void *FreelistManager<Sz>::Allocate()
 	return ::operator new(Sz);
 }
 
-template<size_t Sz> void FreelistManager<Sz>::Release(void *p)
+template<size_t Sz> void FreelistManager<Sz>::Release(void *p) noexcept
 {
 	*static_cast<void **>(p) = freelist;
 	freelist = p;
@@ -47,12 +47,12 @@ template<size_t Sz> void FreelistManager<Sz>::Release(void *p)
 #define ROUNDED_UP_SIZE(_type) ((sizeof(_type) + (8u - 1u)) & ~(8u - 1u))
 
 // Operators new and delete for the classes that we want to use these freelists for should call the following functions
-template<class T> inline void *Allocate()
+template<class T> inline void *Allocate() noexcept
 {
 	return FreelistManager<ROUNDED_UP_SIZE(T)>::Allocate();
 }
 
-template<class T> inline void Release(void *p)
+template<class T> inline void Release(void *p) noexcept
 {
 	FreelistManager<ROUNDED_UP_SIZE(T)>::Release(p);
 }
