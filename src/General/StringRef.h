@@ -13,6 +13,7 @@
 #include <cstring>	// for strlen
 
 #include "Strnlen.h"
+#include "StringFunctions.h"
 
 // Class to describe a string buffer, including its length. This saves passing buffer lengths around everywhere.
 class StringRef
@@ -51,6 +52,10 @@ public:
 	void Erase(size_t pos, size_t count = 1) const noexcept;
 	bool Insert(size_t pos, char c) const noexcept;					// returns true if buffer is too small
 	bool Insert(size_t pos, const char *s) const noexcept;			// returns true if buffer is too small
+	bool Equals(const char *s) const noexcept { return strcmp(p, s) == 0; }
+	bool EqualsIgnoreCase(const char *s) const noexcept { return StringEqualsIgnoreCase(p, s); }
+	int Contains(const char *s) const noexcept;
+	int Contains(char c) const noexcept;
 };
 
 // Class to describe a string which we can get a StringRef reference to
@@ -88,6 +93,10 @@ public:
 	void Erase(size_t pos, size_t count = 1) noexcept;
 	bool Insert(size_t pos, char c) noexcept { return GetRef().Insert(pos, c); }		// returns true if buffer is too small
 	bool Insert(size_t pos, const char *s) noexcept { return GetRef().Insert(pos, s); }	// returns true if buffer is too small
+	bool Equals(const char *s) const noexcept { return strcmp(storage, s) == 0; }
+	bool EqualsIgnoreCase(const char *s) const noexcept { return StringEqualsIgnoreCase(storage, s); }
+	int Contains(const char *s) const noexcept;
+	int Contains(char c) const noexcept;
 
 	char *Pointer() noexcept { return storage; }							// use this one only exceptionally and with great care!
 	void EnsureNullTerminated() noexcept { storage[Len] = 0; }
@@ -173,6 +182,18 @@ template<size_t Len> bool String<Len>::EndsWith(char c) const noexcept
 {
 	const size_t len = strlen();
 	return len != 0 && storage[len - 1] == c;
+}
+
+template<size_t Len> int String<Len>::Contains(const char *s) const noexcept
+{
+	const char * const p = strstr(storage, s);
+	return (p == nullptr) ? -1 : p - storage;
+}
+
+template<size_t Len> int String<Len>::Contains(char c) const noexcept
+{
+	const char * const p = strchr(storage, c);
+	return (p == nullptr) ? -1 : p - storage;
 }
 
 #endif /* STRINGREF_H_ */

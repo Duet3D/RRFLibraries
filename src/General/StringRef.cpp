@@ -274,4 +274,16 @@ bool StringRef::Insert(size_t pos, const char *s) const noexcept
 	return true;
 }
 
+int StringRef::Contains(const char *s) const noexcept
+{
+	const char * const r = strstr(p, s);
+	return (r == nullptr) ? -1 : r - p;
+}
+
+int StringRef::Contains(char c) const noexcept
+{
+	const char * const r = strchr(p, c);
+	return (r == nullptr) ? -1 : r - p;
+}
+
 // End
