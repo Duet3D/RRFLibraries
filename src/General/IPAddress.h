@@ -16,18 +16,19 @@ class IPAddress
 public:
 	constexpr IPAddress() noexcept : v4Address(0) {  }
 	explicit IPAddress(const uint8_t ip[4]) noexcept { SetV4(ip); }
+	explicit IPAddress(uint32_t v) : v4Address(v) { }
 
-	bool operator==(const IPAddress& other) const noexcept { return v4Address == other.v4Address; }
-	bool operator!=(const IPAddress& other) const noexcept { return v4Address != other.v4Address; }
+	constexpr bool operator==(const IPAddress& other) const noexcept { return v4Address == other.v4Address; }
+	constexpr bool operator!=(const IPAddress& other) const noexcept { return v4Address != other.v4Address; }
 
 	IPAddress& operator=(const IPAddress& other) noexcept { v4Address = other.v4Address; return *this; }
 
-	bool IsV4() const noexcept { return true; }
-	bool IsV6() const noexcept { return false; }
-	uint32_t GetV4LittleEndian() const noexcept { return v4Address; }
-	uint8_t GetQuad(unsigned int n) const noexcept { return (v4Address >> (8 * n)) & 0x00FF; }
-	bool IsNull() const noexcept { return v4Address == 0; }
-	bool IsBroadcast() const noexcept { return v4Address == 0xFFFFFFFF; }
+	constexpr bool IsV4() const noexcept { return true; }
+	constexpr bool IsV6() const noexcept { return false; }
+	constexpr uint32_t GetV4LittleEndian() const noexcept { return v4Address; }
+	constexpr uint8_t GetQuad(unsigned int n) const noexcept { return (v4Address >> (8 * n)) & 0x00FF; }
+	constexpr bool IsNull() const noexcept { return v4Address == 0; }
+	constexpr bool IsBroadcast() const noexcept { return v4Address == 0xFFFFFFFF; }
 
 	void SetV4LittleEndian(uint32_t ip) noexcept { v4Address = ip; }
 	void SetV4(const uint8_t ip[4]) noexcept;

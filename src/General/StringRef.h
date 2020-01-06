@@ -19,7 +19,7 @@
 class StringRef
 {
 	char *p;				// pointer to the storage
-	size_t len;				// number of characters in the storage
+	size_t len;				// number of characters in the storage, must be at least 1
 public:
 	StringRef(char *pp, size_t pl) noexcept : p(pp), len(pl) { }
 
@@ -56,6 +56,9 @@ public:
 	bool EqualsIgnoreCase(const char *s) const noexcept { return StringEqualsIgnoreCase(p, s); }
 	int Contains(const char *s) const noexcept;
 	int Contains(char c) const noexcept;
+
+	bool Skip() noexcept;
+	void Backspace() noexcept;
 };
 
 // Class to describe a string which we can get a StringRef reference to
