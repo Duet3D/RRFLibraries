@@ -286,26 +286,4 @@ int StringRef::Contains(char c) const noexcept
 	return (r == nullptr) ? -1 : r - p;
 }
 
-// Skip past the end of the string to get a reference to the rest of the buffer. Return true if no space left.
-bool StringRef::Skip() noexcept
-{
-	const size_t slen = strlen();
-	if (slen + 1 < len)				// we must have at least 1 space left beyond the current string
-	{
-		p += slen + 1;
-		*p = 0;
-		len -= slen + 1;
-		return false;
-	}
-	return true;
-}
-
-// Move the pointer back one. Use with extreme caution!
-void StringRef::Backspace() noexcept
-{
-	--p;
-	++len;
-	*p = 0;
-}
-
 // End
