@@ -205,14 +205,13 @@ static bool printll(SStringBuf& apBuf, long long i)
 	*s = '\0';
 	while (u != 0)
 	{
-		const lldiv_t lldiv_result = lldiv(u, (long long)apBuf.flags.base);
-		unsigned int t = lldiv_result.rem;
+		unsigned int t = u % (unsigned int)apBuf.flags.base;
+		u /= (unsigned int)apBuf.flags.base;
 		if (t >= 10)
 		{
 			t += apBuf.flags.letBase - '0' - 10;
 		}
 		*--s = t + '0';
-		u = lldiv_result.quot;
 	}
 
 	if (neg)
@@ -320,6 +319,8 @@ static bool printi(SStringBuf& apBuf, int i)
 }
 
 /*-----------------------------------------------------------*/
+
+#ifndef NO_PRINTF_FLOAT
 
 // Print a number in scientific format
 // apBuf.flags.printLimit is the number of decimal digits required
@@ -445,6 +446,8 @@ static bool printFloat(SStringBuf& apBuf, double d, char formatLetter)
 	return prints(apBuf, s);
 }
 
+#endif
+
 /*-----------------------------------------------------------*/
 
 static void tiny_print(SStringBuf& apBuf, const char *format, va_list args)
@@ -557,6 +560,7 @@ static void tiny_print(SStringBuf& apBuf, const char *format, va_list args)
 			}
 		}
 
+#ifndef NO_PRINTF_FLOAT
 		if (ch == 'f' || ch == 'e' || ch == 'F' || ch == 'E')
 		{
 			if (!printFloat(apBuf, va_arg(args, double), ch))
@@ -565,6 +569,7 @@ static void tiny_print(SStringBuf& apBuf, const char *format, va_list args)
 			}
 			continue;
 		}
+#endif
 
 		apBuf.flags.base = 10;
 		apBuf.flags.letBase = 'a';

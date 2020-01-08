@@ -30,3 +30,18 @@
 *.exe
 *.out
 *.app
+
+# Misc
+.settings/language.settings.xml
+SAM3X/
+SAM3X_RTOS/
+SAM4E_RTOS/
+SAM4S_RTOS/
+SAMC21/
+SAMC21_RTOS/
+SAMC21_RTOS_Debug/
+SAME51/
+SAME51_RTOS/
+SAME51_RTOS_Debug/
+SAME70_RTOS/
+SAME70_RTOS_Debug/

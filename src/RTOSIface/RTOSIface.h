@@ -15,19 +15,46 @@
 class Task_undefined;					// this class is never defined
 typedef Task_undefined *TaskHandle;
 
+#include <utility>
+
 #ifdef RTOS
 # include "FreeRTOS.h"
 # include "task.h"
 # include "semphr.h"
-#else
-# define DONT_USE_CMSIS_INIT
-# include "asf.h"
+# include <atomic>
 #endif
+
+#define RRFLIBS_SAMC21	(defined(__SAMC21G18A__) && __SAMC21G18A__)
+
+/** \brief  Enable IRQ Interrupts
+
+  This function enables IRQ interrupts by clearing the I-bit in the CPSR.
+  Can only be executed in Privileged modes.
+ */
+__attribute__( ( always_inline ) ) static inline void EnableInterrupts()
+{
+  __asm volatile ("cpsie i" : : : "memory");
+}
+
+
+/** \brief  Disable IRQ Interrupts
+
+  This function disables IRQ interrupts by setting the I-bit in the CPSR.
+  Can only be executed in Privileged modes.
+ */
+__attribute__( ( always_inline ) ) static inline void DisableInterrupts()
+{
+  __asm volatile ("cpsid i" : : : "memory");
+}
 
 class Mutex
 {
 public:
-	Mutex() { handle = nullptr; }
+	Mutex() : handle(nullptr)
+#ifdef RTOS
+		, next(nullptr), name(nullptr)
+#endif
+	{ }
 
 	void Create(const char *pName);
 	bool Take(uint32_t timeout = TimeoutUnlimited) const;
@@ -63,29 +90,87 @@ private:
 
 };
 
+class BinarySemaphore
+{
+public:
+	BinarySemaphore();
+
+	bool Take(uint32_t timeout = TimeoutUnlimited) const;
+	bool Give() const;
+
+	static constexpr uint32_t TimeoutUnlimited = 0xFFFFFFFF;
+
+private:
+
+#ifdef RTOS
+	SemaphoreHandle_t handle;
+	StaticSemaphore_t storage;
+#endif
+};
+
 #ifdef RTOS
 
 class TaskBase
 {
 public:
-	TaskBase() { handle = nullptr; }
+	// Type of a short-form task ID. Task IDs start at 1 and each task takes the next available number.
+	// If tasks are never deleted except at shutdown then we can guarantee that task IDs will be small number, because it won't exceed the number of tasks.
+	// This is used by the CAN subsystem, so that we can use 8-bit task IDs to identify a sending task, instead of needing to use 32-bits.
+	typedef uint32_t TaskId;
+
+	TaskBase() : handle(nullptr), next(nullptr) { }
+	~TaskBase() { TerminateAndUnlink(); }
+
+	// Get the short-form task ID. This is a small number, used to send a task ID in 1 byte or less i a CAN packet. It is guaranteed not to be zero.
+	TaskId GetTaskId() const { return taskId; }
+
+	// This function is called directly for tasks that are created by FreeRTOS, so it must be public
+	// Link the task into the thread list and allocate a short task ID to it
+	void AddToList();
+	void TerminateAndUnlink();
 
 	TaskHandle GetHandle() const { return static_cast<TaskHandle>(handle); }
 	void Suspend() const { vTaskSuspend(handle); }
 	void Resume() const { vTaskResume(handle); }
 	const TaskBase *GetNext() const { return next; }
 
-	void GiveFromISR()		// wake up this task from an ISR
+	// Wake up a task identified by its handle from an ISR
+	static inline void GiveFromISR(TaskHandle h)
 	{
-		BaseType_t higherPriorityTaskWoken = pdFALSE;
-		vTaskNotifyGiveFromISR(handle, &higherPriorityTaskWoken);
-		portYIELD_FROM_ISR(higherPriorityTaskWoken);
+		if (h != nullptr)			// check that the task has been created
+		{
+			BaseType_t higherPriorityTaskWoken = pdFALSE;
+			vTaskNotifyGiveFromISR(h, &higherPriorityTaskWoken);
+			portYIELD_FROM_ISR(higherPriorityTaskWoken);
+		}
 	}
 
-	void Give() { xTaskNotifyGive(handle); }							// wake up this task from an ISR
-	static uint32_t Take(uint32_t timeout) { return ulTaskNotifyTake(pdTRUE, timeout); }
+	// Wake up this task from an ISR
+	void GiveFromISR()
+	{
+		if (handle != nullptr)			// check that the task has been created
+		{
+			BaseType_t higherPriorityTaskWoken = pdFALSE;
+			vTaskNotifyGiveFromISR(handle, &higherPriorityTaskWoken);
+			portYIELD_FROM_ISR(higherPriorityTaskWoken);
+		}
+	}
+
+	// Wake up this task but not from an ISR
+	void Give()
+	{
+		xTaskNotifyGive(handle);
+	}
+
+	// Wait until we have been woken up
+	static uint32_t Take(uint32_t timeout = TimeoutUnlimited)
+	{
+		return ulTaskNotifyTake(pdTRUE, timeout);
+	}
 
 	static TaskHandle GetCallerTaskHandle() { return (TaskHandle)xTaskGetCurrentTaskHandle(); }
+
+	static TaskId GetCallerTaskId();
 
 	TaskBase(const TaskBase&) = delete;				// it's not safe to copy these
 	TaskBase& operator=(const TaskBase&) = delete;	// it's not safe to assign these
@@ -99,19 +184,16 @@ public:
 
 	static const TaskBase *GetTaskList() { return taskList; }
 
-	static constexpr int SpinPriority = 1;			// priority for tasks that rarely block
-	static constexpr int HeatPriority = 2;
-	static constexpr int TmcPriority = 2;
-	static constexpr int AinPriority = 2;
-	static constexpr int CanSenderPriority = 3;
-	static constexpr int CanReceiverPriority = 3;
+	static constexpr uint32_t TimeoutUnlimited = 0xFFFFFFFF;
 
 protected:
 	TaskHandle_t handle;
 	TaskBase *next;
+	TaskId taskId;
 	StaticTask_t storage;
 
 	static TaskBase *taskList;
+	static TaskId numTasks;
 };
 
 template<unsigned int StackWords> class Task : public TaskBase
@@ -122,14 +204,6 @@ public:
 	{
 		handle = xTaskCreateStatic(pxTaskCode, pcName, StackWords, pvParameters, uxPriority, stack, &storage);
 		AddToList();
-	}
-
-	// This function is called directly for tasks that are created by FreeRTOS
-	void AddToList()
-	{
-		handle = &storage;
-		next = taskList;
-		taskList = this;
 	}
 
 	// These functions should be used only to tell FreeRTOS where the corresponding data is
@@ -150,12 +224,15 @@ class MutexLocker
 public:
 	MutexLocker(const Mutex *pm, uint32_t timeout = Mutex::TimeoutUnlimited);	// acquire lock
 	MutexLocker(const Mutex& pm, uint32_t timeout = Mutex::TimeoutUnlimited);	// acquire lock
-	void Release();															// release the lock early (else gets released by destructor)
+
+	void Release();																// release the lock early (also gets released by destructor)
+	bool ReAcquire(uint32_t timeout = Mutex::TimeoutUnlimited);					// acquire it again, if it isn't already owned (non-counting)
 	~MutexLocker();
 	operator bool() const { return acquired; }
 
 	MutexLocker(const MutexLocker&) = delete;
 	MutexLocker& operator=(const MutexLocker&) = delete;
+	MutexLocker(MutexLocker&& other) : handle(other.handle), acquired(other.acquired) { other.handle = nullptr; other.acquired = false; }
 
 private:
 	const Mutex *handle;
@@ -177,7 +254,7 @@ namespace RTOSIface
 #ifdef RTOS
 		taskENTER_CRITICAL();
 #else
-		cpu_irq_disable();
+		DisableInterrupts();
 		++interruptCriticalSectionNesting;
 #endif
 	}
@@ -191,7 +268,7 @@ namespace RTOSIface
 		--interruptCriticalSectionNesting;
 		if (interruptCriticalSectionNesting == 0)
 		{
-			cpu_irq_enable();
+			EnableInterrupts();
 		}
 #endif
 	}
@@ -231,6 +308,8 @@ class InterruptCriticalSectionLocker
 public:
 	InterruptCriticalSectionLocker() { RTOSIface::EnterInterruptCriticalSection(); }
 	~InterruptCriticalSectionLocker() { (void)RTOSIface::LeaveInterruptCriticalSection(); }
+
+	InterruptCriticalSectionLocker(const InterruptCriticalSectionLocker&) = delete;
 };
 
 class TaskCriticalSectionLocker
@@ -238,6 +317,150 @@ class TaskCriticalSectionLocker
 public:
 	TaskCriticalSectionLocker() { RTOSIface::EnterTaskCriticalSection(); }
 	~TaskCriticalSectionLocker() { RTOSIface::LeaveTaskCriticalSection(); }
+
+	TaskCriticalSectionLocker(const TaskCriticalSectionLocker&) = delete;
 };
+
+// Class to represent a lock that allows multiple readers but only one writer
+// This is designed to be efficient when writing is rare
+// Rules:
+// - Read locks are recursive. You can request a read lock on an object multiple times, but you must release it the same number of times.
+// - Write locks are not recursive.
+// - If you have a write lock on an object, you can request a read lock on the same object and it will be granted automatically.
+// - If you have a read lock, you can't ask for a write lock on the same object, it will deadlock if you do.
+class ReadWriteLock
+{
+public:
+	ReadWriteLock()
+#ifdef RTOS
+		: numReaders(0), writeLockOwner(nullptr)
+#endif
+	{ }
+
+	void LockForReading();
+	void ReleaseReader();
+	void LockForWriting();
+	void ReleaseWriter();
+	void DowngradeWriter();					// turn a write lock into a read lock (but you can't go back again)
+
+private:
+
+#ifdef RTOS
+# if RRFLIBS_SAMC21
+	volatile uint8_t numReaders;			// SAMC21 doesn't support atomic operations, neither does the library
+# else
+	std::atomic_uint8_t numReaders;			// MSB is set if a task is writing or write pending, lower bits are the number of readers
+	static_assert(std::atomic_uint8_t::is_always_lock_free);
+# endif
+	volatile TaskHandle writeLockOwner;		// handle of the task that owns the write lock
+#endif
+};
+
+class ReadLocker
+{
+public:
+	ReadLocker(ReadWriteLock& p_lock) : lock(&p_lock) { lock->LockForReading(); }
+	ReadLocker(ReadWriteLock *p_lock) : lock(p_lock) { if (lock != nullptr) { lock->LockForReading(); } }
+	~ReadLocker() { if (lock != nullptr) { lock->ReleaseReader(); } }
+
+	ReadLocker(const ReadLocker&) = delete;
+	ReadLocker(ReadLocker&& other) : lock(other.lock) { other.lock = nullptr; }
+
+private:
+	ReadWriteLock* lock;
+};
+
+class WriteLocker
+{
+public:
+	WriteLocker(ReadWriteLock& p_lock) : lock(&p_lock) { lock->LockForWriting(); }
+	~WriteLocker() { if (lock != nullptr) { lock->ReleaseWriter(); } }
+
+	void Downgrade() { if (lock != nullptr) { lock->DowngradeWriter(); } }
+
+	WriteLocker(const WriteLocker&) = delete;
+	WriteLocker(WriteLocker&& other) : lock(other.lock) { other.lock = nullptr; }
+
+private:
+	ReadWriteLock* lock;
+};
+
+template<class T> class ReadLockedPointer
+{
+public:
+	ReadLockedPointer(ReadLocker& p_locker, T* p_ptr) : locker(std::move(p_locker)), ptr(p_ptr) { }
+	ReadLockedPointer(const ReadLockedPointer&) = delete;
+	ReadLockedPointer(ReadLockedPointer&& other) : locker(other.locker), ptr(other.ptr) { other.ptr = nullptr; }
+
+	bool IsNull() const { return ptr == nullptr; }
+	bool IsNotNull() const { return ptr != nullptr; }
+	T* operator->() const { return ptr; }
+
+private:
+	ReadLocker locker;
+	T* ptr;
+};
+
+#ifdef RTOS
+
+// Queue support
+class QueueBase
+{
+public:
+	QueueBase() : handle(nullptr), next(nullptr), name(nullptr) { }
+
+	const QueueBase *GetNext() const { return next; }
+
+	static const QueueBase *GetThread() { return thread; }
+
+protected:
+	QueueHandle_t handle;
+	QueueBase *next;
+	const char *name;
+	StaticQueue_t storage;
+
+	static QueueBase *thread;
+};
+
+template <class Message> class Queue : public QueueBase
+{
+public:
+	Queue() : messageStorage(nullptr) { }
+
+	void Create(const char *p_name, size_t capacity);
+	bool PutToBack(const Message &m, uint32_t timeout);
+	bool PutToFront(const Message &m, uint32_t timeout);
+	bool Get(Message& m, uint32_t timeout);
+	bool IsValid() const { return handle != nullptr; }
+
+private:
+	uint8_t *messageStorage;
+};
+
+template <class Message> void Queue<Message>::Create(const char *p_name, size_t capacity)
+{
+	if (handle == nullptr)
+	{
+		messageStorage = new uint8_t[capacity * sizeof(Message)];
+		handle = xQueueCreateStatic(capacity, sizeof(Message), messageStorage, &storage);
+	}
+}
+
+template <class Message> bool Queue<Message>::PutToBack(const Message &m, uint32_t timeout)
+{
+	return xQueueSendToBack(handle, &m, timeout) == pdTRUE;
+}
+
+template <class Message> bool Queue<Message>::PutToFront(const Message &m, uint32_t timeout)
+{
+	return xQueueSendToFront(handle, &m, timeout) == pdTRUE;
+}
+
+template <class Message> bool Queue<Message>::Get(Message& m, uint32_t timeout)
+{
+	return xQueueReceive(handle, &m, timeout) == pdTRUE;
+}
+
+#endif
 
 #endif /* SRC_RTOSIFACE_H_ */

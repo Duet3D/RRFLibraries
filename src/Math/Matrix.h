@@ -9,6 +9,7 @@
 #define MATRIX_H_
 
 #include <cstddef>		// for size_t
+#include "../General/ecv.h"
 
 // Base class for matrices, allows us to write functions that work with any size matrix
 template<class T> class MathMatrix
@@ -32,40 +33,43 @@ public:
 	T& operator() (size_t r, size_t c) override
 	pre(r < ROWS; c < COLS)
 	{
-		return data[r * COLS + c];
+		return data[r][c];
 	}
 
 	// Indexing operator, const version
 	const T& operator() (size_t r, size_t c) const override
 	pre(r < ROWS; c < COLS)
 	{
-		return data[r * COLS + c];
+		return data[r][c];
 	}
 
 	void SwapRows(size_t i, size_t j, size_t numCols = COLS)
 	pre(i < ROWS; j < ROWS)
 	;
 
-	void GaussJordan(T *solution, size_t numRows)
-	pre(numRows <= ROWS; numRows + 1 <= COLS)
+	bool GaussJordan(size_t numRows, size_t numCols)
+	pre(numRows <= ROWS; numRows < numCols; numCols <= COLS)
 	;
 
 	// Return a pointer to a specified row, non-const version
 	T* GetRow(size_t r)
 	pre(r < ROWS)
 	{
-		return data + (r * COLS);
+		return data[r];
 	}
 
 	// Return a pointer to a specified row, const version
 	const T* GetRow(size_t r) const
 	pre(r < ROWS)
 	{
-		return data + (r * COLS);
+		return data[r];
 	}
 
+	// Set all elements to a specified value
+	void Fill(T val);
+
 private:
-	T data[ROWS * COLS];
+	T data[ROWS][COLS];
 };
 
 // Swap 2 rows of a matrix
@@ -73,59 +77,82 @@ template<class T, size_t ROWS, size_t COLS> inline void FixedMatrix<T, ROWS, COL
 {
 	if (i != j)
 	{
-		for (size_t k = i; k < numCols; ++k)
+		for (size_t k = 0; k < numCols; ++k)
 		{
-			T temp = (*this)(i, k);
-			(*this)(i, k) = (*this)(j, k);
-			(*this)(j, k) = temp;
+			T temp = data[i][k];
+			data[i][k] = data[j][k];
+			data[j][k] = temp;
 		}
 	}
 }
 
-// Perform Gauss-Jordan elimination on a N x (N+1) matrix.
-// Returns a pointer to the solution vector.
-template<class T, size_t ROWS, size_t COLS> void FixedMatrix<T, ROWS, COLS>::GaussJordan(T *solution, size_t numRows)
+// Perform Gauss-Jordan elimination on a N x (N+M) matrix. Return true if successful, false if not possible.
+template<class T, size_t ROWS, size_t COLS> bool FixedMatrix<T, ROWS, COLS>::GaussJordan(size_t numRows, size_t numCols)
 {
 	for (size_t i = 0; i < numRows; ++i)
 	{
 		// Swap the rows around for stable Gauss-Jordan elimination
-		float vmax = fabsf((*this)(i, i));
+		float vmax = fabsf(data[i][i]);
 		for (size_t j = i + 1; j < numRows; ++j)
 		{
-			const float rmax = fabsf((*this)(j, i));
+			const float rmax = fabsf(data[j][i]);
 			if (rmax > vmax)
 			{
-				SwapRows(i, j);
+				SwapRows(i, j, numCols);
 				vmax = rmax;
 			}
 		}
 
-		// Use row i to eliminate the ith element from previous and subsequent rows
-		T v = (*this)(i, i);
+		// Use row i to eliminate the element in the ith column from previous and subsequent rows
+		const T v = data[i][i];
+		if (v == (T)0.0)
+		{
+			return false;
+		}
+
 		for (size_t j = 0; j < i; ++j)
 		{
-			T factor = (*this)(j, i)/v;
-			(*this)(j, i) = 0.0;
-			for (size_t k = i + 1; k <= numRows; ++k)
+			const T factor = data[j][i]/v;
+			data[j][i] = (T)0.0;
+			for (size_t k = i + 1; k < numCols; ++k)
 			{
-				(*this)(j, k) -= (*this)(i, k) * factor;
+				data[j][k] -= data[i][k] * factor;
 			}
 		}
 
 		for (size_t j = i + 1; j < numRows; ++j)
 		{
-			T factor = (*this)(j, i)/v;
-			(*this)(j, i) = 0.0;
-			for (size_t k = i + 1; k <= numRows; ++k)
+			const T factor = data[j][i]/v;
+			data[j][i] = (T)0.0;
+			for (size_t k = i + 1; k < numCols; ++k)
 			{
-				(*this)(j, k) -= (*this)(i, k) * factor;
+				data[j][k] -= data[i][k] * factor;
 			}
 		}
 	}
 
-	for (size_t i = 0; i < numRows; ++i)
+	for (size_t r = 0; r < numRows; ++r)
 	{
-		solution[i] = (*this)(i, numRows) / (*this)(i, i);
+		const T val = data[r][r];
+		for (size_t c = numRows; c < numCols; ++c)
+		{
+			data[r][c] /= val;
+		}
+		data[r][r] = (T)1.0;
+	}
+
+	return true;
+}
+
+// Set all elements to a specified value
+template<class T, size_t ROWS, size_t COLS>void FixedMatrix<T, ROWS, COLS>::Fill(T val)
+{
+	for (size_t i = 0; i < ROWS; ++i)
+	{
+		for (size_t j = 0; j < COLS; ++j)
+		{
+			data[i][j] = val;
+		}
 	}
 }
 
