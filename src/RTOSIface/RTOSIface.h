@@ -162,10 +162,10 @@ public:
 		xTaskNotifyGive(handle);
 	}
 
-	// Wait until we have been woken up
-	static uint32_t Take(uint32_t timeout = TimeoutUnlimited) noexcept
+	// Wait until we have been woken up or we time out. Return true if we timed out.
+	static bool Take(uint32_t timeout = TimeoutUnlimited) noexcept
 	{
-		return ulTaskNotifyTake(pdTRUE, timeout);
+		return ulTaskNotifyTake(pdTRUE, timeout) == 0;
 	}
 
 	static TaskHandle GetCallerTaskHandle() noexcept { return (TaskHandle)xTaskGetCurrentTaskHandle(); }
