@@ -16,7 +16,7 @@ class IPAddress
 public:
 	constexpr IPAddress() noexcept : v4Address(0) {  }
 	explicit IPAddress(const uint8_t ip[4]) noexcept { SetV4(ip); }
-	explicit IPAddress(uint32_t v) : v4Address(v) { }
+	explicit constexpr IPAddress(uint32_t v) : v4Address(v) { }
 
 	constexpr bool operator==(const IPAddress& other) const noexcept { return v4Address == other.v4Address; }
 	constexpr bool operator!=(const IPAddress& other) const noexcept { return v4Address != other.v4Address; }

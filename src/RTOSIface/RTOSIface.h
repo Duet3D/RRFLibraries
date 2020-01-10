@@ -395,6 +395,7 @@ public:
 	bool IsNull() const noexcept { return ptr == nullptr; }
 	bool IsNotNull() const noexcept { return ptr != nullptr; }
 	T* operator->() const noexcept { return ptr; }
+	T* Ptr() const noexcept { return ptr; }
 
 private:
 	ReadLocker locker;
