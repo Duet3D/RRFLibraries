@@ -11,6 +11,7 @@
 #define SRC_LIBRARIES_GENERAL_FREELISTMANAGER_H_
 
 #include <cstddef>
+#include "../RTOSIface/RTOSIface.h"
 
 // Free list manager
 template<size_t Sz> class FreelistManager
@@ -27,6 +28,8 @@ template<size_t Sz> void *FreelistManager<Sz>::freelist = nullptr;
 
 template<size_t Sz> void *FreelistManager<Sz>::Allocate() noexcept
 {
+	TaskCriticalSectionLocker lock;
+
 	if (freelist != nullptr)
 	{
 		void * const p = freelist;
@@ -38,23 +41,29 @@ template<size_t Sz> void *FreelistManager<Sz>::Allocate() noexcept
 
 template<size_t Sz> void FreelistManager<Sz>::Release(void *p) noexcept
 {
+	TaskCriticalSectionLocker lock;
+
 	*static_cast<void **>(p) = freelist;
 	freelist = p;
 }
 
 // Macro to return the size of objects of a given type rounded up to a multiple of 8 bytes.
 // We use this to reduce the number of freelists that we need to keep.
-#define ROUNDED_UP_SIZE(_type) ((sizeof(_type) + (8u - 1u)) & ~(8u - 1u))
+inline constexpr size_t RoundedUpSize(size_t rawSize)
+{
+	constexpr size_t sizeIncrement = 8;
+	return ((rawSize + (sizeIncrement - 1u)) & ~(sizeIncrement - 1u));
+}
 
 // Operators new and delete for the classes that we want to use these freelists for should call the following functions
 template<class T> inline void *Allocate() noexcept
 {
-	return FreelistManager<ROUNDED_UP_SIZE(T)>::Allocate();
+	return FreelistManager<RoundedUpSize(sizeof(T))>::Allocate();
 }
 
 template<class T> inline void Release(void *p) noexcept
 {
-	FreelistManager<ROUNDED_UP_SIZE(T)>::Release(p);
+	FreelistManager<RoundedUpSize(sizeof(T))>::Release(p);
 }
 
 #endif /* SRC_LIBRARIES_GENERAL_FREELISTMANAGER_H_ */
