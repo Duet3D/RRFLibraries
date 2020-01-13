@@ -47,4 +47,15 @@ bool StringBuffer::Concat(const char *s1, const char *s2) noexcept
 	return GetRef().copy(s1) || GetRef().cat(s2);
 }
 
+// The is called when we have finished using a string, which may be in the buffer. If it is the last string in the buffer, we can delete it.
+void StringBuffer::FinishedUsing(const char *s) noexcept
+{
+	const size_t len = strlen(s) + 1;
+	if (s + len == p + used)
+	{
+		used -= len;
+		p[used] = 0;
+	}
+}
+
 // End

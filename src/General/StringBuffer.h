@@ -32,6 +32,9 @@ public:
 	// One or both strings may already be in the buffer, and we don't need to keep them intact. Optimise storage where possible.
 	bool Concat(const char *s1, const char *s2) noexcept;
 
+	// Say that we have finished using a string, which may be in the buffer. If it is the last string in the buffer, we can delete it.
+	void FinishedUsing(const char *s) noexcept;
+
 private:
 	char *p;				// pointer to the storage
 	size_t len;				// number of characters in the storage, must be at least 1
