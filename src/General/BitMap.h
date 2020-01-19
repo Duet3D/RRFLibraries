@@ -164,14 +164,14 @@ public:
 private:
 	explicit Bitmap(BaseType n) noexcept : bits(n) { }
 
+	static constexpr uint8_t BitCount[16] = { 0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4 };
+
 	BaseType bits;
 };
 
 // Count the number of set bits
 template<class BaseType> unsigned int Bitmap<BaseType>::CountSetBits() const noexcept
 {
-	static constexpr uint8_t BitCount[16] = { 0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4 };
-
 	unsigned int count = 0;
 	BaseType b = bits;
 	while (b != 0)
