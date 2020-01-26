@@ -109,6 +109,11 @@ public:
 		return (bits & other.bits) != 0;
 	}
 
+	bool Disjoint(Bitmap<BaseType> other) const noexcept
+	{
+		return (bits & other.bits) == 0;
+	}
+
 	Bitmap<BaseType> ShiftUp(unsigned int n) const noexcept
 	{
 		return Bitmap<BaseType>(bits << n);
