@@ -119,6 +119,12 @@ public:
 		return Bitmap<BaseType>(bits << n);
 	}
 
+	// Set the bits from a base type bitmap
+	void SetFromRaw(BaseType b) noexcept
+	{
+		bits = b;
+	}
+
 	// Count the number of set bits
 	unsigned int CountSetBits() const noexcept;
 
@@ -155,12 +161,6 @@ public:
 	static Bitmap<BaseType> MakeFromBits(unsigned int b1, unsigned int b2, unsigned int b3) noexcept
 	{
 		return Bitmap<BaseType>((BaseType)1u << b1 | (BaseType)1u << b2 |  (BaseType)1u << b3);
-	}
-
-	// Convert an unsigned integer to a bit in a bitmap
-	static Bitmap<BaseType> MakeFromRaw(BaseType b) noexcept
-	{
-		return Bitmap<BaseType>(b);
 	}
 
 	// Convert an array of longs to a bit map with overflow checking
