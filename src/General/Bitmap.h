@@ -163,6 +163,12 @@ public:
 		return Bitmap<BaseType>((BaseType)1u << b1 | (BaseType)1u << b2 |  (BaseType)1u << b3);
 	}
 
+	// Convert an unsigned integer to a bit in a bitmap
+	static Bitmap<BaseType> MakeFromRaw(BaseType b) noexcept
+	{
+		return Bitmap<BaseType>(b);
+	}
+
 	// Convert an array of longs to a bit map with overflow checking
 	static Bitmap<BaseType> MakeFromArray(const uint32_t *arr, size_t numEntries) noexcept;
 
