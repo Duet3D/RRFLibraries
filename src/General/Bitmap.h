@@ -67,6 +67,19 @@ public:
 		bits &= ~((BaseType)1u << n);
 	}
 
+	// Set a bit to a given state
+	void SetOrClearBit(unsigned int n, bool b)
+	{
+		if (b)
+		{
+			bits |= ((BaseType)1u << n);
+		}
+		else
+		{
+			bits &= ~((BaseType)1u << n);
+		}
+	}
+
 	Bitmap<BaseType> operator & (Bitmap<BaseType> other) const noexcept
 	{
 		return Bitmap<BaseType>(bits & other.bits);
@@ -138,6 +151,7 @@ public:
 
 	// Iterate over the bits
 	void Iterate(std::function<void(unsigned int, bool) /*noexcept*/ > func) const noexcept;
+	bool IterateWhile(std::function<bool(unsigned int, bool) /*noexcept*/ > func) const noexcept;
 
 	// Make a bitmap with the lowest n bits set
 	static Bitmap<BaseType> MakeLowestNBits(unsigned int n) noexcept
@@ -222,6 +236,24 @@ template<class BaseType> void Bitmap<BaseType>::Iterate(std::function<void(unsig
 		copyBits &= ~((BaseType)1 << index);
 		first = false;
 	}
+}
+
+// Iterate over the bits
+template<class BaseType> bool Bitmap<BaseType>::IterateWhile(std::function<bool(unsigned int, bool) /*noexcept*/ > func) const noexcept
+{
+	BaseType copyBits = bits;
+	bool first = true;
+	while (copyBits != 0)
+	{
+		const unsigned int index = ::LowestSetBit(copyBits);
+		if (!func(index, first))
+		{
+			return false;
+		}
+		copyBits &= ~((BaseType)1 << index);
+		first = false;
+	}
+	return true;
 }
 
 // Convert an array of longs to a bit map with overflow checking
