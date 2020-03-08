@@ -54,11 +54,12 @@ static inline const char *SkipLeadingUnderscore(const char *s)
 #define NamedEnum(_typename, _baseType, _v1, ...) \
 class _typename { \
 public: \
-	enum _E : _baseType { _v1 = 0, __VA_ARGS__ };																/* underlying enumeration */ \
+	typedef _baseType BaseType;																					/* alias for the base type */ \
+	enum RawType : BaseType { _v1 = 0, __VA_ARGS__ };															/* underlying enumeration */ \
 	static constexpr unsigned int NumValues = VA_SIZE(__VA_ARGS__) + 1;											/* count of members */ \
-	_typename(_E arg) noexcept { v = arg; }																		/* constructor */ \
-	explicit _typename(_baseType arg) noexcept { v = static_cast<_E>(arg); }									/* constructor */ \
-	explicit _typename(const char *s) noexcept { v = static_cast<_E>(NamedEnumLookup(s, _names, NumValues)); }	/* constructor from string - NAMES MUST BE ORDERED when using this */ \
+	_typename(RawType arg) noexcept { v = arg; }																/* constructor */ \
+	explicit _typename(BaseType arg) noexcept { v = static_cast<RawType>(arg); }								/* constructor */ \
+	explicit _typename(const char *s) noexcept { v = static_cast<RawType>(NamedEnumLookup(s, _names, NumValues)); }	/* constructor from string - NAMES MUST BE ORDERED when using this */ \
 	_typename(const _typename& arg) noexcept { v = arg.v; }														/* copy constructor */ \
 	bool operator==(_typename arg) const noexcept { return v == arg.v; }										/* equality operator */ \
 	bool operator!=(_typename arg) const noexcept { return v != arg.v; }										/* inequality operator */ \
@@ -66,21 +67,22 @@ public: \
 	bool operator>=(_typename arg) const noexcept { return v >= arg.v; }										/* greater-than-or-equal operator */ \
 	bool operator<(_typename arg) const noexcept { return v < arg.v; }											/* less-than operator */ \
 	bool operator<=(_typename arg) const noexcept { return v <= arg.v; }										/* less-than-or-equal operator */ \
-	bool operator==(_E arg) const noexcept { return v == arg; }													/* equality operator */ \
-	bool operator!=(_E arg) const noexcept { return v != arg; }													/* inequality operator */ \
-	bool operator>(_E arg) const noexcept { return v > arg; }													/* greater-than operator */ \
-	bool operator>=(_E arg) const noexcept { return v >= arg; }													/* greater-than-or-equal operator */ \
-	bool operator<(_E arg) const noexcept { return v < arg; }													/* less-than operator */ \
-	bool operator<=(_E arg) const noexcept { return v <= arg; }													/* less-than-or-equal operator */ \
-	const _typename& operator=(_E arg) noexcept { v = arg; return *this; }										/* assignment operator from underlying enum */ \
+	bool operator==(RawType arg) const noexcept { return v == arg; }											/* equality operator */ \
+	bool operator!=(RawType arg) const noexcept { return v != arg; }											/* inequality operator */ \
+	bool operator>(RawType arg) const noexcept { return v > arg; }												/* greater-than operator */ \
+	bool operator>=(RawType arg) const noexcept { return v >= arg; }											/* greater-than-or-equal operator */ \
+	bool operator<(RawType arg) const noexcept { return v < arg; }												/* less-than operator */ \
+	bool operator<=(RawType arg) const noexcept { return v <= arg; }											/* less-than-or-equal operator */ \
+	const _typename& operator=(RawType arg) noexcept { v = arg; return *this; }									/* assignment operator from underlying enum */ \
 	const _typename& operator=(_typename arg) noexcept { v = arg.v; return *this; }								/* copy assignment operator */ \
-	constexpr _E RawValue() const noexcept { return v; }														/* return the raw enum value, which we can switch on */ \
-	constexpr _baseType ToBaseType() const noexcept { return static_cast<_baseType>(v); }						/* conversion to integral base type */ \
+	constexpr RawType RawValue() const noexcept { return v; }													/* return the raw enum value, which we can switch on */ \
+	constexpr BaseType ToBaseType() const noexcept { return static_cast<BaseType>(v); }							/* convert to integral base type */ \
+	static constexpr BaseType ToBaseType(RawType arg) noexcept { return static_cast<BaseType>(arg); }			/* convert to integral base type */ \
 	const char* ToString() const noexcept { return (v < NumValues) ? SkipLeadingUnderscore(_names[v]) : "invalid"; }	/* conversion to C string */ \
-	void Assign(_baseType arg) noexcept { v = static_cast<_E>(arg); }											/* assignment from integral base type */ \
+	void Assign(BaseType arg) noexcept { v = static_cast<RawType>(arg); }										/* assignment from integral base type */ \
 	bool IsValid() const noexcept { return v < NumValues; }														/* check validity */ \
 private: \
-	_E v; \
+	RawType v; \
 	static constexpr const char* _names[NumValues] = { STRINGLIST(_v1, __VA_ARGS__) }; \
 }
 
