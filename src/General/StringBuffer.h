@@ -35,6 +35,9 @@ public:
 	// Say that we have finished using a string, which may be in the buffer. If it is the last string in the buffer, we can delete it.
 	void FinishedUsing(const char *s) noexcept;
 
+	// Reset the buffer to be empty
+	void Reset() noexcept { used = 0; }
+
 private:
 	char *p;				// pointer to the storage
 	size_t len;				// number of characters in the storage, must be at least 1
