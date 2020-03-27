@@ -413,6 +413,11 @@ static bool printFloat(SStringBuf& apBuf, double d, char formatLetter) noexcept
 	}
 
 	// Store the non-exponent part
+	if (digitsAfterPoint == 0 && apBuf.flags.printLimit != 0)
+	{
+		*--s = '0';							// make sure we have at least one digit after the decimal point so that it is valid JSON
+	}
+
 	do
 	{
 		if (digitsAfterPoint == 0)
