@@ -5,10 +5,10 @@
  *      Author: David
  *
  * This is a replacement for strtod() and strtof() in the C standard library. Those versions have two problems:
- * 1. It is not reentrant. We can make it so by defining configUSE_NEWLIB_REENTRANT in FreeRTOS, but that makes the tasks much bigger.
- * 2. It allocates and releases heap memory, which is not nice.
+ * 1. They are not reentrant. We can make them so by defining configUSE_NEWLIB_REENTRANT in FreeRTOS, but that makes the tasks much bigger.
+ * 2. They allocates and releases heap memory, which is not nice.
  *
- * Limitations of this version
+ * Limitations of these versions
  * 1. Rounding to nearest double may not always be correct.
  * 2. Does not handle overflow for stupidly large numbers correctly.
  */
@@ -20,6 +20,8 @@
 
 #include "SafeStrtod.h"
 #undef strtoul		// Undo the macro definition of strtoul in SafeStrtod.h so that we can call it in this file
+
+#include "../Math/Power.h"
 
 double SafeStrtod(const char *s, const char **p) noexcept
 {
@@ -37,7 +39,7 @@ double SafeStrtod(const char *s, const char **p) noexcept
 	}
 
 	// 2. Read digits before decimal point, E or e. We use floating point for this in case of very large numbers.
-	double valueBeforePoint = 0;
+	double valueBeforePoint = 0.0;
 	while (isdigit(*s))
 	{
 		valueBeforePoint = (valueBeforePoint * 10) + (*s - '0');
@@ -106,18 +108,18 @@ double SafeStrtod(const char *s, const char **p) noexcept
 	double retvalue;
 	if (valueAfterPoint != 0)
 	{
-		if (valueBeforePoint == 0)
+		if (valueBeforePoint == (double)0.0L)
 		{
-			retvalue = (double)valueAfterPoint * pow(10, exponent - digitsAfterPoint);
+			retvalue = TimesPowerOf10((double)valueAfterPoint, exponent - digitsAfterPoint);
 		}
 		else
 		{
-			retvalue = ((double)valueAfterPoint/pow(10, digitsAfterPoint) + valueBeforePoint) * pow(10, exponent);
+			retvalue = TimesPowerOf10(TimesPowerOf10((double)valueAfterPoint, -digitsAfterPoint) + valueBeforePoint, exponent);
 		}
 	}
 	else
 	{
-		retvalue = valueBeforePoint * pow(10, exponent);
+		retvalue = TimesPowerOf10(valueBeforePoint, exponent);
 	}
 
 	// 7. Set end pointer
