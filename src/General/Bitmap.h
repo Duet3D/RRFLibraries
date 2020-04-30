@@ -150,8 +150,8 @@ public:
 	}
 
 	// Iterate over the bits
-	void Iterate(std::function<void(unsigned int, bool) /*noexcept*/ > func) const noexcept;
-	bool IterateWhile(std::function<bool(unsigned int, bool) /*noexcept*/ > func) const noexcept;
+	void Iterate(std::function<void(unsigned int, unsigned int) /*noexcept*/ > func) const noexcept;
+	bool IterateWhile(std::function<bool(unsigned int, unsigned int) /*noexcept*/ > func) const noexcept;
 
 	// Make a bitmap with the lowest n bits set
 	static Bitmap<BaseType> MakeLowestNBits(unsigned int n) noexcept
@@ -225,33 +225,33 @@ template<class BaseType> int Bitmap<BaseType>::GetSetBitNumber(size_t index) con
 }
 
 // Iterate over the bits
-template<class BaseType> void Bitmap<BaseType>::Iterate(std::function<void(unsigned int, bool) /*noexcept*/ > func) const noexcept
+template<class BaseType> void Bitmap<BaseType>::Iterate(std::function<void(unsigned int, unsigned int) /*noexcept*/ > func) const noexcept
 {
 	BaseType copyBits = bits;
-	bool first = true;
+	unsigned int count = 0;
 	while (copyBits != 0)
 	{
 		const unsigned int index = ::LowestSetBit(copyBits);
-		func(index, first);
+		func(index, count);
 		copyBits &= ~((BaseType)1 << index);
-		first = false;
+		++count;
 	}
 }
 
 // Iterate over the bits
-template<class BaseType> bool Bitmap<BaseType>::IterateWhile(std::function<bool(unsigned int, bool) /*noexcept*/ > func) const noexcept
+template<class BaseType> bool Bitmap<BaseType>::IterateWhile(std::function<bool(unsigned int, unsigned int) /*noexcept*/ > func) const noexcept
 {
 	BaseType copyBits = bits;
-	bool first = true;
+	unsigned int count = 0;
 	while (copyBits != 0)
 	{
 		const unsigned int index = ::LowestSetBit(copyBits);
-		if (!func(index, first))
+		if (!func(index, count))
 		{
 			return false;
 		}
 		copyBits &= ~((BaseType)1 << index);
-		first = false;
+		++count;
 	}
 	return true;
 }
