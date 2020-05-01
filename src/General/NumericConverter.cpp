@@ -13,7 +13,7 @@
 // On entry, 'c' is the first character to consume and NextChar is the function to get another character
 // Returns true if a valid number was found. If it returns false then characters may have been consumed.
 // On return the value parsed is: lvalue * 2^twos * 5^fives
-bool NumericConverter::Accumulate(char c, bool acceptNegative, bool acceptReals, std::function<char()> NextChar)
+bool NumericConverter::Accumulate(char c, bool acceptNegative, bool acceptReals, std::function<char()> NextChar) noexcept
 {
 	hadDecimalPoint = hadExponent = isNegative = false;
 	bool hadDigit = false;
@@ -192,25 +192,25 @@ bool NumericConverter::Accumulate(char c, bool acceptNegative, bool acceptReals,
 
 // Return true if the number fits in an int32 and wasn't specified with a decimal point or an exponent
 // Note, we don't allow the value to be the most negative int32_t available
-bool NumericConverter::FitsInInt32() const
+bool NumericConverter::FitsInInt32() const noexcept
 {
 	return !hadDecimalPoint && !hadExponent && twos == 0 && fives == 0 && lvalue <= (uint32_t)std::numeric_limits<int32_t>::max();
 }
 
 // Return true if the number fits in a uint32 and wasn't specified with a decimal point or an exponent
-bool NumericConverter::FitsInUint32() const
+bool NumericConverter::FitsInUint32() const noexcept
 {
 	return !hadDecimalPoint && !hadExponent && (!isNegative || lvalue == 0) && twos == 0 && fives == 0 && lvalue <= std::numeric_limits<uint32_t>::max();
 }
 
 // Given that FitsInInt32() returns true, return the number as an int32_t
-int32_t NumericConverter::GetInt32() const
+int32_t NumericConverter::GetInt32() const noexcept
 {
 	return (isNegative) ? -(int32_t)lvalue : (int32_t)lvalue;
 }
 
 // Given that FitsInUint32() returns true, return the number as a uint32_t
-uint32_t NumericConverter::GetUint32() const
+uint32_t NumericConverter::GetUint32() const noexcept
 {
 	return lvalue;
 }
@@ -237,7 +237,7 @@ static constexpr double inversePowersOfTen[] =
 
 
 // Return the value as a float
-float NumericConverter::GetFloat() const
+float NumericConverter::GetFloat() const noexcept
 {
 	// The common cases are when we have zero to ~12 decimal places and no exponent, so optimise these
 	double dvalue = (double)lvalue;
@@ -269,7 +269,7 @@ float NumericConverter::GetFloat() const
 
 // Get the number of decimal digits that might be worth displaying after the decimal point when we print this.
 // the caller must limit the return value to a sensible value for the float or double type used.
-unsigned int NumericConverter::GetDigitsAfterPoint() const
+unsigned int NumericConverter::GetDigitsAfterPoint() const noexcept
 {
 	const int digits = (fives < twos) ? fives : twos;
 	return (digits < 0) ? (unsigned int)-digits : 0;

@@ -60,8 +60,8 @@ struct SStringBuf
 	int curLen;
 	struct xPrintFlags flags;
 
-	SStringBuf(char *s, size_t maxLen);
-	void Init();
+	SStringBuf(char *s, size_t maxLen) noexcept;
+	void Init() noexcept;
 };
 
 SStringBuf::SStringBuf(char *apBuf, size_t maxLen) noexcept

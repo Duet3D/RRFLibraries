@@ -51,7 +51,7 @@ namespace FreelistManager
 
 	// Macro to return the size of objects of a given type rounded up to a multiple of 8 bytes.
 	// We use this to reduce the number of freelists that we need to keep.
-	inline constexpr size_t RoundedUpSize(size_t rawSize)
+	inline constexpr size_t RoundedUpSize(size_t rawSize) noexcept
 	{
 		constexpr size_t sizeIncrement = 8;
 		return ((rawSize + (sizeIncrement - 1u)) & ~(sizeIncrement - 1u));

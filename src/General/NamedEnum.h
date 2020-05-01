@@ -36,7 +36,7 @@
 // Function to search the table of names for a match. Returns numNames if not found.
 unsigned int NamedEnumLookup(const char *s, const char * const names[], unsigned int numNames) noexcept;
 
-static inline const char *SkipLeadingUnderscore(const char *s)
+static inline const char *SkipLeadingUnderscore(const char *s) noexcept
 {
 	return (*s == '_') ? s + 1 : s;
 }

@@ -46,7 +46,7 @@ float SafeStrtof(const char *s, const char **endptr) noexcept
 	return 0.0f;
 }
 
-uint32_t StrToU32(const char *s, const char **endptr)
+uint32_t StrToU32(const char *s, const char **endptr) noexcept
 {
 	// Save the end pointer in case of failure
 	if (endptr != nullptr)
@@ -69,7 +69,7 @@ uint32_t StrToU32(const char *s, const char **endptr)
 }
 
 // This overload is used by the 12864 menu code in RepRapFirmware
-uint32_t StrToU32(char *s, char **endptr)
+uint32_t StrToU32(char *s, char **endptr) noexcept
 {
 #if 1
 	// This saves duplicating the code
