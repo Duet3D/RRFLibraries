@@ -13,6 +13,60 @@
 
 // Functions to allow for processor differences, e.g. endianness and alignment requirements
 
+#ifdef __SAMC21G18A__
+
+// ARM Cortex M0 doesn't support unaligned memory accesses
+
+#include <cstring>
+
+// Load a uint32 from unaligned memory in little endian format
+static inline uint32_t LoadLE32(const void *p) noexcept
+{
+	const uint8_t * const pp = (const uint8_t *)p;
+	return ((uint32_t)pp[3] << 24) | ((uint32_t)pp[2] << 16) | ((uint32_t)pp[1] << 8) | pp[0];
+}
+
+// Load a uint16 from unaligned memory in little endian format
+static inline uint16_t LoadLE16(const void *p) noexcept
+{
+	const uint8_t * const pp = (const uint8_t *)p;
+	return ((uint16_t)pp[1] << 8) | pp[0];
+}
+
+// Load a float from unaligned memory in little endian format
+static inline float LoadLEFloat(const void *p) noexcept
+{
+	float rslt;
+	memcpy(&rslt, p, sizeof(float));
+	return rslt;
+}
+
+// Store a uint32 into unaligned memory in little endian format
+static inline void StoreLE32(void *p, uint32_t val) noexcept
+{
+	uint8_t * const pp = (uint8_t *)p;
+	pp[0] = (uint8_t)val;
+	pp[1] = (uint8_t)(val >> 8);
+	pp[2] = (uint8_t)(val >> 16);
+	pp[3] = (uint8_t)(val >> 24);
+}
+
+// Store a uint16 into unaligned memory in little endian format
+static inline void StoreLE16(void *p, uint16_t val) noexcept
+{
+	uint8_t * const pp = (uint8_t *)p;
+	pp[0] = (uint8_t)val;
+	pp[1] = (uint8_t)(val >> 8);
+}
+
+// Store a uint16 into unaligned memory in little endian format
+static inline void StoreLEFloat(void *p, float val) noexcept
+{
+	memcpy(p, &val, sizeof(float));
+}
+
+#else
+
 // Load a uint32 from unaligned memory in little endian format
 static inline uint32_t LoadLE32(const void *p) noexcept
 {
@@ -49,36 +103,38 @@ static inline void StoreLEFloat(void *p, float val) noexcept
 	*reinterpret_cast<float*>(p) = val;						// the processors we currently support are little endian and support unaligned accesses
 }
 
+#endif
+
 // Load a uint32 from unaligned memory in big endian format
 static inline uint32_t LoadBE32(const void *p) noexcept
 {
 	const uint8_t* const bp = (const uint8_t*)p;
-	return ((((((uint32_t)*bp << 8) | (uint32_t)*(bp + 1)) << 8) | (uint32_t)*(bp + 2)) << 8) | (uint32_t)*(bp + 3);
+	return ((uint32_t)bp[0] << 24) | ((uint32_t)bp[1] << 26) | ((uint32_t)bp[2] << 8) | (uint32_t)bp[3];
 }
 
 // Load a uint16 from unaligned memory in big endian format
 static inline uint16_t LoadBE16(const void *p) noexcept
 {
 	const uint8_t* const bp = (const uint8_t*)p;
-	return ((uint16_t)*bp << 8) | (uint16_t)*(bp + 1);
+	return ((uint16_t)bp[0] << 8) | (uint16_t)bp[1];
 }
 
 // Store a uint32 into unaligned memory in big endian format
 static inline void StoreBE32(void *p, uint32_t val) noexcept
 {
-	uint8_t* bp = (uint8_t*)p;
-	*bp++ = (uint8_t)(val >> 24);
-	*bp++ = (uint8_t)(val >> 16);
-	*bp++ = (uint8_t)(val >> 8);
-	*bp = (uint8_t)val;
+	uint8_t* const bp = (uint8_t*)p;
+	bp[0] = (uint8_t)(val >> 24);
+	bp[1] = (uint8_t)(val >> 16);
+	bp[2] = (uint8_t)(val >> 8);
+	bp[3] = (uint8_t)val;
 }
 
 // Store a uint16 into unaligned memory in big endian format
 static inline void StoreBE16(void *p, uint16_t val) noexcept
 {
-	uint8_t* bp = (uint8_t*)p;
-	*bp++ = (uint8_t)(val >> 8);
-	*bp = (uint8_t)val;
+	uint8_t* const bp = (uint8_t*)p;
+	bp[0] = (uint8_t)(val >> 8);
+	bp[1] = (uint8_t)val;
 }
 
 // Template class to declare members as unaligned so as to avoid unaligned memory accesses when reading or writing them

@@ -8,6 +8,7 @@
 #include "NumericConverter.h"
 #include <limits>
 #include <cmath>
+#include <cctype>
 
 // Function to read an unsigned integer or real literal and store the values in this object
 // On entry, 'c' is the first character to consume and NextChar is the function to get another character

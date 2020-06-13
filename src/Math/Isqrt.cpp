@@ -10,7 +10,7 @@ uint32_t isqrt64(uint64_t num) noexcept
 		uint32_t num32 = (uint32_t)num;
 		uint32_t res = 0;
 
-		#define iter32(N)						\
+#define iter32(N)						\
 		{										\
 			uint32_t temp = res | (1 << N);		\
 			if (num32 >= temp << N)				\
@@ -27,6 +27,9 @@ uint32_t isqrt64(uint64_t num) noexcept
 		iter32(3); iter32(2); iter32(1); iter32(0);
 
 		return res >> 1;
+
+#undef iter32
+
 	}
 	else if ((numHigh & (3u << 30)) != 0)
 	{
