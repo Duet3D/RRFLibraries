@@ -57,7 +57,7 @@ public:
 	{ }
 
 	void Create(const char *pName) noexcept;
-	bool Take(uint32_t timeout = TimeoutUnlimited) const noexcept;
+	bool Take(uint32_t timeout = TimeoutUnlimited) const noexcept;		// take ownership of the mutex returning true if successful, false if timed out
 	bool Release() const noexcept;
 	TaskHandle GetHolder() const noexcept;
 
@@ -162,10 +162,10 @@ public:
 		xTaskNotifyGive(handle);
 	}
 
-	// Wait until we have been woken up or we time out. Return true if we timed out.
+	// Wait until we have been woken up or we time out. Return true if successful, false if we timed out (same as for Mutex::Take()).
 	static bool Take(uint32_t timeout = TimeoutUnlimited) noexcept
 	{
-		return ulTaskNotifyTake(pdTRUE, timeout) == 0;
+		return ulTaskNotifyTake(pdTRUE, timeout) != 0;
 	}
 
 	static TaskHandle GetCallerTaskHandle() noexcept { return (TaskHandle)xTaskGetCurrentTaskHandle(); }

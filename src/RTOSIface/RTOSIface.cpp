@@ -27,7 +27,7 @@ void Mutex::Create(const char *pName) noexcept
 	}
 }
 
-// Take ownership of a mutex returning true if successful
+// Take ownership of a mutex returning true if successful, false if timed out
 bool Mutex::Take(uint32_t timeout) const noexcept
 {
 	return xSemaphoreTakeRecursive(handle, timeout) == pdTRUE;
