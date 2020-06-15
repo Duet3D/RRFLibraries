@@ -109,7 +109,7 @@ static inline void StoreLEFloat(void *p, float val) noexcept
 static inline uint32_t LoadBE32(const void *p) noexcept
 {
 	const uint8_t* const bp = (const uint8_t*)p;
-	return ((uint32_t)bp[0] << 24) | ((uint32_t)bp[1] << 26) | ((uint32_t)bp[2] << 8) | (uint32_t)bp[3];
+	return ((uint32_t)bp[0] << 24) | ((uint32_t)bp[1] << 16) | ((uint32_t)bp[2] << 8) | (uint32_t)bp[3];
 }
 
 // Load a uint16 from unaligned memory in big endian format
