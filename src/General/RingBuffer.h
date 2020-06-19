@@ -10,6 +10,7 @@
 
 #include <cstdint>
 #include <cstddef>
+#include <cstring>
 
 // Ring buffer template, used for serial I/O
 // We assume the items are small (e.g. characters, floats) so we pass them by value in PutItem
@@ -46,6 +47,9 @@ public:
 
 	// Return the capacity
 	size_t GetCapacity() const noexcept { return capacity; }
+
+	// Clear the buffer
+	void Clear() { getIndex = putIndex = 0; }
 
 private:
 	size_t capacity;			// must be one less than a power of 2

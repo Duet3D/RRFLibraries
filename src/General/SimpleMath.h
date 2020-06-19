@@ -87,7 +87,9 @@ inline unsigned int LowestSetBitNumber(unsigned long long val) noexcept
 }
 
 // Macro to give us the number of elements in an array
-#define ARRAY_SIZE(_x)	(sizeof(_x)/sizeof(_x[0]))
+#ifndef ARRAY_SIZE
+# define ARRAY_SIZE(_x)	(sizeof(_x)/sizeof(_x[0]))
+#endif
 
 // Macro to give us the highest valid index into an array i.e. one less than the size
 #define ARRAY_UPB(_x)	(ARRAY_SIZE(_x) - 1)
