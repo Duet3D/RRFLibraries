@@ -66,17 +66,20 @@ template<class T> RingBuffer<T>::RingBuffer() noexcept
 
 template<class T> void RingBuffer<T>::Init(size_t numSlots) noexcept
 {
-	putIndex = 0;
-	getIndex = 0;
-	if (numSlots > 1)
+	if (data == nullptr)
 	{
-		capacity = numSlots - 1,
-		data = new T[numSlots];
-	}
-	else
-	{
-		capacity = 0;
-		data = nullptr;
+		putIndex = 0;
+		getIndex = 0;
+		if (numSlots > 1)
+		{
+			capacity = numSlots - 1,
+			data = new T[numSlots];
+		}
+		else
+		{
+			capacity = 0;
+			data = nullptr;
+		}
 	}
 }
 

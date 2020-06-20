@@ -86,6 +86,16 @@ inline unsigned int LowestSetBitNumber(unsigned long long val) noexcept
 	return (unsigned int)__builtin_ctzll(val);
 }
 
+inline bool Xor(bool a, bool b) noexcept
+{
+	return (a) ? !b : b;
+}
+
+inline bool XNor(bool a, bool b) noexcept
+{
+	return (a) ? b : !b;
+}
+
 // Macro to give us the number of elements in an array
 #ifndef ARRAY_SIZE
 # define ARRAY_SIZE(_x)	(sizeof(_x)/sizeof(_x[0]))
