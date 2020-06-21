@@ -184,15 +184,15 @@ template<class T> size_t RingBuffer<T>::GetBlock(T* buffer, size_t buflen) noexc
 		if (currentGetIndex > currentPutIndex)
 		{
 			// Start by fetching items from currentGetIndex up to the end of the buffer
-			size_t toCopyFirst = capacity + 1 - currentGetIndex;
+			const size_t toCopyFirst = capacity + 1 - currentGetIndex;
 			if (toCopy < toCopyFirst)
 			{
 				// We don't reach the end of the buffer
-				memcpy(buffer, data + currentGetIndex, buffer, toCopy * sizeof(T));
+				memcpy(buffer, const_cast<const T*>(data) + currentGetIndex, toCopy * sizeof(T));
 				getIndex = currentGetIndex + toCopy;
 				return toCopy;
 			}
-			memcpy(buffer, data + currentGetIndex, buffer, toCopyFirst * sizeof(T));
+			memcpy(buffer, const_cast<const T*>(data) + currentGetIndex, toCopyFirst * sizeof(T));
 			currentGetIndex = 0;
 			toCopyNext = toCopy - toCopyFirst;
 			buffer += toCopyFirst;
@@ -201,7 +201,7 @@ template<class T> size_t RingBuffer<T>::GetBlock(T* buffer, size_t buflen) noexc
 		{
 			toCopyNext = toCopy;
 		}
-		memcpy(buffer, data + currentGetIndex, toCopyNext * sizeof(T));
+		memcpy(buffer, const_cast<const T*>(data) + currentGetIndex, toCopyNext * sizeof(T));
 		getIndex = currentGetIndex + toCopyNext;
 	}
 	return toCopy;

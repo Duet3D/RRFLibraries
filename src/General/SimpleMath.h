@@ -98,7 +98,7 @@ inline bool XNor(bool a, bool b) noexcept
 
 // Macro to give us the number of elements in an array
 #ifndef ARRAY_SIZE
-# define ARRAY_SIZE(_x)	(sizeof(_x)/sizeof(_x[0]))
+# define ARRAY_SIZE(_x)	(sizeof(_x)/sizeof((_x)[0]))
 #endif
 
 // Macro to give us the highest valid index into an array i.e. one less than the size
