@@ -134,8 +134,8 @@ public:
 	void Resume() const noexcept { vTaskResume(handle); }
 	const TaskBase *GetNext() const noexcept { return next; }
 
-	// Wake up a task identified by its handle from an ISR
-	static inline void GiveFromISR(TaskHandle h) noexcept
+	// Wake up a task identified by its handle from an ISR. Safe to call with a null handle.
+	static void GiveFromISR(TaskHandle h) noexcept
 	{
 		if (h != nullptr)			// check that the task has been created
 		{
