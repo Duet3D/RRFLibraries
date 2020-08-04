@@ -49,8 +49,8 @@ static inline const char *SkipLeadingUnderscore(const char *s) noexcept
 //  if (myCar == MakeOfCar::vauxhall) { ... }
 //  printf("%s", myCar.ToString());
 //
-// If any of the names is a C++ reserved word, prefix it with a single underscore
-// IMPORTANT! If the constructor from string is used then the names must be in alphabetical order (ignoring the leading underscore), because it uses a binary search
+// If any of the names is a C++ reserved word or starts with a digit, prefix it with a single underscore
+// IMPORTANT! If the constructor from string is used then the names must be in alphabetical order (ignoring the leading underscore) because it uses a binary search
 #define NamedEnum(_typename, _baseType, _v1, ...) \
 class _typename { \
 public: \
