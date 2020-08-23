@@ -10,18 +10,22 @@
 
 #include <cstdint>
 
-// Type declarations to hide the type-unsafe definitions in the FreeRTOS headers
-
-class Task_undefined;					// this class is never defined
-typedef Task_undefined *TaskHandle;
-
 #include <utility>
 
 #ifdef RTOS
+
 # include "FreeRTOS.h"
 # include "task.h"
 # include "semphr.h"
 # include <atomic>
+
+typedef TaskHandle_t TaskHandle;
+
+#else
+
+class Task_undefined;
+typedef Task_undefined *TaskHandle;
+
 #endif
 
 #define RRFLIBS_SAMC21	(defined(__SAMC21G18A__) && __SAMC21G18A__)
@@ -137,7 +141,7 @@ public:
 	// Wake up a task identified by its handle from an ISR. Safe to call with a null handle.
 	static void GiveFromISR(TaskHandle h) noexcept
 	{
-		if (h != nullptr)			// check that the task has been created
+		if (h != nullptr)				// check that the task exists
 		{
 			BaseType_t higherPriorityTaskWoken = pdFALSE;
 			vTaskNotifyGiveFromISR(h, &higherPriorityTaskWoken);
@@ -168,19 +172,19 @@ public:
 		return ulTaskNotifyTake(pdTRUE, timeout) != 0;
 	}
 
-	static TaskHandle GetCallerTaskHandle() noexcept { return (TaskHandle)xTaskGetCurrentTaskHandle(); }
+	// Clear a task notification count
+	static uint32_t ClearNotifyCount(TaskHandle h = GetCallerTaskHandle(), uint32_t bitsToClear = 0xFFFFFFFF) noexcept
+	{
+		ulTaskNotifyValueClear(h, bitsToClear);
+		return ulTaskNotifyValueClear(h, bitsToClear);
+	}
+
+	static TaskHandle GetCallerTaskHandle() noexcept { return xTaskGetCurrentTaskHandle(); }
 
 	static TaskId GetCallerTaskId() noexcept;
 
 	TaskBase(const TaskBase&) = delete;				// it's not safe to copy these
 	TaskBase& operator=(const TaskBase&) = delete;	// it's not safe to assign these
-	// Ideally we would declare the destructor as deleted too, because it's unsafe to delete these because they are linked together via the 'next' field.
-	// But that prevents us from declaring static instances of tasks.
-	// Possible solutions:
-	// 1. Just be careful that after we allocate a task using 'new', we never delete it.
-	// 2. Write a destructor that removes the task from the linked list.
-	// 3. Don't allocate tasks statically, allocate them all using 'new'.
-	//~TaskBase() = delete;							// it's not safe to delete these because they are linked together via the 'next' field
 
 	static const TaskBase *GetTaskList() noexcept { return taskList; }
 

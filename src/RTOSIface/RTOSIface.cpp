@@ -155,7 +155,7 @@ void TaskBase::AddToList() noexcept
 
 	++numTasks;
 	taskId = numTasks;
-	handle = &storage;
+	handle = reinterpret_cast<TaskHandle>(&storage);
 	next = taskList;
 	taskList = this;
 }
