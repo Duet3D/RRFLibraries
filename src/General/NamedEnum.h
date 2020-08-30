@@ -11,8 +11,8 @@
 // Plumbing to allow overloaded STRINGLIST macro
 #define CAT( A, B ) A ## B
 #define SELECT( NAME, NUM ) CAT( NAME ## _, NUM )
-#define GET_COUNT( _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16, COUNT, ... ) COUNT
-#define VA_SIZE( ... ) GET_COUNT( __VA_ARGS__, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1 )
+#define GET_COUNT( _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16, _17, _18, _19, _20, COUNT, ... ) COUNT
+#define VA_SIZE( ... ) GET_COUNT( __VA_ARGS__, 20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1 )
 #define VA_SELECT( NAME, ... ) SELECT( NAME, VA_SIZE(__VA_ARGS__) )(__VA_ARGS__)
 
 // Macro to turn a list of names into a list of strings
@@ -32,6 +32,14 @@
 #define STRINGLIST_14(_v1,_v2,_v3,_v4,_v5,_v6,_v7,_v8,_v9,_v10,_v11,_v12,_v13,_v14)				#_v1,#_v2,#_v3,#_v4,#_v5,#_v6,#_v7,#_v8,#_v9,#_v10,#_v11,#_v12,#_v13,#_v14
 #define STRINGLIST_15(_v1,_v2,_v3,_v4,_v5,_v6,_v7,_v8,_v9,_v10,_v11,_v12,_v13,_v14,_v15)		#_v1,#_v2,#_v3,#_v4,#_v5,#_v6,#_v7,#_v8,#_v9,#_v10,#_v11,#_v12,#_v13,#_v14,#_v15
 #define STRINGLIST_16(_v1,_v2,_v3,_v4,_v5,_v6,_v7,_v8,_v9,_v10,_v11,_v12,_v13,_v14,_v15,_v16)	#_v1,#_v2,#_v3,#_v4,#_v5,#_v6,#_v7,#_v8,#_v9,#_v10,#_v11,#_v12,#_v13,#_v14,#_v15,#_v16
+#define STRINGLIST_17(_v1,_v2,_v3,_v4,_v5,_v6,_v7,_v8,_v9,_v10,_v11,_v12,_v13,_v14,_v15,_v16,_v17) \
+	#_v1,#_v2,#_v3,#_v4,#_v5,#_v6,#_v7,#_v8,#_v9,#_v10,#_v11,#_v12,#_v13,#_v14,#_v15,#_v16,#_v17
+#define STRINGLIST_18(_v1,_v2,_v3,_v4,_v5,_v6,_v7,_v8,_v9,_v10,_v11,_v12,_v13,_v14,_v15,_v16,_v17,_v18) \
+	#_v1,#_v2,#_v3,#_v4,#_v5,#_v6,#_v7,#_v8,#_v9,#_v10,#_v11,#_v12,#_v13,#_v14,#_v15,#_v16,#_v17,#_v18
+#define STRINGLIST_19(_v1,_v2,_v3,_v4,_v5,_v6,_v7,_v8,_v9,_v10,_v11,_v12,_v13,_v14,_v15,_v16,_v17,_v18,_v19) \
+	#_v1,#_v2,#_v3,#_v4,#_v5,#_v6,#_v7,#_v8,#_v9,#_v10,#_v11,#_v12,#_v13,#_v14,#_v15,#_v16,#_v17,#_v18,#_v19
+#define STRINGLIST_20(_v1,_v2,_v3,_v4,_v5,_v6,_v7,_v8,_v9,_v10,_v11,_v12,_v13,_v14,_v15,_v16,_v17,_v18,_v19,_v20) \
+	#_v1,#_v2,#_v3,#_v4,#_v5,#_v6,#_v7,#_v8,#_v9,#_v10,#_v11,#_v12,#_v13,#_v14,#_v15,#_v16,#_v17,#_v18,#_v19,#_v20
 
 // Function to search the table of names for a match. Returns numNames if not found.
 unsigned int NamedEnumLookup(const char *s, const char * const names[], unsigned int numNames) noexcept;
