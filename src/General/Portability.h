@@ -13,11 +13,17 @@
 
 // Functions to allow for processor differences, e.g. endianness and alignment requirements
 
-#ifdef __SAMC21G18A__
+// ARM Cortex M0 doesn't support unaligned memory accesses, neither does SAME70 when accessing non-cached memory
 
-// ARM Cortex M0 doesn't support unaligned memory accesses
-
-#include <cstring>
+static inline void copy4bytes(const void *s, void *d) noexcept
+{
+	const char *sc = (const char*)s;
+	char *dc = (char*)d;
+	dc[0] = sc[0];
+	dc[1] = sc[1];
+	dc[2] = sc[2];
+	dc[3] = sc[3];
+}
 
 // Load a uint32 from unaligned memory in little endian format
 static inline uint32_t LoadLE32(const void *p) noexcept
@@ -37,7 +43,7 @@ static inline uint16_t LoadLE16(const void *p) noexcept
 static inline float LoadLEFloat(const void *p) noexcept
 {
 	float rslt;
-	memcpy(&rslt, p, sizeof(float));
+	copy4bytes(p, &rslt);
 	return rslt;
 }
 
@@ -59,51 +65,11 @@ static inline void StoreLE16(void *p, uint16_t val) noexcept
 	pp[1] = (uint8_t)(val >> 8);
 }
 
-// Store a uint16 into unaligned memory in little endian format
-static inline void StoreLEFloat(void *p, float val) noexcept
+// Store a float into unaligned memory in little endian format
+static inline void StoreLEFloat(void *p, const float val) noexcept
 {
-	memcpy(p, &val, sizeof(float));
+	copy4bytes(&val, p);
 }
-
-#else
-
-// Load a uint32 from unaligned memory in little endian format
-static inline uint32_t LoadLE32(const void *p) noexcept
-{
-	return *reinterpret_cast<const uint32_t*>(p);			// the processors we currently support are little endian and support unaligned accesses
-}
-
-// Load a uint16 from unaligned memory in little endian format
-static inline uint16_t LoadLE16(const void *p) noexcept
-{
-	return *reinterpret_cast<const uint16_t*>(p);			// the processors we currently support are little endian and support unaligned accesses
-}
-
-// Load a float from unaligned memory in little endian format
-static inline float LoadLEFloat(const void *p) noexcept
-{
-	return *reinterpret_cast<const float*>(p);				// the processors we currently support are little endian and support unaligned accesses
-}
-
-// Store a uint32 into unaligned memory in little endian format
-static inline void StoreLE32(void *p, uint32_t val) noexcept
-{
-	*reinterpret_cast<uint32_t*>(p) = val;					// the processors we currently support are little endian and support unaligned accesses
-}
-
-// Store a uint16 into unaligned memory in little endian format
-static inline void StoreLE16(void *p, uint16_t val) noexcept
-{
-	*reinterpret_cast<uint16_t*>(p) = val;					// the processors we currently support are little endian and support unaligned accesses
-}
-
-// Store a uint16 into unaligned memory in little endian format
-static inline void StoreLEFloat(void *p, float val) noexcept
-{
-	*reinterpret_cast<float*>(p) = val;						// the processors we currently support are little endian and support unaligned accesses
-}
-
-#endif
 
 // Load a uint32 from unaligned memory in big endian format
 static inline uint32_t LoadBE32(const void *p) noexcept
