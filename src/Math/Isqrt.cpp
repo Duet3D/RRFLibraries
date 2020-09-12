@@ -1,16 +1,30 @@
 #include <cstdint>
 
+#ifdef __SAMC21G18A__
+# include <Core.h>
+# include <component/divas.h>
+#endif
+
 // Fast 62-bit integer square root function (thanks dmould)
 uint32_t isqrt64(uint64_t num) noexcept
 {
 	uint32_t numHigh = (uint32_t)(num >> 32);
 	if (numHigh == 0)
 	{
+#ifdef __SAMC21G18A__
+		// Use the DIVAS unit. We need to disable interrupts to prevent other tasks or ISRs using it at the same time.
+		irqflags_t flags = cpu_irq_save();
+		DIVAS->SQRNUM.reg = (uint32_t)num;
+		while (DIVAS->STATUS.bit.BUSY) { }
+		const uint32_t rslt = DIVAS->RESULT.reg;
+		cpu_irq_restore(flags);
+		return rslt;
+#else
 		// 32-bit square root - thanks to Wilco Dijkstra for this efficient ARM algorithm
 		uint32_t num32 = (uint32_t)num;
 		uint32_t res = 0;
 
-#define iter32(N)						\
+# define iter32(N)								\
 		{										\
 			uint32_t temp = res | (1 << N);		\
 			if (num32 >= temp << N)				\
@@ -28,7 +42,8 @@ uint32_t isqrt64(uint64_t num) noexcept
 
 		return res >> 1;
 
-#undef iter32
+# undef iter32
+#endif
 
 	}
 	else if ((numHigh & (3u << 30)) != 0)
@@ -38,6 +53,15 @@ uint32_t isqrt64(uint64_t num) noexcept
 	}
 	else
 	{
+#ifdef __SAMC21G18A__
+		// Use the DIVAS unit. We need to disable interrupts to prevent other tasks or ISRs using it at the same time.
+		irqflags_t flags = cpu_irq_save();
+		DIVAS->SQRNUM.reg = (uint32_t)numHigh;
+		while (DIVAS->STATUS.bit.BUSY) { }
+		uint32_t res = DIVAS->RESULT.reg << 1;
+		uint64_t numAll = ((uint64_t)DIVAS->REM.reg << 32) | (uint32_t)num;
+		cpu_irq_restore(flags);
+#else
 		// 62-bit square root
 		uint32_t res = 0;
 
@@ -58,8 +82,9 @@ uint32_t isqrt64(uint64_t num) noexcept
 		iter64a(14) iter64a(12) iter64a(10) iter64a(8)
 		iter64a(6)  iter64a(4)  iter64a(2)  iter64a(0)
 
-		// resHigh is twice the square root of the msw, in the range 0..2^16-1 with the input restricted to 62 bits
+		// res is twice the square root of the msw, in the range 0..2^16-1 with the input restricted to 62 bits
 		uint64_t numAll = ((uint64_t)numHigh << 32) | (uint32_t)num;
+#endif
 
 #define iter64b(N) 										\
 		{												\
