@@ -10,18 +10,22 @@
 
 #include <cstdint>
 
-// Type declarations to hide the type-unsafe definitions in the FreeRTOS headers
-
-class Task_undefined;					// this class is never defined
-typedef Task_undefined *TaskHandle;
-
 #include <utility>
 
 #ifdef RTOS
+
 # include "FreeRTOS.h"
 # include "task.h"
 # include "semphr.h"
 # include <atomic>
+
+typedef TaskHandle_t TaskHandle;
+
+#else
+
+class Task_undefined;
+typedef Task_undefined *TaskHandle;
+
 #endif
 
 #define RRFLIBS_SAMC21	(defined(__SAMC21G18A__) && __SAMC21G18A__)
@@ -57,7 +61,7 @@ public:
 	{ }
 
 	void Create(const char *pName) noexcept;
-	bool Take(uint32_t timeout = TimeoutUnlimited) const noexcept;
+	bool Take(uint32_t timeout = TimeoutUnlimited) const noexcept;		// take ownership of the mutex returning true if successful, false if timed out
 	bool Release() const noexcept;
 	TaskHandle GetHolder() const noexcept;
 
@@ -134,10 +138,10 @@ public:
 	void Resume() const noexcept { vTaskResume(handle); }
 	const TaskBase *GetNext() const noexcept { return next; }
 
-	// Wake up a task identified by its handle from an ISR
-	static inline void GiveFromISR(TaskHandle h) noexcept
+	// Wake up a task identified by its handle from an ISR. Safe to call with a null handle.
+	static void GiveFromISR(TaskHandle h) noexcept
 	{
-		if (h != nullptr)			// check that the task has been created
+		if (h != nullptr)				// check that the task exists
 		{
 			BaseType_t higherPriorityTaskWoken = pdFALSE;
 			vTaskNotifyGiveFromISR(h, &higherPriorityTaskWoken);
@@ -162,25 +166,25 @@ public:
 		xTaskNotifyGive(handle);
 	}
 
-	// Wait until we have been woken up or we time out. Return true if we timed out.
+	// Wait until we have been woken up or we time out. Return true if successful, false if we timed out (same as for Mutex::Take()).
 	static bool Take(uint32_t timeout = TimeoutUnlimited) noexcept
 	{
-		return ulTaskNotifyTake(pdTRUE, timeout) == 0;
+		return ulTaskNotifyTake(pdTRUE, timeout) != 0;
 	}
 
-	static TaskHandle GetCallerTaskHandle() noexcept { return (TaskHandle)xTaskGetCurrentTaskHandle(); }
+	// Clear a task notification count
+	static uint32_t ClearNotifyCount(TaskHandle h = GetCallerTaskHandle(), uint32_t bitsToClear = 0xFFFFFFFF) noexcept
+	{
+		ulTaskNotifyValueClear(h, bitsToClear);
+		return ulTaskNotifyValueClear(h, bitsToClear);
+	}
+
+	static TaskHandle GetCallerTaskHandle() noexcept { return xTaskGetCurrentTaskHandle(); }
 
 	static TaskId GetCallerTaskId() noexcept;
 
 	TaskBase(const TaskBase&) = delete;				// it's not safe to copy these
 	TaskBase& operator=(const TaskBase&) = delete;	// it's not safe to assign these
-	// Ideally we would declare the destructor as deleted too, because it's unsafe to delete these because they are linked together via the 'next' field.
-	// But that prevents us from declaring static instances of tasks.
-	// Possible solutions:
-	// 1. Just be careful that after we allocate a task using 'new', we never delete it.
-	// 2. Write a destructor that removes the task from the linked list.
-	// 3. Don't allocate tasks statically, allocate them all using 'new'.
-	//~TaskBase() = delete;							// it's not safe to delete these because they are linked together via the 'next' field
 
 	static const TaskBase *GetTaskList() noexcept { return taskList; }
 
@@ -342,6 +346,11 @@ public:
 	void LockForWriting() noexcept;
 	void ReleaseWriter() noexcept;
 	void DowngradeWriter() noexcept;					// turn a write lock into a read lock (but you can't go back again)
+#ifdef RTOS
+    volatile bool IsLocked() const noexcept { return numReaders != 0 || writeLockOwner != nullptr; }
+#else
+    volatile bool IsLocked() const noexcept { return false; }
+#endif
 
 private:
 

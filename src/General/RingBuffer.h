@@ -10,6 +10,7 @@
 
 #include <cstdint>
 #include <cstddef>
+#include <cstring>
 
 // Ring buffer template, used for serial I/O
 // We assume the items are small (e.g. characters, floats) so we pass them by value in PutItem
@@ -47,6 +48,9 @@ public:
 	// Return the capacity
 	size_t GetCapacity() const noexcept { return capacity; }
 
+	// Clear the buffer
+	void Clear() { getIndex = putIndex = 0; }
+
 private:
 	size_t capacity;			// must be one less than a power of 2
 
@@ -64,15 +68,18 @@ template<class T> void RingBuffer<T>::Init(size_t numSlots) noexcept
 {
 	putIndex = 0;
 	getIndex = 0;
-	if (numSlots > 1)
+	if (data == nullptr)
 	{
-		capacity = numSlots - 1,
-		data = new T[numSlots];
-	}
-	else
-	{
-		capacity = 0;
-		data = nullptr;
+		if (numSlots > 1)
+		{
+			capacity = numSlots - 1;
+			data = new T[numSlots];
+		}
+		else
+		{
+			capacity = 0;
+			data = nullptr;
+		}
 	}
 }
 
@@ -177,15 +184,15 @@ template<class T> size_t RingBuffer<T>::GetBlock(T* buffer, size_t buflen) noexc
 		if (currentGetIndex > currentPutIndex)
 		{
 			// Start by fetching items from currentGetIndex up to the end of the buffer
-			size_t toCopyFirst = capacity + 1 - currentGetIndex;
+			const size_t toCopyFirst = capacity + 1 - currentGetIndex;
 			if (toCopy < toCopyFirst)
 			{
 				// We don't reach the end of the buffer
-				memcpy(buffer, data + currentGetIndex, buffer, toCopy * sizeof(T));
+				memcpy(buffer, const_cast<const T*>(data) + currentGetIndex, toCopy * sizeof(T));
 				getIndex = currentGetIndex + toCopy;
 				return toCopy;
 			}
-			memcpy(buffer, data + currentGetIndex, buffer, toCopyFirst * sizeof(T));
+			memcpy(buffer, const_cast<const T*>(data) + currentGetIndex, toCopyFirst * sizeof(T));
 			currentGetIndex = 0;
 			toCopyNext = toCopy - toCopyFirst;
 			buffer += toCopyFirst;
@@ -194,7 +201,7 @@ template<class T> size_t RingBuffer<T>::GetBlock(T* buffer, size_t buflen) noexc
 		{
 			toCopyNext = toCopy;
 		}
-		memcpy(buffer, data + currentGetIndex, toCopyNext * sizeof(T));
+		memcpy(buffer, const_cast<const T*>(data) + currentGetIndex, toCopyNext * sizeof(T));
 		getIndex = currentGetIndex + toCopyNext;
 	}
 	return toCopy;

@@ -34,7 +34,7 @@ float SafeStrtof(const char *s, const char **endptr) noexcept
 
 	// Parse the number
 	NumericConverter conv;
-	if (conv.Accumulate(*s, true, true, [&s]()->char { ++s; return *s; } ))
+	if (conv.Accumulate(*s, NumericConverter::AcceptSignedFloat, [&s]()->char { ++s; return *s; } ))
 	{
 		if (endptr != nullptr)
 		{
@@ -46,7 +46,7 @@ float SafeStrtof(const char *s, const char **endptr) noexcept
 	return 0.0f;
 }
 
-uint32_t StrToU32(const char *s, const char **endptr) noexcept
+static uint32_t StrToU32Opt(const char *s, const char **endptr, NumericConverter::OptionsType options) noexcept
 {
 	// Save the end pointer in case of failure
 	if (endptr != nullptr)
@@ -56,7 +56,7 @@ uint32_t StrToU32(const char *s, const char **endptr) noexcept
 
 	// Parse the number
 	NumericConverter conv;
-	if (conv.Accumulate(*s, false, false, [&s]()->char { ++s; return *s; } ))
+	if (conv.Accumulate(*s, options, [&s]()->char { ++s; return *s; } ))
 	{
 		if (endptr != nullptr)
 		{
@@ -68,32 +68,19 @@ uint32_t StrToU32(const char *s, const char **endptr) noexcept
 	return 0;
 }
 
-// This overload is used by the 12864 menu code in RepRapFirmware
-uint32_t StrToU32(char *s, char **endptr) noexcept
+uint32_t StrToU32(const char *s, const char **endptr) noexcept
 {
-#if 1
-	// This saves duplicating the code
-	return StrToU32(s, const_cast<const char **>(endptr));
-#else
-	// Save the end pointer in case of failure
-	if (endptr != nullptr)
-	{
-		*endptr = s;
-	}
+	return StrToU32Opt(s, endptr, NumericConverter::AcceptOnlyUnsignedDecimal);
+}
 
-	// Parse the number
-	NumericConverter conv;
-	if (conv.Accumulate(*s, false, false, [&s]()->char { ++s; return *s; } ))
-	{
-		if (endptr != nullptr)
-		{
-			*endptr = s;
-		}
-		return (conv.FitsInUint32()) ? conv.GetUint32() : std::numeric_limits<uint32_t>::max();
-	}
+uint32_t StrOptHexToU32(const char *s, const char **endptr) noexcept
+{
+	return StrToU32Opt(s, endptr, NumericConverter::AcceptHex);
+}
 
-	return 0;
-#endif
+uint32_t StrHexToU32(const char *s, const char **endptr) noexcept
+{
+	return StrToU32Opt(s, endptr, NumericConverter::DefaultHex);
 }
 
 int32_t StrToI32(const char *s, const char **endptr) noexcept
@@ -106,7 +93,7 @@ int32_t StrToI32(const char *s, const char **endptr) noexcept
 
 	// Parse the number
 	NumericConverter conv;
-	if (conv.Accumulate(*s, true, false, [&s]()->char { ++s; return *s; } ))
+	if (conv.Accumulate(*s, NumericConverter::AcceptNegative, [&s]()->char { ++s; return *s; } ))
 	{
 		if (endptr != nullptr)
 		{

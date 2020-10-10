@@ -42,6 +42,7 @@ template<class BaseType> class Bitmap
 {
 public:
 	Bitmap() noexcept : bits(0) { }
+	explicit Bitmap(BaseType n) noexcept : bits(n) { }
 
 	static constexpr unsigned int MaxBits() noexcept { return sizeof(BaseType) * CHAR_BIT; }
 	constexpr BaseType GetRaw() const noexcept { return bits; }
@@ -187,8 +188,6 @@ public:
 	static Bitmap<BaseType> MakeFromArray(const uint32_t *arr, size_t numEntries) noexcept;
 
 private:
-	explicit Bitmap(BaseType n) noexcept : bits(n) { }
-
 	static constexpr uint8_t BitCount[16] = { 0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4 };
 
 	BaseType bits;
