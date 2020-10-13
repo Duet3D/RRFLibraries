@@ -152,7 +152,7 @@ public:
 	// Wake up this task from an ISR
 	void GiveFromISR() noexcept
 	{
-		if (handle != nullptr)			// check that the task has been created
+		if (handle != nullptr)			// check that the task has been created and not terminated
 		{
 			BaseType_t higherPriorityTaskWoken = pdFALSE;
 			vTaskNotifyGiveFromISR(handle, &higherPriorityTaskWoken);

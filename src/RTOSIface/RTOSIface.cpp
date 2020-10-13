@@ -183,8 +183,9 @@ void TaskBase::TerminateAndUnlink() noexcept
 {
 	if (handle != nullptr)
 	{
-		vTaskDelete(handle);
-		handle = nullptr;
+		const TaskHandle_t temp = handle;
+		handle = nullptr;					// clear it first in case anything tries to wake it up
+		vTaskDelete(temp);
 
 		// Unlink the task from the thread list
 		TaskCriticalSectionLocker lock;
