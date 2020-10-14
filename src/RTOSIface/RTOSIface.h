@@ -19,14 +19,10 @@
 # include "semphr.h"
 # include <atomic>
 
-typedef TaskHandle_t TaskHandle;
-
-#else
-
-class Task_undefined;
-typedef Task_undefined *TaskHandle;
-
 #endif
+
+class TaskBase;						// when compiling without RTOS, this class is never defined and task handles are always nullptr
+typedef TaskBase *TaskHandle;
 
 #define RRFLIBS_SAMC21	(defined(__SAMC21G18A__) && __SAMC21G18A__)
 
@@ -114,7 +110,8 @@ private:
 
 #ifdef RTOS
 
-class TaskBase
+// Our TaskBase structure now extends the FreeRTOS one
+class TaskBase : public StaticTask_t
 {
 public:
 	// Type of a short-form task ID. Task IDs start at 1 and each task takes the next available number.
@@ -122,40 +119,40 @@ public:
 	// This is used by the CAN subsystem, so that we can use 8-bit task IDs to identify a sending task, instead of needing to use 32-bits.
 	typedef uint32_t TaskId;
 
-	TaskBase() noexcept : handle(nullptr), next(nullptr), taskId(0) { }
+	TaskBase() noexcept : next(nullptr), taskId(0) { }
 	~TaskBase() noexcept { TerminateAndUnlink(); }
 
 	// Get the short-form task ID. This is a small number, used to send a task ID in 1 byte or less i a CAN packet. It is guaranteed not to be zero.
 	TaskId GetTaskId() const noexcept { return taskId; }
 
-	// This function is called directly for tasks that are created by FreeRTOS, so it must be public
-	// Link the task into the thread list and allocate a short task ID to it
+	// Get the handle needed when making calls to FreeRTOS
+	TaskHandle_t GetFreeRTOSHandle() noexcept { return reinterpret_cast<TaskHandle_t>(this); }
+
+	// Functions to manage the task list
+	// Link the task into the thread list and allocate a short task ID to it. This function is called directly for tasks that are created by FreeRTOS, so it must be public
 	void AddToList() noexcept;
 	void TerminateAndUnlink() noexcept;
+	TaskBase *GetNext() noexcept { return next; }
 
-	TaskHandle GetHandle() const noexcept { return static_cast<TaskHandle>(handle); }
-	void Suspend() const noexcept { vTaskSuspend(handle); }
-	void Resume() const noexcept { vTaskResume(handle); }
-	const TaskBase *GetNext() const noexcept { return next; }
+	void Suspend() noexcept { vTaskSuspend(GetFreeRTOSHandle()); }
+	void Resume() noexcept { vTaskResume(GetFreeRTOSHandle()); }
 
 	// Wake up a task identified by its handle from an ISR. Safe to call with a null handle.
-	static void GiveFromISR(TaskHandle h) noexcept
+	static void GiveFromISR(TaskBase *h) noexcept
 	{
 		if (h != nullptr)				// check that the task exists
 		{
-			BaseType_t higherPriorityTaskWoken = pdFALSE;
-			vTaskNotifyGiveFromISR(h, &higherPriorityTaskWoken);
-			portYIELD_FROM_ISR(higherPriorityTaskWoken);
+			h->GiveFromISR();
 		}
 	}
 
 	// Wake up this task from an ISR
 	void GiveFromISR() noexcept
 	{
-		if (handle != nullptr)			// check that the task has been created and not terminated
+		if (taskId != 0)			// check that the task has been created and not terminated
 		{
 			BaseType_t higherPriorityTaskWoken = pdFALSE;
-			vTaskNotifyGiveFromISR(handle, &higherPriorityTaskWoken);
+			vTaskNotifyGiveFromISR(GetFreeRTOSHandle(), &higherPriorityTaskWoken);
 			portYIELD_FROM_ISR(higherPriorityTaskWoken);
 		}
 	}
@@ -163,7 +160,7 @@ public:
 	// Wake up this task but not from an ISR
 	void Give() noexcept
 	{
-		xTaskNotifyGive(handle);
+		xTaskNotifyGive(GetFreeRTOSHandle());
 	}
 
 	// Wait until we have been woken up or we time out. Return true if successful, false if we timed out (same as for Mutex::Take()).
@@ -173,28 +170,26 @@ public:
 	}
 
 	// Clear a task notification count
-	static uint32_t ClearNotifyCount(TaskHandle h = GetCallerTaskHandle(), uint32_t bitsToClear = 0xFFFFFFFF) noexcept
+	static uint32_t ClearNotifyCount(TaskBase* h = GetCallerTaskHandle(), uint32_t bitsToClear = 0xFFFFFFFF) noexcept
 	{
-		ulTaskNotifyValueClear(h, bitsToClear);
-		return ulTaskNotifyValueClear(h, bitsToClear);
+		ulTaskNotifyValueClear(h->GetFreeRTOSHandle(), bitsToClear);
+		return ulTaskNotifyValueClear(h->GetFreeRTOSHandle(), bitsToClear);
 	}
 
-	static TaskHandle GetCallerTaskHandle() noexcept { return xTaskGetCurrentTaskHandle(); }
+	static TaskBase *GetCallerTaskHandle() noexcept { return reinterpret_cast<TaskBase *>(xTaskGetCurrentTaskHandle()); }
 
-	static TaskId GetCallerTaskId() noexcept;
+	static TaskId GetCallerTaskId() noexcept { return GetCallerTaskHandle()->taskId; }
 
 	TaskBase(const TaskBase&) = delete;				// it's not safe to copy these
 	TaskBase& operator=(const TaskBase&) = delete;	// it's not safe to assign these
 
-	static const TaskBase *GetTaskList() noexcept { return taskList; }
+	static TaskBase *GetTaskList() noexcept { return taskList; }
 
 	static constexpr uint32_t TimeoutUnlimited = 0xFFFFFFFF;
 
 protected:
-	TaskHandle_t handle;
 	TaskBase *next;
 	TaskId taskId;
-	StaticTask_t storage;
 
 	static TaskBase *taskList;
 	static TaskId numTasks;
@@ -206,12 +201,12 @@ public:
 	// The Create function assumes that only the main task creates other tasks, so we don't need a mutex to protect the task list
 	void Create(TaskFunction_t pxTaskCode, const char * pcName, void *pvParameters, unsigned int uxPriority) noexcept
 	{
-		handle = xTaskCreateStatic(pxTaskCode, pcName, StackWords, pvParameters, uxPriority, stack, &storage);
+		xTaskCreateStatic(pxTaskCode, pcName, StackWords, pvParameters, uxPriority, stack, this);
 		AddToList();
 	}
 
 	// These functions should be used only to tell FreeRTOS where the corresponding data is
-	StaticTask_t *GetTaskMemory() noexcept { return &storage; }
+	StaticTask_t *GetTaskMemory() noexcept { return this; }
 	uint32_t *GetStackBase() noexcept { return stack; }
 	uint32_t GetStackSize() const noexcept { return StackWords; }
 
@@ -246,7 +241,14 @@ private:
 // Interface to RTOS or RTOS substitute
 namespace RTOSIface
 {
-	TaskHandle GetCurrentTask() noexcept;
+	inline TaskBase *GetCurrentTask() noexcept
+	{
+#ifdef RTOS
+		return reinterpret_cast<TaskBase *>(xTaskGetCurrentTaskHandle());
+#else
+		return nullptr;
+#endif
+	}
 
 #ifndef RTOS
 	static volatile unsigned int interruptCriticalSectionNesting = 0;
@@ -361,7 +363,7 @@ private:
 	std::atomic_uint8_t numReaders;			// MSB is set if a task is writing or write pending, lower bits are the number of readers
 	static_assert(std::atomic_uint8_t::is_always_lock_free);
 # endif
-	volatile TaskHandle writeLockOwner;		// handle of the task that owns the write lock
+	volatile TaskBase *writeLockOwner;		// handle of the task that owns the write lock
 #endif
 };
 

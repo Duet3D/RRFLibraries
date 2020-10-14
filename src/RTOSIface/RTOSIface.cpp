@@ -40,9 +40,9 @@ bool Mutex::Release() const noexcept
 	return xSemaphoreGiveRecursive(handle) == pdTRUE;
 }
 
-TaskHandle Mutex::GetHolder() const noexcept
+TaskBase *Mutex::GetHolder() const noexcept
 {
-	return static_cast<TaskHandle>(xSemaphoreGetMutexHolder(handle));
+	return reinterpret_cast<TaskBase *>(xSemaphoreGetMutexHolder(handle));
 }
 
 TaskBase *TaskBase::taskList = nullptr;
@@ -155,37 +155,17 @@ void TaskBase::AddToList() noexcept
 
 	++numTasks;
 	taskId = numTasks;
-	handle = reinterpret_cast<TaskHandle>(&storage);
 	next = taskList;
 	taskList = this;
-}
-
-// Get the short-form task ID
-/*static*/ TaskBase::TaskId TaskBase::GetCallerTaskId() noexcept
-{
-	TaskHandle_t currentTaskHandle = xTaskGetCurrentTaskHandle();
-
-	// We need to get the task ID given the task handle.
-	// We could cheat and rely on the fact the the task ID should be 4 bytes before the storage that the task handle points to.
-	// But we'll do it properly and search the task list instead.
-	for (TaskBase** tpp = &taskList; *tpp != nullptr; tpp = &(*tpp)->next)
-	{
-		if ((*tpp)->handle == currentTaskHandle)
-		{
-			return (*tpp)->taskId;
-		}
-	}
-	return 0;				// won't happen unless the current task hasn't been linked into the task list
 }
 
 // Terminate a task and remove it from the thread list
 void TaskBase::TerminateAndUnlink() noexcept
 {
-	if (handle != nullptr)
+	if (taskId != 0)
 	{
-		const TaskHandle_t temp = handle;
-		handle = nullptr;					// clear it first in case anything tries to wake it up
-		vTaskDelete(temp);
+		taskId = 0;
+		vTaskDelete((TaskHandle_t)this);
 
 		// Unlink the task from the thread list
 		TaskCriticalSectionLocker lock;
@@ -201,27 +181,6 @@ void TaskBase::TerminateAndUnlink() noexcept
 }
 
 #endif
-
-namespace RTOSIface
-{
-
-#ifdef RTOS
-
-	TaskHandle GetCurrentTask() noexcept
-	{
-		return static_cast<TaskHandle>(xTaskGetCurrentTaskHandle());
-	}
-
-#else
-
-	TaskHandle GetCurrentTask() noexcept
-	{
-		return nullptr;
-	}
-
-#endif
-
-}
 
 void ReadWriteLock::LockForReading() noexcept
 {
