@@ -52,19 +52,28 @@ struct xPrintFlags
 		long64 : 1;
 };
 
-struct SStringBuf
+class FormattedPrinter
 {
+public:
 	char *str;
 	const char *orgStr;
 	const char *nulPos;
 	int curLen;
-	struct xPrintFlags flags;
+	xPrintFlags flags;
 
-	SStringBuf(char *s, size_t maxLen) noexcept;
+	FormattedPrinter(char *s, size_t maxLen) noexcept;
 	void Init() noexcept;
+	void Print(const char *format, va_list args) noexcept;
+
+private:
+	bool PutChar(char c) noexcept;
+	bool PutString(const char *apString) noexcept;
+	bool PrintLL(long long i) noexcept;
+	bool PrintI(int i) noexcept;
+	bool PrintFloat(double d, char formatLetter) noexcept;
 };
 
-SStringBuf::SStringBuf(char *apBuf, size_t maxLen) noexcept
+FormattedPrinter::FormattedPrinter(char *apBuf, size_t maxLen) noexcept
 {
 	str = apBuf;
 	orgStr = apBuf;
@@ -73,7 +82,7 @@ SStringBuf::SStringBuf(char *apBuf, size_t maxLen) noexcept
 	Init();
 }
 
-void SStringBuf::Init() noexcept
+void FormattedPrinter::Init() noexcept
 {
 	memset(&flags, 0, sizeof(flags));
 }
@@ -82,31 +91,30 @@ void SStringBuf::Init() noexcept
 
 // Store the specified character in the string buffer.
 // If it won't fit leaving room for a null, store a null and return false.
-// If it is null, store it and return false.
 // Else store it and return true.
-static bool strbuf_printchar(SStringBuf& apStr, char c) noexcept
+bool FormattedPrinter::PutChar(char c) noexcept
 {
-	if (c != 0 && apStr.str < apStr.nulPos)
+	if (str < nulPos)
 	{
-		*apStr.str++ = c;
-		apStr.curLen++;
+		*str++ = c;
+		curLen++;
 		return true;
 	}
-	*apStr.str = '\0';
+	*str = '\0';
 	return false;
 }
 
 /*-----------------------------------------------------------*/
 
 // Print the string s to the string buffer adding any necessary padding
-static bool prints(SStringBuf& apBuf, const char *apString) noexcept
+bool FormattedPrinter::PutString(const char *apString) noexcept
 {
 	int count;
-	if (apBuf.flags.printLimit > 0 && apBuf.flags.isString)
+	if (flags.printLimit > 0 && flags.isString)
 	{
 		// It's a string so printLimit is the max number of characters to print from the string.
 		// Don't call strlen on it because it might not be null terminated, use Strnlen instead.
-		count = (int)Strnlen(apString, apBuf.flags.printLimit);
+		count = (int)Strnlen(apString, flags.printLimit);
 	}
 	else
 	{
@@ -114,23 +122,23 @@ static bool prints(SStringBuf& apBuf, const char *apString) noexcept
 	}
 
 	int rightSpacesNeeded = 0;
-	const bool hasMinimumDigits = (apBuf.flags.isNumber && apBuf.flags.printLimit > 0);
-	if (hasMinimumDigits || apBuf.flags.width > 0)
+	const bool hasMinimumDigits = (flags.isNumber && flags.printLimit > 0);
+	if (hasMinimumDigits || flags.width > 0)
 	{
 		// We may have some padding to do
 		int leftSpacesNeeded = 0, leftZerosNeeded = 0;
-		if (hasMinimumDigits && count < apBuf.flags.printLimit)
+		if (hasMinimumDigits && count < flags.printLimit)
 		{
-			leftZerosNeeded = apBuf.flags.printLimit - count;
+			leftZerosNeeded = flags.printLimit - count;
 		}
-		if (count + leftZerosNeeded < apBuf.flags.width)
+		if (count + leftZerosNeeded < flags.width)
 		{
-			const int remainingPaddingNeeded = apBuf.flags.width - (count + leftZerosNeeded);
-			if (apBuf.flags.padRight)
+			const int remainingPaddingNeeded = flags.width - (count + leftZerosNeeded);
+			if (flags.padRight)
 			{
 				rightSpacesNeeded = remainingPaddingNeeded;
 			}
-			else if (apBuf.flags.padZero)
+			else if (flags.padZero)
 			{
 				leftZerosNeeded += remainingPaddingNeeded;
 			}
@@ -143,7 +151,7 @@ static bool prints(SStringBuf& apBuf, const char *apString) noexcept
 		// Do the left padding
 		while (leftSpacesNeeded > 0)
 		{
-			if (!strbuf_printchar(apBuf, ' '))
+			if (!PutChar(' '))
 			{
 				return false;
 			}
@@ -151,7 +159,7 @@ static bool prints(SStringBuf& apBuf, const char *apString) noexcept
 		}
 		while (leftZerosNeeded > 0)
 		{
-			if (!strbuf_printchar(apBuf, '0'))
+			if (!PutChar('0'))
 			{
 				return false;
 			}
@@ -162,7 +170,7 @@ static bool prints(SStringBuf& apBuf, const char *apString) noexcept
 	// Now print the actual string
 	while (count > 0)
 	{
-		if (!strbuf_printchar(apBuf, *apString++))
+		if (!PutChar(*apString++))
 		{
 			return false;
 		}
@@ -172,7 +180,7 @@ static bool prints(SStringBuf& apBuf, const char *apString) noexcept
 	// Now the right padding
 	while (rightSpacesNeeded > 0)
 	{
-		if (!strbuf_printchar(apBuf, ' '))
+		if (!PutChar(' '))
 		{
 			return false;
 		}
@@ -184,17 +192,17 @@ static bool prints(SStringBuf& apBuf, const char *apString) noexcept
 
 /*-----------------------------------------------------------*/
 
-static bool printll(SStringBuf& apBuf, long long i) noexcept
+bool FormattedPrinter::PrintLL(long long i) noexcept
 {
-	apBuf.flags.isNumber = true;	/* Parameter for prints */
+	flags.isNumber = true;	/* Parameter for prints */
 	if (i == 0LL)
 	{
-		return prints(apBuf, "0");
+		return PutString("0");
 	}
 
 	bool neg = false;
 	unsigned long long u = i;
-	if ((apBuf.flags.isSigned) && (apBuf.flags.base == 10) && (i < 0LL))
+	if ((flags.isSigned) && (flags.base == 10) && (i < 0LL))
 	{
 		neg = true;
 		u = -i;
@@ -205,24 +213,24 @@ static bool printll(SStringBuf& apBuf, long long i) noexcept
 	*s = '\0';
 	while (u != 0)
 	{
-		unsigned int t = u % (unsigned int)apBuf.flags.base;
-		u /= (unsigned int)apBuf.flags.base;
+		unsigned int t = u % (unsigned int)flags.base;
+		u /= (unsigned int)flags.base;
 		if (t >= 10)
 		{
-			t += apBuf.flags.letBase - '0' - 10;
+			t += flags.letBase - '0' - 10;
 		}
 		*--s = t + '0';
 	}
 
 	if (neg)
 	{
-		if (apBuf.flags.width != 0 && apBuf.flags.padZero)
+		if (flags.width != 0 && flags.padZero)
 		{
-			if (!strbuf_printchar(apBuf, '-'))
+			if (!PutChar('-'))
 			{
 				return false;
 			}
-			--apBuf.flags.width;
+			--flags.width;
 		}
 		else
 		{
@@ -230,24 +238,24 @@ static bool printll(SStringBuf& apBuf, long long i) noexcept
 		}
 	}
 
-	return prints(apBuf, s);
+	return PutString(s);
 }
 
 /*-----------------------------------------------------------*/
 
-static bool printi(SStringBuf& apBuf, int i) noexcept
+bool FormattedPrinter::PrintI(int i) noexcept
 {
-	apBuf.flags.isNumber = true;	/* Parameter for prints */
+	flags.isNumber = true;	/* Parameter for prints */
 
 	if (i == 0)
 	{
-		return prints(apBuf, "0");
+		return PutString("0");
 	}
 
 	bool neg = false;
 	unsigned int u = i;
-	unsigned base = apBuf.flags.base;
-	if ((apBuf.flags.isSigned) && (base == 10) && (i < 0))
+	unsigned base = flags.base;
+	if ((flags.isSigned) && (base == 10) && (i < 0))
 	{
 		neg = true;
 		u = -i;
@@ -265,7 +273,7 @@ static bool printi(SStringBuf& apBuf, int i) noexcept
 			unsigned int t = u & 0xF;
 			if (t >= 10)
 			{
-				t += apBuf.flags.letBase - '0' - 10;
+				t += flags.letBase - '0' - 10;
 			}
 			*--s = t + '0';
 			u >>= 4;
@@ -290,7 +298,7 @@ static bool printi(SStringBuf& apBuf, int i) noexcept
 			const unsigned int t = u % base;
 			if (t >= 10)
 			{
-				t += apBuf.flags.letBase - '0' - 10;
+				t += flags.letBase - '0' - 10;
 			}
 			*--s = t + '0';
 			u /= base;
@@ -301,13 +309,13 @@ static bool printi(SStringBuf& apBuf, int i) noexcept
 
 	if (neg)
 	{
-		if (apBuf.flags.width && apBuf.flags.padZero)
+		if (flags.width && flags.padZero)
 		{
-			if (!strbuf_printchar(apBuf, '-'))
+			if (!PutChar('-'))
 			{
 				return false;
 			}
-			--apBuf.flags.width;
+			--flags.width;
 		}
 		else
 		{
@@ -315,7 +323,7 @@ static bool printi(SStringBuf& apBuf, int i) noexcept
 		}
 	}
 
-	return prints(apBuf, s);
+	return PutString(s);
 }
 
 /*-----------------------------------------------------------*/
@@ -324,15 +332,15 @@ static bool printi(SStringBuf& apBuf, int i) noexcept
 
 // Print a number in scientific format
 // apBuf.flags.printLimit is the number of decimal digits required
-static bool printFloat(SStringBuf& apBuf, double d, char formatLetter) noexcept
+bool FormattedPrinter::PrintFloat(double d, char formatLetter) noexcept
 {
 	if (std::isnan(d))
 	{
-		return prints(apBuf, "nan");
+		return PutString("nan");
 	}
 	if (std::isinf(d))
 	{
-		return prints(apBuf, "inf");
+		return PutString("inf");
 	}
 
 	double ud = fabs(d);
@@ -373,13 +381,13 @@ static bool printFloat(SStringBuf& apBuf, double d, char formatLetter) noexcept
 	}
 
 	// Multiply ud by 10 to the power of the number of decimal digits required, or until it becomes too big to print easily
-	if (apBuf.flags.printLimit < 0)
+	if (flags.printLimit < 0)
 	{
-		apBuf.flags.printLimit = 6;					// set the default number of decimal digits
+		flags.printLimit = 6;					// set the default number of decimal digits
 	}
 	int digitsAfterPoint = 0;
 	long limit = 10;
-	while (digitsAfterPoint < apBuf.flags.printLimit && ud < LONG_LONG_MAX/10 && limit <= LONG_LONG_MAX/10)
+	while (digitsAfterPoint < flags.printLimit && ud < LONG_LONG_MAX/10 && limit <= LONG_LONG_MAX/10)
 	{
 		ud *= (double)10.0;
 		limit *= 10;
@@ -413,7 +421,7 @@ static bool printFloat(SStringBuf& apBuf, double d, char formatLetter) noexcept
 	}
 
 	// Store the non-exponent part
-	if (digitsAfterPoint == 0 && apBuf.flags.printLimit != 0)
+	if (digitsAfterPoint == 0 && flags.printLimit != 0)
 	{
 		*--s = '0';							// make sure we have at least one digit after the decimal point so that it is valid JSON
 	}
@@ -434,13 +442,13 @@ static bool printFloat(SStringBuf& apBuf, double d, char formatLetter) noexcept
 
 	if (d < (double)0.0)
 	{
-		if (apBuf.flags.width != 0 && apBuf.flags.padZero)
+		if (flags.width != 0 && flags.padZero)
 		{
-			if (!strbuf_printchar(apBuf, '-'))
+			if (!PutChar('-'))
 			{
 				return false;
 			}
-			--apBuf.flags.width;
+			--flags.width;
 		}
 		else
 		{
@@ -448,21 +456,21 @@ static bool printFloat(SStringBuf& apBuf, double d, char formatLetter) noexcept
 		}
 	}
 
-	return prints(apBuf, s);
+	return PutString(s);
 }
 
 #endif
 
 /*-----------------------------------------------------------*/
 
-static void tiny_print(SStringBuf& apBuf, const char *format, va_list args) noexcept
+void FormattedPrinter::Print(const char *format, va_list args) noexcept
 {
 	for (;;)
 	{
 		char ch;
 		while ((ch = *format++) != '%')
 		{
-			if (!strbuf_printchar(apBuf, ch))		// note: this returns false if ch == 0
+			if (!PutChar(ch) || ch == 0)
 			{
 				return;
 			}
@@ -476,36 +484,36 @@ static void tiny_print(SStringBuf& apBuf, const char *format, va_list args) noex
 		}
 		if (ch == '%')
 		{
-			if (strbuf_printchar(apBuf, ch) == 0)
+			if (!PutChar(ch))
 			{
 				return;
 			}
 			continue;
 		}
 
-		apBuf.Init();
+		Init();
 
 		if (ch == '-')
 		{
 			ch = *format++;
-			apBuf.flags.padRight = true;
+			flags.padRight = true;
 		}
 		while (ch == '0')
 		{
 			ch = *format++;
-			apBuf.flags.padZero = true;
+			flags.padZero = true;
 		}
 		if (ch == '*')
 		{
 			ch = *format++;
-			apBuf.flags.width = va_arg(args, int);
+			flags.width = va_arg(args, int);
 		}
 		else
 		{
 			while(ch >= '0' && ch <= '9')
 			{
-				apBuf.flags.width *= 10;
-				apBuf.flags.width += ch - '0';
+				flags.width *= 10;
+				flags.width += ch - '0';
 				ch = *format++;
 			}
 		}
@@ -514,28 +522,28 @@ static void tiny_print(SStringBuf& apBuf, const char *format, va_list args) noex
 			ch = *format++;
 			if (ch == '*')
 			{
-				apBuf.flags.printLimit = va_arg(args, int);
+				flags.printLimit = va_arg(args, int);
 				ch = *format++;
 			}
 			else
 			{
 				while (ch >= '0' && ch <= '9')
 				{
-					apBuf.flags.printLimit *= 10;
-					apBuf.flags.printLimit += ch - '0';
+					flags.printLimit *= 10;
+					flags.printLimit += ch - '0';
 					ch = *format++;
 				}
 			}
 		}
-		if (apBuf.flags.printLimit == 0)
+		if (flags.printLimit == 0)
 		{
-			apBuf.flags.printLimit = -1;		// -1: make it unlimited
+			flags.printLimit = -1;		// -1: make it unlimited
 		}
 		if (ch == 's')
 		{
 			const char *s = va_arg(args, const char *);
-			apBuf.flags.isString = true;
-			if (!prints(apBuf, (s != nullptr) ? s : "<null>"))
+			flags.isString = true;
+			if (!PutString((s != nullptr) ? s : "<null>"))
 			{
 				break;
 			}
@@ -544,9 +552,13 @@ static void tiny_print(SStringBuf& apBuf, const char *format, va_list args) noex
 		if (ch == 'c')
 		{
 			// char are converted to int then pushed on the stack
-			if (!strbuf_printchar(apBuf, (char)va_arg(args, int)))
+			const char c2 = (char)va_arg(args, int);
+			if (c2 != 0)						// don't print it if it is null
 			{
-				return;
+				if (!PutChar(c2))
+				{
+					return;
+				}
 			}
 
 			continue;
@@ -557,18 +569,18 @@ static void tiny_print(SStringBuf& apBuf, const char *format, va_list args) noex
 			if (ch == 'l')
 			{
 				ch = *format++;
-				apBuf.flags.long64 = 1;
+				flags.long64 = 1;
 			}
 			else
 			{
-				apBuf.flags.long32 = 1;
+				flags.long32 = 1;
 			}
 		}
 
 #ifndef NO_PRINTF_FLOAT
 		if (ch == 'f' || ch == 'e' || ch == 'F' || ch == 'E')
 		{
-			if (!printFloat(apBuf, va_arg(args, double), ch))
+			if (!PrintFloat(va_arg(args, double), ch))
 			{
 				break;
 			}
@@ -576,60 +588,60 @@ static void tiny_print(SStringBuf& apBuf, const char *format, va_list args) noex
 		}
 #endif
 
-		apBuf.flags.base = 10;
-		apBuf.flags.letBase = 'a';
+		flags.base = 10;
+		flags.letBase = 'a';
 
 		if (ch == 'd' || ch == 'u' || ch == 'i')
 		{
-			apBuf.flags.isSigned = (ch != 'u');
-			if (apBuf.flags.long64)
+			flags.isSigned = (ch != 'u');
+			if (flags.long64)
 			{
-				if (!printll(apBuf, va_arg(args, long long)))
+				if (!PrintLL(va_arg(args, long long)))
 				{
 					break;
 				}
 			}
-			else if (!printi(apBuf, va_arg(args, int)))
+			else if (!PrintI(va_arg(args, int)))
 			{
 				break;
 			}
 			continue;
 		}
 
-		apBuf.flags.base = 16;		// from here all hexadecimal
+		flags.base = 16;		// from here all hexadecimal
 		if (ch == 'x' || ch == 'X' || ch == 'p' || ch == 'o')
 		{
 			if (ch == 'X')
 			{
-				apBuf.flags.letBase = 'A';
+				flags.letBase = 'A';
 			}
 			else if (ch == 'o')
 			{
-				apBuf.flags.base = 8;
+				flags.base = 8;
 			}
-			if (apBuf.flags.long64)
+			if (flags.long64)
 			{
-				if (!printll(apBuf, va_arg(args, long long)))
+				if (!PrintLL(va_arg(args, long long)))
 				{
 					break;
 				}
 			}
-			else if (!printi(apBuf, va_arg(args, int)))
+			else if (!PrintI(va_arg(args, int)))
 			{
 				break;
 			}
 			continue;
 		}
 	}
-	strbuf_printchar(apBuf, '\0');
+	PutChar('\0');
 }
 
 /*-----------------------------------------------------------*/
 
 int SafeVsnprintf(char *apBuf, size_t aMaxLen, const char *apFmt, va_list args) noexcept
 {
-	SStringBuf strBuf(apBuf, aMaxLen);
-	tiny_print(strBuf, apFmt, args);
+	FormattedPrinter strBuf(apBuf, aMaxLen);
+	strBuf.Print(apFmt, args);
 	return strBuf.curLen;
 }
 
