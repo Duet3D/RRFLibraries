@@ -31,6 +31,7 @@
 #include <cmath>
 
 #include "Strnlen.h"
+#include "SafeVsnprintf.h"
 
 // The following should be enough for 32-bit int/long and 64-bit long long
 constexpr size_t MaxLongDigits = 10;	// to print 4294967296
@@ -55,30 +56,25 @@ struct xPrintFlags
 class FormattedPrinter
 {
 public:
-	char *str;
-	const char *orgStr;
-	const char *nulPos;
+	FormattedPrinter(std::function<bool(char) /*noexcept*/ > pcf) noexcept;
+	int Print(const char *format, va_list args) noexcept;
+
+private:
+	std::function<bool(char) /*noexcept*/ > putchar;
 	int curLen;
 	xPrintFlags flags;
 
-	FormattedPrinter(char *s, size_t maxLen) noexcept;
 	void Init() noexcept;
-	void Print(const char *format, va_list args) noexcept;
-
-private:
-	bool PutChar(char c) noexcept;
 	bool PutString(const char *apString) noexcept;
 	bool PrintLL(long long i) noexcept;
 	bool PrintI(int i) noexcept;
 	bool PrintFloat(double d, char formatLetter) noexcept;
+	bool PutChar(char c) noexcept;
 };
 
-FormattedPrinter::FormattedPrinter(char *apBuf, size_t maxLen) noexcept
+FormattedPrinter::FormattedPrinter(std::function<bool(char) /*noexcept*/ > pcf) noexcept
+	: putchar(pcf), curLen(0)
 {
-	str = apBuf;
-	orgStr = apBuf;
-	nulPos = apBuf + maxLen - 1;
-	curLen = 0;
 	Init();
 }
 
@@ -87,21 +83,14 @@ void FormattedPrinter::Init() noexcept
 	memset(&flags, 0, sizeof(flags));
 }
 
-/*-----------------------------------------------------------*/
-
-// Store the specified character in the string buffer.
-// If it won't fit leaving room for a null, store a null and return false.
-// Else store it and return true.
 bool FormattedPrinter::PutChar(char c) noexcept
 {
-	if (str < nulPos)
+	const bool ret = putchar(c) && c != 0;
+	if (ret)
 	{
-		*str++ = c;
-		curLen++;
-		return true;
+		++curLen;
 	}
-	*str = '\0';
-	return false;
+	return ret;
 }
 
 /*-----------------------------------------------------------*/
@@ -463,16 +452,16 @@ bool FormattedPrinter::PrintFloat(double d, char formatLetter) noexcept
 
 /*-----------------------------------------------------------*/
 
-void FormattedPrinter::Print(const char *format, va_list args) noexcept
+int FormattedPrinter::Print(const char *format, va_list args) noexcept
 {
 	for (;;)
 	{
 		char ch;
 		while ((ch = *format++) != '%')
 		{
-			if (!PutChar(ch) || ch == 0)
+			if (!PutChar(ch))
 			{
-				return;
+				return curLen;
 			}
 		}
 
@@ -486,7 +475,7 @@ void FormattedPrinter::Print(const char *format, va_list args) noexcept
 		{
 			if (!PutChar(ch))
 			{
-				return;
+				return curLen;
 			}
 			continue;
 		}
@@ -557,7 +546,7 @@ void FormattedPrinter::Print(const char *format, va_list args) noexcept
 			{
 				if (!PutChar(c2))
 				{
-					return;
+					return curLen;
 				}
 			}
 
@@ -634,15 +623,42 @@ void FormattedPrinter::Print(const char *format, va_list args) noexcept
 		}
 	}
 	PutChar('\0');
+	return curLen;
 }
 
 /*-----------------------------------------------------------*/
 
-int SafeVsnprintf(char *apBuf, size_t aMaxLen, const char *apFmt, va_list args) noexcept
+int vuprintf(std::function<bool(char) /*noexcept*/ > putc, const char *format, va_list args) noexcept
 {
-	FormattedPrinter strBuf(apBuf, aMaxLen);
-	strBuf.Print(apFmt, args);
-	return strBuf.curLen;
+	FormattedPrinter fp(putc);
+	return fp.Print(format, args);
+}
+
+int uprintf(std::function<bool(char) /*noexcept*/ > putc, const char *format, ...) noexcept
+{
+	va_list vargs;
+	va_start(vargs, format);
+	const int ret = vuprintf(putc, format, vargs);
+	va_end(vargs);
+	return ret;
+}
+
+int SafeVsnprintf(char *buffer, size_t maxLen, const char *format, va_list args) noexcept
+{
+	FormattedPrinter fp([&buffer, &maxLen](char c) noexcept -> bool
+							{
+								if (c != 0 && maxLen > 1)
+								{
+									*buffer++ = c;
+									--maxLen;
+									return true;
+								}
+								return false;
+							}
+						 );
+	const int ret = fp.Print(format, args);
+	*buffer = 0;
+	return ret;
 }
 
 int SafeSnprintf(char* buffer, size_t buf_size, const char* format, ...) noexcept
