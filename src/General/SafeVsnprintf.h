@@ -10,16 +10,14 @@
 
 #include <cstdarg>
 #include <cstddef>
+#include <functional>
 
-# ifdef __cplusplus
-
-# include <functional>
-
-// Like printf but each character to print is sent through a function
+// These functions are like vprintf and printf but each character to print is sent through a function
+// The putc function must behave as follows:
+// If the character passed is not zero: if possible, send or store the character and return true; else store a terminator if necessary and return false to terminate the vuprintf call.
+// If the character passed is zero, this signals the last character being printed at this time, so store a terminator if necessary. The return value is unimportant.
 int vuprintf(std::function<bool(char) /*noexcept*/ > putc, const char *format, va_list args) noexcept;
 int uprintf(std::function<bool(char) /*noexcept*/ > putc, const char *format, ...) noexcept __attribute__ ((format (printf, 2, 3)));
-
-# endif
 
 int SafeVsnprintf(char *buffer, size_t maxLen, const char *format, va_list args) noexcept;
 int SafeSnprintf(char* buffer, size_t maxLen, const char* format, ...) noexcept __attribute__ ((format (printf, 3, 4)));
