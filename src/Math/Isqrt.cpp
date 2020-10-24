@@ -53,19 +53,43 @@ uint32_t isqrt64(uint64_t num) noexcept
 	}
 	else
 	{
+		// 62-bit square root
 #ifdef __SAMC21G18A__
-		// Use the DIVAS unit. We need to disable interrupts to prevent other tasks or ISRs using it at the same time.
+		// Use the DIVAS unit to handle the top 32 bits. We need to disable interrupts to prevent other tasks or ISRs using it at the same time.
 		irqflags_t flags = cpu_irq_save();
 		DIVAS->SQRNUM.reg = (uint32_t)numHigh;
 		while (DIVAS->STATUS.bit.BUSY) { }
-		uint32_t res = DIVAS->RESULT.reg << 1;
+		uint32_t res = DIVAS->RESULT.reg;
 		uint64_t numAll = ((uint64_t)DIVAS->REM.reg << 32) | (uint32_t)num;
 		cpu_irq_restore(flags);
+
+		// At this point, res is twice the square root of the msw, in the range 0..2^16-2 with the input restricted to 62 bits
+		// numAll may have up to 24 bits set
+		// On the SAMC21 I found 2 iterations per loop in the following to be faster than 3 or 4, probably because the SAMC21 flash cache is 64 bytes long.
+		// This is the most optimum SAM21 code I managed to create. I didn't manage to persuade gcc to get rid of the compare instruction at the end of the loop.
+		for (unsigned int i = 0; i < 8; ++i)
+		{
+			numAll <<= 2;
+			res <<= 2;
+			if ((numAll >> 32) >= (res | 1u))
+			{
+				numAll = ((uint64_t)((numAll >> 32) - (res | 1u)) << 32) | (numAll & 0xFFFFFFFF);
+				res |= 2;
+			}
+
+			numAll <<= 2;
+			if ((numAll >> 32) >= ((res << 1) | 1u))
+			{
+				numAll = ((uint64_t)((numAll >> 32) - ((res << 1) | 1u)) << 32) | (numAll & 0xFFFFFFFF);
+				res |= 1;
+			}
+		}
+		return res;
 #else
-		// 62-bit square root
+		// On the SAME5x the following code is faster than the SAMC21 version (2.61us vs. 3.37us)
 		uint32_t res = 0;
 
-#define iter64a(N) 								\
+# define iter64a(N) 							\
 		{										\
 			res <<= 1;							\
 			uint32_t temp = (res | 1) << (N);	\
@@ -82,14 +106,15 @@ uint32_t isqrt64(uint64_t num) noexcept
 		iter64a(14) iter64a(12) iter64a(10) iter64a(8)
 		iter64a(6)  iter64a(4)  iter64a(2)  iter64a(0)
 
-		// res is twice the square root of the msw, in the range 0..2^16-1 with the input restricted to 62 bits
 		uint64_t numAll = ((uint64_t)numHigh << 32) | (uint32_t)num;
-#endif
+# undef iter64a
 
-#define iter64b(N) 										\
+		// At this point, res is twice the square root of the msw, in the range 0..2^16-2 with the input restricted to 62 bits
+		// numAll may have up to 24 bits set
+# define iter64b(N) 									\
 		{												\
 			res <<= 1;									\
-			uint64_t temp = ((uint64_t)res | 1) << (N);	\
+			uint64_t temp = (uint64_t)(res | 1) << (N);	\
 			if (numAll >= temp)							\
 			{											\
 				numAll -= temp;							\
@@ -105,12 +130,10 @@ uint32_t isqrt64(uint64_t num) noexcept
 		iter64b(22) iter64b(20) iter64b(18) iter64b(16)
 		iter64b(14) iter64b(12) iter64b(10) iter64b(8)
 		iter64b(6)  iter64b(4)  iter64b(2)  iter64b(0)
+# undef iter64b
 
 		return res >> 1;
-
-#undef iter64a
-#undef iter64b
-
+#endif
 	}
 }
 
