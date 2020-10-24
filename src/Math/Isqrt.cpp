@@ -1,9 +1,40 @@
+// Fast 62-bit integer square root algorithms
+
 #include <cstdint>
 
 #ifdef __SAMC21G18A__
+
 # include <Core.h>
 # include <component/divas.h>
-#endif
+
+// This function is 64-byte aligned so that the loop fits in the 64-byte flash memory cache of the SAMC21
+static __attribute__((noinline,aligned(64))) uint32_t RestOfSqrt(uint32_t res, uint32_t numHigh, uint32_t numLow) noexcept;
+static uint32_t RestOfSqrt(uint32_t res, uint32_t numHigh, uint32_t numLow) noexcept
+{
+	uint64_t numAll = ((uint64_t)numHigh << 32) | numLow;
+	// At this point, res is twice the square root of the msw of the original number, in the range 0..2^16-2 with the input restricted to 62 bits
+	// numAll may have up to 24 bits set
+	// On the SAMC21 I found 2 iterations per loop in the following to be faster than 3 or 4, probably because the SAMC21 flash cache is 64 bytes long.
+	// This is the most optimum SAM21 code I managed to create. I didn't manage to persuade gcc to get rid of the compare instruction at the end of the loop.
+	for (unsigned int i = 0; i < 8; ++i)
+	{
+		numAll <<= 2;
+		res <<= 2;
+		if ((numAll >> 32) >= (res | 1u))
+		{
+			numAll = ((uint64_t)((numAll >> 32) - (res | 1u)) << 32) | (numAll & 0xFFFFFFFF);
+			res |= 2;
+		}
+
+		numAll <<= 2;
+		if ((numAll >> 32) >= ((res << 1) | 1u))
+		{
+			numAll = ((uint64_t)((numAll >> 32) - ((res << 1) | 1u)) << 32) | (numAll & 0xFFFFFFFF);
+			res |= 1;
+		}
+	}
+	return res;
+}
 
 // Fast 62-bit integer square root function (thanks dmould)
 uint32_t isqrt64(uint64_t num) noexcept
@@ -11,15 +42,39 @@ uint32_t isqrt64(uint64_t num) noexcept
 	uint32_t numHigh = (uint32_t)(num >> 32);
 	if (numHigh == 0)
 	{
-#ifdef __SAMC21G18A__
-		// Use the DIVAS unit. We need to disable interrupts to prevent other tasks or ISRs using it at the same time.
+		// We need to disable interrupts to prevent other tasks or ISRs using the DIVAS at the same time.
 		irqflags_t flags = cpu_irq_save();
 		DIVAS->SQRNUM.reg = (uint32_t)num;
 		while (DIVAS->STATUS.bit.BUSY) { }
 		const uint32_t rslt = DIVAS->RESULT.reg;
 		cpu_irq_restore(flags);
 		return rslt;
+	}
+
+	if ((numHigh & (3u << 30)) != 0)
+	{
+		// Input out of range - probably negative, so return -1
+		return 0xFFFFFFFF;
+	}
+
+	// 62-bit square root
+	irqflags_t flags = cpu_irq_save();
+	DIVAS->SQRNUM.reg = numHigh;
+	while (DIVAS->STATUS.bit.BUSY) { }
+	const uint32_t rslt = DIVAS->RESULT.reg;
+	const uint32_t rem = DIVAS->REM.reg;
+	cpu_irq_restore(flags);
+	return RestOfSqrt(rslt, rem, (uint32_t)num);
+}
+
 #else
+
+// Fast 62-bit integer square root function (thanks dmould)
+uint32_t isqrt64(uint64_t num) noexcept
+{
+	uint32_t numHigh = (uint32_t)(num >> 32);
+	if (numHigh == 0)
+	{
 		// 32-bit square root - thanks to Wilco Dijkstra for this efficient ARM algorithm
 		uint32_t num32 = (uint32_t)num;
 		uint32_t res = 0;
@@ -43,7 +98,6 @@ uint32_t isqrt64(uint64_t num) noexcept
 		return res >> 1;
 
 # undef iter32
-#endif
 
 	}
 	else if ((numHigh & (3u << 30)) != 0)
@@ -54,39 +108,6 @@ uint32_t isqrt64(uint64_t num) noexcept
 	else
 	{
 		// 62-bit square root
-#ifdef __SAMC21G18A__
-		// Use the DIVAS unit to handle the top 32 bits. We need to disable interrupts to prevent other tasks or ISRs using it at the same time.
-		irqflags_t flags = cpu_irq_save();
-		DIVAS->SQRNUM.reg = (uint32_t)numHigh;
-		while (DIVAS->STATUS.bit.BUSY) { }
-		uint32_t res = DIVAS->RESULT.reg;
-		uint64_t numAll = ((uint64_t)DIVAS->REM.reg << 32) | (uint32_t)num;
-		cpu_irq_restore(flags);
-
-		// At this point, res is twice the square root of the msw, in the range 0..2^16-2 with the input restricted to 62 bits
-		// numAll may have up to 24 bits set
-		// On the SAMC21 I found 2 iterations per loop in the following to be faster than 3 or 4, probably because the SAMC21 flash cache is 64 bytes long.
-		// This is the most optimum SAM21 code I managed to create. I didn't manage to persuade gcc to get rid of the compare instruction at the end of the loop.
-		for (unsigned int i = 0; i < 8; ++i)
-		{
-			numAll <<= 2;
-			res <<= 2;
-			if ((numAll >> 32) >= (res | 1u))
-			{
-				numAll = ((uint64_t)((numAll >> 32) - (res | 1u)) << 32) | (numAll & 0xFFFFFFFF);
-				res |= 2;
-			}
-
-			numAll <<= 2;
-			if ((numAll >> 32) >= ((res << 1) | 1u))
-			{
-				numAll = ((uint64_t)((numAll >> 32) - ((res << 1) | 1u)) << 32) | (numAll & 0xFFFFFFFF);
-				res |= 1;
-			}
-		}
-		return res;
-#else
-		// On the SAME5x the following code is faster than the SAMC21 version (2.61us vs. 3.37us)
 		uint32_t res = 0;
 
 # define iter64a(N) 							\
@@ -111,6 +132,7 @@ uint32_t isqrt64(uint64_t num) noexcept
 
 		// At this point, res is twice the square root of the msw, in the range 0..2^16-2 with the input restricted to 62 bits
 		// numAll may have up to 24 bits set
+		// On the SAME5x the following code is faster than the SAMC21 version (2.61us vs. 3.37us)
 # define iter64b(N) 									\
 		{												\
 			res <<= 1;									\
@@ -133,8 +155,9 @@ uint32_t isqrt64(uint64_t num) noexcept
 # undef iter64b
 
 		return res >> 1;
-#endif
 	}
 }
+
+#endif
 
 // End
