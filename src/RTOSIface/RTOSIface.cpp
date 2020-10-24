@@ -165,7 +165,7 @@ void TaskBase::TerminateAndUnlink() noexcept
 	if (taskId != 0)
 	{
 		taskId = 0;
-		vTaskDelete((TaskHandle_t)this);
+		vTaskDelete(GetFreeRTOSHandle());
 
 		// Unlink the task from the thread list
 		TaskCriticalSectionLocker lock;
