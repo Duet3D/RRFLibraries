@@ -372,7 +372,8 @@ class ReadLocker
 public:
 	ReadLocker(ReadWriteLock& p_lock) noexcept : lock(&p_lock) { lock->LockForReading(); }
 	ReadLocker(ReadWriteLock *p_lock) noexcept : lock(p_lock) { if (lock != nullptr) { lock->LockForReading(); } }
-	~ReadLocker() noexcept { if (lock != nullptr) { lock->ReleaseReader(); } }
+	~ReadLocker() { if (lock != nullptr) { lock->ReleaseReader(); } }
+	void Release() noexcept { if (lock != nullptr) { lock->ReleaseReader(); lock = nullptr; } }
 
 	ReadLocker(const ReadLocker&) = delete;
 	ReadLocker(ReadLocker&& other) noexcept : lock(other.lock) { other.lock = nullptr; }
@@ -385,8 +386,11 @@ class WriteLocker
 {
 public:
 	WriteLocker(ReadWriteLock& p_lock) noexcept : lock(&p_lock) { lock->LockForWriting(); }
-	~WriteLocker() noexcept { if (lock != nullptr) { lock->ReleaseWriter(); } }
+	WriteLocker(ReadWriteLock *p_lock) noexcept : lock(p_lock) { if (lock != nullptr) { lock->LockForWriting(); } }
+	~WriteLocker() { if (lock != nullptr) { lock->ReleaseWriter(); } }
+	void Release() noexcept { if (lock != nullptr) { lock->ReleaseWriter(); lock = nullptr; } }
 
+	// Caution! It is unsafe to call Downgrade() more than once on a lock!
 	void Downgrade() noexcept { if (lock != nullptr) { lock->DowngradeWriter(); } }
 
 	WriteLocker(const WriteLocker&) = delete;
