@@ -48,6 +48,8 @@ public:
 	bool Insert(size_t pos, const char *s) noexcept { return GetRef().Insert(pos, s); }	// returns true if buffer is too small
 	bool Equals(const char *s) const noexcept { return strcmp(storage, s) == 0; }
 	bool EqualsIgnoreCase(const char *s) const noexcept { return StringEqualsIgnoreCase(storage, s); }
+	// Compare with a C string. If the C string is too long but the part of it we could accommodate matches, return true.
+	// this will ignore the \0 at the end
 	bool Similar(const char *s) const noexcept { return strncmp(s, storage, Len) == 0; }
 	int Contains(const char *s) const noexcept;
 	int Contains(char c) const noexcept;
@@ -114,7 +116,8 @@ template<size_t Len> int String<Len>::catf(const char *fmt, ...) noexcept
 // return false if oldVal was not contained
 template<size_t Len> bool String<Len>::Replace(char oldVal, char newVal) noexcept
 {
-	for (size_t i = 0; i < strlen(); ++i)
+	const size_t length = strlen();
+	for (size_t i = 0; i < length; ++i)
 	{
 		if (storage[i] == oldVal)
 		{
