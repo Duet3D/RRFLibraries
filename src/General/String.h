@@ -41,12 +41,14 @@ public:
 	void CopyAndPad(const char *src) noexcept;
 	bool ConstantTimeEquals(String<Len> other) const noexcept;
 
+	bool Replace(char oldVal, char newVal) noexcept;
 	void Truncate(size_t len) noexcept;
 	void Erase(size_t pos, size_t count = 1) noexcept;
 	bool Insert(size_t pos, char c) noexcept { return GetRef().Insert(pos, c); }		// returns true if buffer is too small
 	bool Insert(size_t pos, const char *s) noexcept { return GetRef().Insert(pos, s); }	// returns true if buffer is too small
 	bool Equals(const char *s) const noexcept { return strcmp(storage, s) == 0; }
 	bool EqualsIgnoreCase(const char *s) const noexcept { return StringEqualsIgnoreCase(storage, s); }
+	bool Similar(const char *s) const noexcept { return strncmp(s, storage, Len) == 0; }
 	int Contains(const char *s) const noexcept;
 	int Contains(char c) const noexcept;
 
@@ -106,6 +108,21 @@ template<size_t Len> int String<Len>::catf(const char *fmt, ...) noexcept
 	const int ret = GetRef().vcatf(fmt, vargs);
 	va_end(vargs);
 	return ret;
+}
+
+// Replace the first occurrence of oldVal with newVal and return true
+// return false if oldVal was not contained
+template<size_t Len> bool String<Len>::Replace(char oldVal, char newVal) noexcept
+{
+	for (size_t i = 0; i < strlen(); ++i)
+	{
+		if (storage[i] == oldVal)
+		{
+			storage[i] = newVal;
+			return true;
+		}
+	}
+	return false;
 }
 
 template<size_t Len> void String<Len>::Truncate(size_t len) noexcept
