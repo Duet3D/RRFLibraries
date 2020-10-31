@@ -62,7 +62,7 @@ template<class T, size_t N> Vector<T, N>::Vector(const size_t n, const T& fill)
 {
 	for (size_t i = 0; i < n; ++i)
 	{
-		Add(fill);
+		storage[i] = fill;
 	}
 }
 
