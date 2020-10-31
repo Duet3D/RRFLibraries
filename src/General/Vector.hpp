@@ -12,6 +12,7 @@
 #include "ecv.h"
 #undef array
 #undef result
+#undef value
 #include <cstddef>		// for size_t
 #include <functional>
 
@@ -20,6 +21,8 @@ template<class T, size_t N> class Vector
 {
 public:
 	Vector() : filled(0) { }
+
+	Vector(const size_t n, const T& fill);
 
 	bool Full() const { return filled == N; }
 
@@ -53,6 +56,15 @@ protected:
 	T storage[N];
 	size_t filled;
 };
+
+template<class T, size_t N> Vector<T, N>::Vector(const size_t n, const T& fill)
+	: filled(n)
+{
+	for (size_t i = 0; i < n; ++i)
+	{
+		Add(fill);
+	}
+}
 
 template<class T, size_t N> bool Vector<T, N>::Add(const T& x)
 {
