@@ -6,6 +6,7 @@
  */
 
 #include "Deviation.h"
+#include "../General/SimpleMath.h"
 #include <cmath>
 
 Deviation::Deviation() noexcept : mean(0.0), deviationFromMean(0.0)
@@ -22,8 +23,8 @@ void Deviation::Set(float sumOfSquares, float sum, size_t numPoints) noexcept
 	else
 	{
 		mean = sum/numPoints;
-		const float square = sumOfSquares/numPoints - mean * mean;
-		// 'square' can be slightly less than 0 due to rounding error if all the probe points had the same height
+		const float square = sumOfSquares/numPoints - fsquare(mean);
+		// 'square' can be slightly less than 0 due to rounding error
 		deviationFromMean = (square <= 0) ? 0.0 : sqrtf(square);
 	}
 }

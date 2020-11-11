@@ -10,7 +10,7 @@
 
 #include <cstdlib>
 
-// Class to represent a devision of a set of point from the ideal
+// Class to represent a deviation of a set of points from the ideal
 class Deviation
 {
 public:
