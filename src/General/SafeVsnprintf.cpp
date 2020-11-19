@@ -410,9 +410,16 @@ bool FormattedPrinter::PrintFloat(double d, char formatLetter) noexcept
 	}
 
 	// Store the non-exponent part
-	if (digitsAfterPoint == 0 && flags.printLimit != 0)
+	if (digitsAfterPoint == 0)
 	{
-		*--s = '0';							// make sure we have at least one digit after the decimal point so that it is valid JSON
+		if (flags.printLimit == 0)
+		{
+			--digitsAfterPoint;				// we were asked for no decimals. Make digitsAfterPoint negative so that we don't print the decimal point
+		}
+		else
+		{
+			*--s = '0';						// make sure we have at least one digit after the decimal point so that it is valid JSON
+		}
 	}
 
 	do
@@ -524,10 +531,24 @@ int FormattedPrinter::Print(const char *format, va_list args) noexcept
 				}
 			}
 		}
+
+#ifndef NO_PRINTF_FLOAT
+		if (ch == 'f' || ch == 'e' || ch == 'F' || ch == 'E')
+		{
+			if (!PrintFloat(va_arg(args, double), ch))
+			{
+				break;
+			}
+			continue;
+		}
+#endif
+
+		// For non-floating point formats, treat a precision of 0 the same as unlimited
 		if (flags.printLimit == 0)
 		{
 			flags.printLimit = -1;		// -1: make it unlimited
 		}
+
 		if (ch == 's')
 		{
 			const char *s = va_arg(args, const char *);
@@ -565,17 +586,6 @@ int FormattedPrinter::Print(const char *format, va_list args) noexcept
 				flags.long32 = 1;
 			}
 		}
-
-#ifndef NO_PRINTF_FLOAT
-		if (ch == 'f' || ch == 'e' || ch == 'F' || ch == 'E')
-		{
-			if (!PrintFloat(va_arg(args, double), ch))
-			{
-				break;
-			}
-			continue;
-		}
-#endif
 
 		flags.base = 10;
 		flags.letBase = 'a';
