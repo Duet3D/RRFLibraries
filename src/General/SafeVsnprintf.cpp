@@ -42,15 +42,23 @@ struct xPrintFlags
 	int base;
 	int width;
 	int printLimit;
-	unsigned int
+	uint32_t
 		letBase : 8,
 		padZero : 1,
 		padRight : 1,
+		signOrSpace : 1,
+		forceSign : 1,
 		isSigned : 1,
 		isNumber : 1,
 		isString : 1,
 		long32 : 1,
-		long64 : 1;
+		long64 : 1,
+		hash : 1;
+
+	bool NeedPrefix() const noexcept
+	{
+		return hash && (base == 16 || base == 8);
+	}
 };
 
 class FormattedPrinter
@@ -70,6 +78,8 @@ private:
 	bool PrintI(int i) noexcept;
 	bool PrintFloat(double d, char formatLetter) noexcept;
 	bool PutChar(char c) noexcept;
+	bool PutStringWithSign(char *s, bool isNegative) noexcept;
+	bool DoPrefix() noexcept;
 };
 
 FormattedPrinter::FormattedPrinter(std::function<bool(char) /*noexcept*/ > pcf) noexcept
@@ -179,6 +189,50 @@ bool FormattedPrinter::PutString(const char *apString) noexcept
 	return true;
 }
 
+// Output the string representation of the number to be printed, with a sign uf necessary, padded as required
+// 's' is the string representation of the number to be printed, with space for a sign to be added at the front
+bool FormattedPrinter::PutStringWithSign(char *s, bool isNegative) noexcept
+{
+	const char sign = (isNegative) ? '-'
+						: flags.forceSign ? '+'
+							: flags.signOrSpace ? ' '
+								: 0;
+	if (sign != 0)
+	{
+		if (flags.width != 0 && flags.padZero)
+		{
+			if (!PutChar(sign))
+			{
+				return false;
+			}
+			--flags.width;
+		}
+		else
+		{
+			*--s = sign;
+		}
+	}
+
+	return PutString(s);
+}
+
+// Output the 0x or 0X or 0 prefix if necessary, returning true if successful or on prefix needed
+bool FormattedPrinter::DoPrefix() noexcept
+{
+	if (flags.NeedPrefix())
+	{
+		if (!PutChar('0'))
+		{
+			return false;
+		}
+		if (flags.base == 16)
+		{
+			return PutChar(flags.letBase + ('X' - 'A'));
+		}
+	}
+	return true;
+}
+
 /*-----------------------------------------------------------*/
 
 bool FormattedPrinter::PrintLL(long long i) noexcept
@@ -187,6 +241,11 @@ bool FormattedPrinter::PrintLL(long long i) noexcept
 	if (i == 0LL)
 	{
 		return PutString("0");
+	}
+
+	if (!DoPrefix())
+	{
+		return false;
 	}
 
 	bool neg = false;
@@ -211,23 +270,7 @@ bool FormattedPrinter::PrintLL(long long i) noexcept
 		*--s = t + '0';
 	}
 
-	if (neg)
-	{
-		if (flags.width != 0 && flags.padZero)
-		{
-			if (!PutChar('-'))
-			{
-				return false;
-			}
-			--flags.width;
-		}
-		else
-		{
-			*--s = '-';
-		}
-	}
-
-	return PutString(s);
+	return PutStringWithSign(s, neg);
 }
 
 /*-----------------------------------------------------------*/
@@ -239,6 +282,11 @@ bool FormattedPrinter::PrintI(int i) noexcept
 	if (i == 0)
 	{
 		return PutString("0");
+	}
+
+	if (!DoPrefix())
+	{
+		return false;
 	}
 
 	bool neg = false;
@@ -296,23 +344,7 @@ bool FormattedPrinter::PrintI(int i) noexcept
 #endif
 	}
 
-	if (neg)
-	{
-		if (flags.width && flags.padZero)
-		{
-			if (!PutChar('-'))
-			{
-				return false;
-			}
-			--flags.width;
-		}
-		else
-		{
-			*--s = '-';
-		}
-	}
-
-	return PutString(s);
+	return PutStringWithSign(s, neg);
 }
 
 /*-----------------------------------------------------------*/
@@ -410,16 +442,9 @@ bool FormattedPrinter::PrintFloat(double d, char formatLetter) noexcept
 	}
 
 	// Store the non-exponent part
-	if (digitsAfterPoint == 0)
+	if (digitsAfterPoint == 0 && !flags.hash)
 	{
-		if (flags.printLimit == 0)
-		{
-			--digitsAfterPoint;				// we were asked for no decimals. Make digitsAfterPoint negative so that we don't print the decimal point
-		}
-		else
-		{
-			*--s = '0';						// make sure we have at least one digit after the decimal point so that it is valid JSON
-		}
+		--digitsAfterPoint;				// make digitsAfterPoint negative to suppress the decimal point
 	}
 
 	do
@@ -436,23 +461,7 @@ bool FormattedPrinter::PrintFloat(double d, char formatLetter) noexcept
 	}
 	while (u != 0 || digitsAfterPoint >= 0);
 
-	if (d < (double)0.0)
-	{
-		if (flags.width != 0 && flags.padZero)
-		{
-			if (!PutChar('-'))
-			{
-				return false;
-			}
-			--flags.width;
-		}
-		else
-		{
-			*--s = '-';
-		}
-	}
-
-	return PutString(s);
+	return PutStringWithSign(s, d < (double)0.0);
 }
 
 #endif
@@ -489,16 +498,32 @@ int FormattedPrinter::Print(const char *format, va_list args) noexcept
 
 		Init();
 
-		if (ch == '-')
+		// Process flag characters
+		for (;;)
 		{
+			switch (ch)
+			{
+			case '#':
+				flags.hash = true;
+				break;
+			case '-':
+				flags.padRight = true;
+				break;
+			case '0':
+				flags.padZero = true;
+				break;
+			case '+':
+				flags.forceSign = true;
+				break;
+			case ' ':
+				flags.signOrSpace = true;
+				break;
+			default:
+				goto doneFlags;
+			}
 			ch = *format++;
-			flags.padRight = true;
 		}
-		while (ch == '0')
-		{
-			ch = *format++;
-			flags.padZero = true;
-		}
+	doneFlags:
 		if (ch == '*')
 		{
 			ch = *format++;
@@ -506,7 +531,7 @@ int FormattedPrinter::Print(const char *format, va_list args) noexcept
 		}
 		else
 		{
-			while(ch >= '0' && ch <= '9')
+			while (ch >= '0' && ch <= '9')
 			{
 				flags.width *= 10;
 				flags.width += ch - '0';
@@ -607,7 +632,7 @@ int FormattedPrinter::Print(const char *format, va_list args) noexcept
 			continue;
 		}
 
-		flags.base = 16;		// from here all hexadecimal
+		flags.base = 16;		// from here all hexadecimal or octal
 		if (ch == 'x' || ch == 'X' || ch == 'p' || ch == 'o')
 		{
 			if (ch == 'X')
