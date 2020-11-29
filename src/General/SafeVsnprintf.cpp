@@ -557,6 +557,7 @@ int FormattedPrinter::Print(const char *format, va_list args) noexcept
 			}
 			else
 			{
+				flags.printLimit = 0;
 				while (ch >= '0' && ch <= '9')
 				{
 					flags.printLimit *= 10;
