@@ -42,18 +42,25 @@ struct xPrintFlags
 	int base;
 	int width;
 	int printLimit;
-	uint32_t
-		letBase : 8,
-		padZero : 1,
-		padRight : 1,
-		signOrSpace : 1,
-		forceSign : 1,
-		isSigned : 1,
-		isNumber : 1,
-		isString : 1,
-		long32 : 1,
-		long64 : 1,
-		hash : 1;
+	union
+	{
+		struct
+		{
+			uint32_t
+				letBase : 8,
+				padZero : 1,
+				padRight : 1,
+				signOrSpace : 1,
+				forceSign : 1,
+				isSigned : 1,
+				isNumber : 1,
+				isString : 1,
+				long32 : 1,
+				long64 : 1,
+				hash : 1;
+		};
+		uint32_t allFlags;
+	};
 
 	bool NeedPrefix() const noexcept
 	{
@@ -90,7 +97,9 @@ FormattedPrinter::FormattedPrinter(std::function<bool(char) /*noexcept*/ > pcf) 
 
 void FormattedPrinter::Init() noexcept
 {
-	memset(&flags, 0, sizeof(flags));
+	flags.base = flags.width = 0;
+	flags.printLimit = -1;
+	flags.allFlags = 0;
 }
 
 bool FormattedPrinter::PutChar(char c) noexcept
