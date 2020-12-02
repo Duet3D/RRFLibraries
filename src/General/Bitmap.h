@@ -163,7 +163,7 @@ public:
 	// Convert an unsigned integer to a bit in a bitmap
 	static Bitmap<BaseType> MakeFromBits(unsigned int b1) noexcept
 	{
-		return Bitmap<BaseType>((BaseType)1u <<b1);
+		return Bitmap<BaseType>((BaseType)1u << b1);
 	}
 
 	// Convert an unsigned integer to a bit in a bitmap
