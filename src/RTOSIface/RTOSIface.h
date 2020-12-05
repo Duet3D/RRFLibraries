@@ -5,11 +5,17 @@
  *      Author: David
  */
 
+// This code makes the following assumptions about FreeRTOS:
+// 1. The TaskHandle address returned by xTaskCreateStatic is the same as the 'storage' parameter that was passed to it.
+// 2. The QueueHandle address returned by xSemaphoreCreateRecursiveMutexStatic is the same as the 'storage' parameter passed to it.
+// 3. The QueueHandle address returned by xSemaphoreCreateBinaryStatic is the same as the 'storage' parameter passed to it.
+//
+// These assumptions allow us to derive our own task, mutex and semaphore classes from the FreeRTOS ones without storing the handle returned by those calls.
+
 #ifndef SRC_RTOSIFACE_H_
 #define SRC_RTOSIFACE_H_
 
 #include <cstdint>
-
 #include <utility>
 
 #ifdef RTOS
@@ -47,18 +53,22 @@ __attribute__( ( always_inline ) ) static inline void DisableInterrupts() noexce
   __asm volatile ("cpsid i" : : : "memory");
 }
 
+// Mutex class. This uses the FreeRTOS static semaphore type, but adds a name and links them all together in a list
 class Mutex
+#ifdef RTOS
+	: public StaticSemaphore_t
+#endif
 {
 public:
-	Mutex() noexcept : handle(nullptr)
+	Mutex() noexcept
 #ifdef RTOS
-		, next(nullptr), name(nullptr)
+		: next(nullptr), name(nullptr)
 #endif
 	{ }
 
 	void Create(const char *pName) noexcept;
-	bool Take(uint32_t timeout = TimeoutUnlimited) const noexcept;		// take ownership of the mutex returning true if successful, false if timed out
-	bool Release() const noexcept;
+	bool Take(uint32_t timeout = TimeoutUnlimited) noexcept;		// take ownership of the mutex returning true if successful, false if timed out
+	bool Release() noexcept;
 	TaskHandle GetHolder() const noexcept;
 
 #ifdef RTOS
@@ -78,10 +88,12 @@ public:
 private:
 
 #ifdef RTOS
-	SemaphoreHandle_t handle;
 	Mutex *next;
 	const char *name;
-	StaticSemaphore_t storage;
+	QueueHandle_t GetHandle() noexcept { return reinterpret_cast<QueueHandle_t>(this); }
+
+	// This next one is dangerous because of the const_cast. Use it only to call FreeRTOS functions that we know don't mutate the queue.
+	QueueHandle_t GetConstHandle() const noexcept { return reinterpret_cast<const QueueHandle_t>(const_cast<Mutex*>(this)); }
 
 	static Mutex *mutexList;
 #else
@@ -91,20 +103,21 @@ private:
 };
 
 class BinarySemaphore
+#ifdef RTOS
+	: public StaticSemaphore_t
+#endif
 {
 public:
 	BinarySemaphore() noexcept;
 
-	bool Take(uint32_t timeout = TimeoutUnlimited) const noexcept;
-	bool Give() const noexcept;
+	bool Take(uint32_t timeout = TimeoutUnlimited) noexcept;
+	bool Give() noexcept;
 
 	static constexpr uint32_t TimeoutUnlimited = 0xFFFFFFFF;
 
 private:
-
 #ifdef RTOS
-	SemaphoreHandle_t handle;
-	StaticSemaphore_t storage;
+	QueueHandle_t GetHandle() noexcept { return reinterpret_cast<QueueHandle_t>(this); }
 #endif
 };
 
@@ -221,8 +234,8 @@ private:
 class MutexLocker
 {
 public:
-	MutexLocker(const Mutex *pm, uint32_t timeout = Mutex::TimeoutUnlimited) noexcept;	// acquire lock
-	MutexLocker(const Mutex& pm, uint32_t timeout = Mutex::TimeoutUnlimited) noexcept;	// acquire lock
+	MutexLocker(Mutex *pm, uint32_t timeout = Mutex::TimeoutUnlimited) noexcept;	// acquire lock
+	MutexLocker(Mutex& pm, uint32_t timeout = Mutex::TimeoutUnlimited) noexcept;	// acquire lock
 
 	void Release() noexcept;																// release the lock early (also gets released by destructor)
 	bool ReAcquire(uint32_t timeout = Mutex::TimeoutUnlimited) noexcept;					// acquire it again, if it isn't already owned (non-counting)
@@ -234,7 +247,7 @@ public:
 	MutexLocker(MutexLocker&& other) noexcept : handle(other.handle), acquired(other.acquired) { other.handle = nullptr; other.acquired = false; }
 
 private:
-	const Mutex *handle;
+	Mutex *handle;
 	bool acquired;
 };
 

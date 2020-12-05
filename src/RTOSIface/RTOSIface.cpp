@@ -16,33 +16,31 @@
 
 static_assert(Mutex::TimeoutUnlimited == portMAX_DELAY, "Bad value for TimeoutUnlimited");
 
+// Create the semaphore. A semaphore must only be created once. The name is not copied, so pName must point to read-only or persistent storage.
 void Mutex::Create(const char *pName) noexcept
 {
-	if (handle == nullptr)
-	{
-		handle = xSemaphoreCreateRecursiveMutexStatic(&storage);
-		name = pName;
-		next = mutexList;
-		mutexList = this;
-	}
+	xSemaphoreCreateRecursiveMutexStatic(this);
+	name = pName;
+	next = mutexList;
+	mutexList = this;
 }
 
 // Take ownership of a mutex returning true if successful, false if timed out
-bool Mutex::Take(uint32_t timeout) const noexcept
+bool Mutex::Take(uint32_t timeout) noexcept
 {
-	return xSemaphoreTakeRecursive(handle, timeout) == pdTRUE;
+	return xSemaphoreTakeRecursive(GetHandle(), timeout) == pdTRUE;
 }
 
 // Release a mutex returning true if successful.
 // Note that the return value does not indicate whether the mutex is still owned, because it may have been taken more than once.
-bool Mutex::Release() const noexcept
+bool Mutex::Release() noexcept
 {
-	return xSemaphoreGiveRecursive(handle) == pdTRUE;
+	return xSemaphoreGiveRecursive(GetHandle()) == pdTRUE;
 }
 
 TaskBase *Mutex::GetHolder() const noexcept
 {
-	return reinterpret_cast<TaskBase *>(xSemaphoreGetMutexHolder(handle));
+	return reinterpret_cast<TaskBase *>(xSemaphoreGetMutexHolder(GetConstHandle()));
 }
 
 TaskBase *TaskBase::taskList = nullptr;
@@ -56,12 +54,12 @@ void Mutex::Create(const char *pName) noexcept
 {
 }
 
-bool Mutex::Take(uint32_t timeout) const noexcept
+bool Mutex::Take(uint32_t timeout) noexcept
 {
 	return true;
 }
 
-bool Mutex::Release() const noexcept
+bool Mutex::Release() noexcept
 {
 	return true;
 }
@@ -73,7 +71,7 @@ TaskHandle Mutex::GetHolder() const noexcept
 
 #endif
 
-MutexLocker::MutexLocker(const Mutex *m, uint32_t timeout) noexcept
+MutexLocker::MutexLocker(Mutex *m, uint32_t timeout) noexcept
 {
 	handle = m;
 	acquired =
@@ -84,7 +82,7 @@ MutexLocker::MutexLocker(const Mutex *m, uint32_t timeout) noexcept
 #endif
 }
 
-MutexLocker::MutexLocker(const Mutex& m, uint32_t timeout) noexcept
+MutexLocker::MutexLocker(Mutex& m, uint32_t timeout) noexcept
 {
 	handle = &m;
 	acquired =
@@ -135,17 +133,17 @@ MutexLocker::~MutexLocker() noexcept
 
 BinarySemaphore::BinarySemaphore() noexcept
 {
-	 handle = xSemaphoreCreateBinaryStatic(&storage);
+	 xSemaphoreCreateBinaryStatic(this);
 }
 
-bool BinarySemaphore::Take(uint32_t timeout) const noexcept
+bool BinarySemaphore::Take(uint32_t timeout) noexcept
 {
-	return xSemaphoreTake(handle, timeout);
+	return xSemaphoreTake(GetHandle(), timeout);
 }
 
-bool BinarySemaphore::Give() const noexcept
+bool BinarySemaphore::Give() noexcept
 {
-	return xSemaphoreGive(handle);
+	return xSemaphoreGive(GetHandle());
 }
 
 // Link the task into the thread list and allocate a short task ID to it. Task IDs start at 1.
