@@ -81,6 +81,7 @@ private:
 
 	void Init() noexcept;
 	bool PutString(const char *apString) noexcept;
+	bool PutJson(const char *apString) noexcept;
 	bool PrintLL(long long i) noexcept;
 	bool PrintI(int i) noexcept;
 	bool PrintFloat(double d, char formatLetter) noexcept;
@@ -196,6 +197,54 @@ bool FormattedPrinter::PutString(const char *apString) noexcept
 	}
 
 	return true;
+}
+
+// Write a string in JSON format returning true if successful. Width specifiers are ignored.
+bool FormattedPrinter::PutJson(const char *apString) noexcept
+{
+	bool ok = true;
+	while (ok)
+	{
+		const char c = *apString;
+		char esc;
+		switch (c)
+		{
+		case '\0':
+			return true;
+		case '\r':
+			esc = 'r';
+			break;
+		case '\n':
+			esc = 'n';
+			break;
+		case '\t':
+			esc = 't';
+			break;
+		case '"':
+		case '\\':
+#if 1
+		// Escaping '/' is optional in JSON, although doing so so confuses PanelDue (fixed in PanelDue firmware version 1.15 and later). As it's optional, we don't do it.
+#else
+		case '/':
+#endif
+			esc = c;
+			break;
+		default:
+			esc = 0;
+			break;
+		}
+
+		if (esc != 0)
+		{
+			ok = PutChar('\\') && PutChar(esc);
+		}
+		else
+		{
+			ok = PutChar(c);
+		}
+		++apString;
+	}
+	return false;
 }
 
 // Output the string representation of the number to be printed, with a sign uf necessary, padded as required
@@ -588,17 +637,27 @@ int FormattedPrinter::Print(const char *format, va_list args) noexcept
 		{
 			const char *s = va_arg(args, const char *);
 			flags.isString = true;
-			if (!PutString((s != nullptr) ? s : "<null>"))
+			// RRF extension: if the current format specifier is exactly "%.s" then perform JSON escaping.
+			// We would like to use "%j" instead, but that gives rise to gcc warnings about unrecognised format specifiers and extra arguments.
+			if (*(format - 2) == '.' && *(format - 3) == '%')
+			{
+				if (s != nullptr && !PutJson(s))
+				{
+					break;
+				}
+			}
+			else if (!PutString((s != nullptr) ? s : "<null>"))
 			{
 				break;
 			}
 			continue;
 		}
+
 		if (ch == 'c')
 		{
 			// char are converted to int then pushed on the stack
 			const char c2 = (char)va_arg(args, int);
-			if (c2 != 0)						// don't print it if it is null
+			if (c2 != 0)				// don't print it if it is null
 			{
 				if (!PutChar(c2))
 				{
