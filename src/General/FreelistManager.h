@@ -11,7 +11,9 @@
 #define SRC_LIBRARIES_GENERAL_FREELISTMANAGER_H_
 
 #include <cstddef>
-#include "../RTOSIface/RTOSIface.h"
+#ifdef RTOS
+# include "../RTOSIface/RTOSIface.h"
+#endif
 
 namespace FreelistManager
 {
@@ -30,7 +32,9 @@ namespace FreelistManager
 
 	template<size_t Sz> void *Freelist<Sz>::Allocate() noexcept
 	{
+#ifdef RTOS
 		TaskCriticalSectionLocker lock;
+#endif
 
 		if (freelist != nullptr)
 		{
@@ -43,7 +47,9 @@ namespace FreelistManager
 
 	template<size_t Sz> void Freelist<Sz>::Release(void *p) noexcept
 	{
+#ifdef RTOS
 		TaskCriticalSectionLocker lock;
+#endif
 
 		*static_cast<void **>(p) = freelist;
 		freelist = p;

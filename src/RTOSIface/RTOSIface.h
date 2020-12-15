@@ -362,9 +362,9 @@ public:
 	void ReleaseWriter() noexcept;
 	void DowngradeWriter() noexcept;					// turn a write lock into a read lock (but you can't go back again)
 #ifdef RTOS
-    volatile bool IsLocked() const noexcept { return numReaders != 0 || writeLockOwner != nullptr; }
+    bool IsLocked() const volatile noexcept { return numReaders != 0 || writeLockOwner != nullptr; }
 #else
-    volatile bool IsLocked() const noexcept { return false; }
+    bool IsLocked() const volatile noexcept { return false; }
 #endif
 
 private:
