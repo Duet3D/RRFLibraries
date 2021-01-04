@@ -340,13 +340,28 @@ public:
 	TaskCriticalSectionLocker(const TaskCriticalSectionLocker&) = delete;
 };
 
+// Same as TaskCriticalSectionLocker except that we may not want to lock
+class ConditionalTaskCriticalSectionLocker
+{
+public:
+	ConditionalTaskCriticalSectionLocker(bool doLock) noexcept : locked(doLock) { if (locked) { RTOSIface::EnterTaskCriticalSection(); } }
+	~ConditionalTaskCriticalSectionLocker() noexcept { if (locked) { RTOSIface::LeaveTaskCriticalSection(); } }
+
+	ConditionalTaskCriticalSectionLocker(const ConditionalTaskCriticalSectionLocker&) = delete;
+
+private:
+	bool locked;
+};
+
 // Class to represent a lock that allows multiple readers but only one writer
 // This is designed to be efficient when writing is rare
 // Rules:
 // - Read locks are recursive. You can request a read lock on an object multiple times, but you must release it the same number of times.
 // - Write locks are not recursive.
 // - If you have a write lock on an object, you can request a read lock on the same object and it will be granted automatically.
-// - If you have a read lock, you can't ask for a write lock on the same object, it will deadlock if you do.
+// - If you have a read lock, you must not ask for a write lock on the same object, it will deadlock if you do.
+// - You can downgrade a write lock to a read lock
+// - There is no facility to upgrade a read lock to a write lock, because the system would deadlock if two tasks tried to do that at the same time
 class ReadWriteLock
 {
 public:
@@ -362,6 +377,7 @@ public:
 	void ReleaseWriter() noexcept;
 	void DowngradeWriter() noexcept;					// turn a write lock into a read lock (but you can't go back again)
 #ifdef RTOS
+	TaskBase *GetWriteLockOwner() const volatile { return writeLockOwner; }
     bool IsLocked() const volatile noexcept { return numReaders != 0 || writeLockOwner != nullptr; }
 #else
     bool IsLocked() const volatile noexcept { return false; }
@@ -376,7 +392,7 @@ private:
 	std::atomic_uint8_t numReaders;			// MSB is set if a task is writing or write pending, lower bits are the number of readers
 	static_assert(std::atomic_uint8_t::is_always_lock_free);
 # endif
-	volatile TaskBase *writeLockOwner;		// handle of the task that owns the write lock
+	TaskBase * volatile writeLockOwner;		// handle of the task that owns the write lock
 #endif
 };
 
@@ -402,9 +418,17 @@ public:
 	WriteLocker(ReadWriteLock *p_lock) noexcept : lock(p_lock) { if (lock != nullptr) { lock->LockForWriting(); } }
 	~WriteLocker() { if (lock != nullptr) { lock->ReleaseWriter(); } }
 	void Release() noexcept { if (lock != nullptr) { lock->ReleaseWriter(); lock = nullptr; } }
-
-	// Caution! It is unsafe to call Downgrade() more than once on a lock!
-	void Downgrade() noexcept { if (lock != nullptr) { lock->DowngradeWriter(); } }
+	void Downgrade() noexcept
+	{
+		if (   lock != nullptr
+#ifdef RTOS
+			&& lock->GetWriteLockOwner() == TaskBase::GetCallerTaskHandle()
+#endif
+		   )
+		{
+			lock->DowngradeWriter();
+		}
+	}
 
 	WriteLocker(const WriteLocker&) = delete;
 	WriteLocker(WriteLocker&& other) noexcept : lock(other.lock) { other.lock = nullptr; }
