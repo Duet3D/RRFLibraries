@@ -5,8 +5,8 @@
  *      Author: David
  */
 
-#ifndef SRC_LIBRARIES_GENERAL_SAFEVSNPRINTF_H_
-#define SRC_LIBRARIES_GENERAL_SAFEVSNPRINTF_H_
+#ifndef SRC_GENERAL_SAFEVSNPRINTF_H_
+#define SRC_GENERAL_SAFEVSNPRINTF_H_
 
 #include <cstdarg>
 #include <cstddef>
@@ -23,8 +23,7 @@ int uprintf(std::function<bool(char) /*noexcept*/ > putc, const char *format, ..
 int SafeVsnprintf(char *buffer, size_t maxLen, const char *format, va_list args) noexcept;
 int SafeSnprintf(char* buffer, size_t maxLen, const char* format, ...) noexcept __attribute__ ((format (printf, 3, 4)));
 
-// We must define these after including <functional> because that file refers to vsnprintf
-#define vsnprintf(b, m, f, a) static_assert(false, "Do not use vsnprintf, use SafeVsnprintf instead")
-#define snprintf(b, m, f, ...) static_assert(false, "Do not use snprintf, use SafeSnprintf instead")
+extern "C" [[deprecated("use SafeSnprintf instead of snprintf")]] int snprintf(char * s, size_t n, const char * format, ...);
+extern "C" [[deprecated("use SafeVsnprintf instead of vsnprintf")]] int vsnprintf(char * s, size_t n, const char * format, va_list arg);
 
-#endif /* SRC_LIBRARIES_GENERAL_SAFEVSNPRINTF_H_ */
+#endif /* SRC_GENERAL_SAFEVSNPRINTF_H_ */
