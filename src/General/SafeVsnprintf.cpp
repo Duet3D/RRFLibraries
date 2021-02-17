@@ -71,11 +71,11 @@ struct xPrintFlags
 class FormattedPrinter
 {
 public:
-	FormattedPrinter(std::function<bool(char) /*noexcept*/ > pcf) noexcept;
+	FormattedPrinter(stdext::inplace_function<bool(char) /*noexcept*/ > pcf) noexcept;
 	int Print(const char *format, va_list args) noexcept;
 
 private:
-	std::function<bool(char) /*noexcept*/ > putchar;
+	stdext::inplace_function<bool(char) /*noexcept*/ > putchar;
 	int curLen;
 	xPrintFlags flags;
 
@@ -90,7 +90,7 @@ private:
 	bool DoPrefix() noexcept;
 };
 
-FormattedPrinter::FormattedPrinter(std::function<bool(char) /*noexcept*/ > pcf) noexcept
+FormattedPrinter::FormattedPrinter(stdext::inplace_function<bool(char) /*noexcept*/ > pcf) noexcept
 	: putchar(pcf), curLen(0)
 {
 	Init();
@@ -732,13 +732,13 @@ int FormattedPrinter::Print(const char *format, va_list args) noexcept
 
 /*-----------------------------------------------------------*/
 
-int vuprintf(std::function<bool(char) /*noexcept*/ > putc, const char *format, va_list args) noexcept
+int vuprintf(stdext::inplace_function<bool(char) /*noexcept*/ > putc, const char *format, va_list args) noexcept
 {
 	FormattedPrinter fp(putc);
 	return fp.Print(format, args);
 }
 
-int uprintf(std::function<bool(char) /*noexcept*/ > putc, const char *format, ...) noexcept
+int uprintf(stdext::inplace_function<bool(char) /*noexcept*/ > putc, const char *format, ...) noexcept
 {
 	va_list vargs;
 	va_start(vargs, format);

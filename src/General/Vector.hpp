@@ -13,8 +13,8 @@
 #undef array
 #undef result
 #undef value
-#include <cstddef>		// for size_t
-#include <functional>
+#include <cstddef>					// for size_t
+#include "inplace_function.h"
 
 // Bounded vector class
 template<class T, size_t N> class Vector
@@ -48,7 +48,7 @@ public:
 
 	const T* _ecv_array c_ptr() { return storage; }
 
-	void Sort(std::function<bool(T, T)> sortfunc);
+	void Sort(stdext::inplace_function<bool(T, T)> sortfunc);
 
 	bool Replace(T oldVal, T newVal);
 
@@ -91,7 +91,7 @@ template<class T, size_t N> bool Vector<T, N>::Add(const T* _ecv_array p, size_t
 }
 
 // The sort function has to return true if the first element is greater than the second element
-template<class T, size_t N> void Vector<T, N>::Sort(std::function<bool(T, T)> sortfunc)
+template<class T, size_t N> void Vector<T, N>::Sort(stdext::inplace_function<bool(T, T)> sortfunc)
 {
 	for (size_t i = 1; i < filled; ++i)
 	{

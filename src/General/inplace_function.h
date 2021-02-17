@@ -96,9 +96,13 @@ template<class R, class... Args> struct vtable
     const destructor_ptr_t destructor_ptr;
 
     explicit constexpr vtable() noexcept :
+#if defined(__EXCEPTIONS) && __EXCEPTIONS	// DC
         invoke_ptr{ [](storage_ptr_t, Args&&...) -> R
             { SG14_INPLACE_FUNCTION_THROW(std::bad_function_call()); }
         },
+#else
+		invoke_ptr{ nullptr },
+#endif
         copy_ptr{ [](storage_ptr_t, storage_ptr_t) -> void {} },
         relocate_ptr{ [](storage_ptr_t, storage_ptr_t) -> void {} },
         destructor_ptr{ [](storage_ptr_t) -> void {} }
