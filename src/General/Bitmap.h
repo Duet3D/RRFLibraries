@@ -18,6 +18,11 @@
 
 // Find the lowest set bit. Returns the lowest set bit number, undefined if no bits are set.
 // GCC provides intrinsics, but unhelpfully they are in terms of int, long and long long instead of uint32_t, uint64_t etc.
+inline unsigned int LowestSetBit(unsigned char val) noexcept
+{
+	return (unsigned int)__builtin_ctz(val);
+}
+
 inline unsigned int LowestSetBit(unsigned short int val) noexcept
 {
 	return (unsigned int)__builtin_ctz(val);
