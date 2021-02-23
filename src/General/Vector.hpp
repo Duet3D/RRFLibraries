@@ -6,8 +6,8 @@
  */
 
 
-#ifndef VECTOR_H_
-#define VECTOR_H_
+#ifndef SRC_GENERAL_VECTOR_H_
+#define SRC_GENERAL_VECTOR_H_
 
 #include "ecv.h"
 #undef array
@@ -188,4 +188,4 @@ template<class T, size_t N> bool Vector<T, N>::IterateWhile(stdext::inplace_func
 	return true;
 }
 
-#endif /* VECTOR_H_ */
+#endif /* SRC_GENERAL_VECTOR_H_ */
