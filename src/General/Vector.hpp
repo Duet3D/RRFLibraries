@@ -20,44 +20,48 @@
 template<class T, size_t N> class Vector
 {
 public:
-	Vector() : filled(0) { }
+	Vector() noexcept : filled(0) { }
 
-	Vector(const size_t n, const T& fill);
+	Vector(const size_t n, const T& fill) noexcept;
 
-	bool Full() const { return filled == N; }
+	bool Full() const noexcept { return filled == N; }
 
-	constexpr size_t Capacity() const { return N; }
+	constexpr size_t Capacity() const noexcept { return N; }
 
-	size_t Size() const { return filled; }
+	size_t Size() const noexcept { return filled; }
 
-	bool IsEmpty() const { return filled == 0; }
+	bool IsEmpty() const noexcept { return filled == 0; }
 
-	const T& operator[](size_t index) const pre(index < N) { return storage[index]; }
+	const T& operator[](size_t index) const noexcept pre(index < N) { return storage[index]; }
 
-	T& operator[](size_t index) pre(index < N) { return storage[index]; }
+	T& operator[](size_t index) noexcept pre(index < N) { return storage[index]; }
 
-	bool Add(const T& x);
+	bool Add(const T& x) noexcept;
 
-	bool Add(const T* _ecv_array p, size_t n);
+	bool Add(const T* _ecv_array p, size_t n) noexcept;
 
-	void Erase(size_t pos, size_t count = 1);
+	void Erase(size_t pos, size_t count = 1) noexcept;
 
-	void Truncate(size_t pos) pre(pos <= filled);
+	void Truncate(size_t pos) noexcept pre(pos <= filled);
 
-	void Clear() { filled = 0; }
+	void Clear() noexcept { filled = 0; }
 
-	const T* _ecv_array c_ptr() { return storage; }
+	const T* _ecv_array c_ptr() noexcept { return storage; }
 
-	void Sort(stdext::inplace_function<bool(T, T)> sortfunc);
+	void Sort(stdext::inplace_function<bool(T, T) /*noexcept*/ > sortfunc) noexcept;
 
-	bool Replace(T oldVal, T newVal);
+	bool Replace(T oldVal, T newVal) noexcept;
+
+	bool IterateWhile(stdext::inplace_function<bool(T&, size_t) /*noexcept*/ > func, size_t startAt = 0) noexcept;
+
+	bool IterateWhile(stdext::inplace_function<bool(const T&, size_t) /*noexcept*/ > func, size_t startAt = 0) const noexcept;
 
 protected:
 	T storage[N];
 	size_t filled;
 };
 
-template<class T, size_t N> Vector<T, N>::Vector(const size_t n, const T& fill)
+template<class T, size_t N> Vector<T, N>::Vector(const size_t n, const T& fill) noexcept
 	: filled(n)
 {
 	for (size_t i = 0; i < n; ++i)
@@ -66,7 +70,7 @@ template<class T, size_t N> Vector<T, N>::Vector(const size_t n, const T& fill)
 	}
 }
 
-template<class T, size_t N> bool Vector<T, N>::Add(const T& x)
+template<class T, size_t N> bool Vector<T, N>::Add(const T& x) noexcept
 {
 	if (filled < N)
 	{
@@ -76,7 +80,7 @@ template<class T, size_t N> bool Vector<T, N>::Add(const T& x)
 	return false;
 }
 
-template<class T, size_t N> bool Vector<T, N>::Add(const T* _ecv_array p, size_t n)
+template<class T, size_t N> bool Vector<T, N>::Add(const T* _ecv_array p, size_t n) noexcept
 {
 	while (n != 0)
 	{
@@ -91,7 +95,7 @@ template<class T, size_t N> bool Vector<T, N>::Add(const T* _ecv_array p, size_t
 }
 
 // The sort function has to return true if the first element is greater than the second element
-template<class T, size_t N> void Vector<T, N>::Sort(stdext::inplace_function<bool(T, T)> sortfunc)
+template<class T, size_t N> void Vector<T, N>::Sort(stdext::inplace_function<bool(T, T) /*noexcept*/ > sortfunc) noexcept
 {
 	for (size_t i = 1; i < filled; ++i)
 	{
@@ -111,7 +115,7 @@ template<class T, size_t N> void Vector<T, N>::Sort(stdext::inplace_function<boo
 	}
 }
 
-template<class T, size_t N> void Vector<T, N>::Erase(size_t pos, size_t count)
+template<class T, size_t N> void Vector<T, N>::Erase(size_t pos, size_t count) noexcept
 {
 	while (pos + count < filled)
 	{
@@ -124,7 +128,7 @@ template<class T, size_t N> void Vector<T, N>::Erase(size_t pos, size_t count)
 	}
 }
 
-template<class T, size_t N> void Vector<T, N>::Truncate(size_t pos)
+template<class T, size_t N> void Vector<T, N>::Truncate(size_t pos) noexcept
 {
 	if (pos < filled)
 	{
@@ -132,7 +136,7 @@ template<class T, size_t N> void Vector<T, N>::Truncate(size_t pos)
 	}
 }
 
-template<class T, size_t N> bool Vector<T, N>::Replace(T oldVal, T newVal)
+template<class T, size_t N> bool Vector<T, N>::Replace(T oldVal, T newVal) noexcept
 {
 	for (size_t i = 0; i < filled; ++i)
 	{
@@ -143,6 +147,45 @@ template<class T, size_t N> bool Vector<T, N>::Replace(T oldVal, T newVal)
 		}
 	}
 	return false;
+}
+
+
+template<class T, size_t N> bool Vector<T, N>::IterateWhile(stdext::inplace_function<bool(T&, size_t) /*noexcept*/ > func, size_t startAt = 0) noexcept
+{
+	const size_t totalElements = Size();
+	if (startAt >= totalElements)
+	{
+		return true;
+	}
+	size_t count = 0;
+	for (size_t i = startAt; i < totalElements; ++i)
+	{
+		if(!func(storage[i], count))
+		{
+			return false;
+		}
+		++count;
+	}
+	return true;
+}
+
+template<class T, size_t N> bool Vector<T, N>::IterateWhile(stdext::inplace_function<bool(const T&, size_t) /*noexcept*/ > func, size_t startAt = 0) const noexcept
+{
+	const size_t totalElements = Size();
+	if (startAt >= totalElements)
+	{
+		return true;
+	}
+	size_t count = 0;
+	for (size_t i = startAt; i < totalElements; ++i)
+	{
+		if(!func(storage[i], count))
+		{
+			return false;
+		}
+		++count;
+	}
+	return true;
 }
 
 #endif /* VECTOR_H_ */
