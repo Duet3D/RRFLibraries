@@ -150,7 +150,7 @@ template<class T, size_t N> bool Vector<T, N>::Replace(T oldVal, T newVal) noexc
 }
 
 
-template<class T, size_t N> bool Vector<T, N>::IterateWhile(stdext::inplace_function<bool(T&, size_t) /*noexcept*/ > func, size_t startAt = 0) noexcept
+template<class T, size_t N> bool Vector<T, N>::IterateWhile(stdext::inplace_function<bool(T&, size_t) /*noexcept*/ > func, size_t startAt) noexcept
 {
 	const size_t totalElements = Size();
 	if (startAt >= totalElements)
@@ -169,7 +169,7 @@ template<class T, size_t N> bool Vector<T, N>::IterateWhile(stdext::inplace_func
 	return true;
 }
 
-template<class T, size_t N> bool Vector<T, N>::IterateWhile(stdext::inplace_function<bool(const T&, size_t) /*noexcept*/ > func, size_t startAt = 0) const noexcept
+template<class T, size_t N> bool Vector<T, N>::IterateWhile(stdext::inplace_function<bool(const T&, size_t) /*noexcept*/ > func, size_t startAt) const noexcept
 {
 	const size_t totalElements = Size();
 	if (startAt >= totalElements)
