@@ -25,7 +25,7 @@ void Deviation::Set(float sumOfSquares, float sum, size_t numPoints) noexcept
 		mean = sum/numPoints;
 		const float square = sumOfSquares/numPoints - fsquare(mean);
 		// 'square' can be slightly less than 0 due to rounding error
-		deviationFromMean = (square <= 0) ? 0.0 : sqrtf(square);
+		deviationFromMean = (square <= 0) ? 0.0 : fastSqrtf(square);
 	}
 }
 

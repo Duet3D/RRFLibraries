@@ -97,10 +97,10 @@ inline constexpr bool XNor(bool a, bool b) noexcept
 }
 
 // Built-in square root function that just uses the ARM floating point instruction
-// This differs from __builtin_sqrtf by not checking for a negative operand, which is supposed to set error codes in
+// This differs from __builtin_sqrtf by not checking for a negative operand, which is supposed to set error codes
 inline float fastSqrtf(float f) noexcept
 {
-#if defined(__FPU_PRESENT) && __FPU_USED
+#if (defined(__FPU_USED) && __FPU_USED) || (defined (__VFP_FP__) && !defined(__SOFTFP__))
 	float ret;
 	asm("vsqrt.f32 %0,%1" : "=t" (ret) : "t" (f));
 	return ret;

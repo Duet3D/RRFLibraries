@@ -33,7 +33,7 @@ float DeviationAccumulator::GetDeviation() const noexcept
 	}
 	const float square = sumOfSquares/numValues - fsquare(sum/numValues);
 	// 'square' can be slightly less than 0 due to rounding error if all the values added were equal
-	return (square <= 0) ? 0.0 : sqrtf(square);
+	return (square <= 0) ? 0.0 : fastSqrtf(square);
 }
 
 // Return true if the deviation is within the specified fraction of the value. Only valid for positive values e.g. times.
