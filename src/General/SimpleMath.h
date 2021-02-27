@@ -96,6 +96,19 @@ inline constexpr bool XNor(bool a, bool b) noexcept
 	return (a) ? b : !b;
 }
 
+// Built-in square root function that just uses the ARM floating point instruction
+// This differs from __builtin_sqrtf by not checking for a negative operand, which is supposed to set error codes in
+inline float fastSqrtf(float f) noexcept
+{
+#if defined(__FPU_PRESENT) && __FPU_USED
+	float ret;
+	asm("vsqrt.f32 %0,%1" : "=t" (ret) : "t" (f));
+	return ret;
+#else
+	return sqrtf(f);
+#endif
+}
+
 // Macro to give us the number of elements in an array
 #ifndef ARRAY_SIZE
 # define ARRAY_SIZE(_x)	(sizeof(_x)/sizeof((_x)[0]))
