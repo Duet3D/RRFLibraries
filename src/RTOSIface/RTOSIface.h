@@ -441,6 +441,7 @@ template<class T> class ReadLockedPointer
 {
 public:
 	ReadLockedPointer(ReadLocker& p_locker, T* p_ptr) noexcept : locker(std::move(p_locker)), ptr(p_ptr) { }
+	ReadLockedPointer(std::nullptr_t, T* p_ptr) noexcept : locker(nullptr), ptr(p_ptr) { }
 	ReadLockedPointer(const ReadLockedPointer&) = delete;
 	ReadLockedPointer(ReadLockedPointer&& other) noexcept : locker(std::move(other.locker)), ptr(other.ptr) { other.ptr = nullptr; }
 
