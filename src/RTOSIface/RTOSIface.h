@@ -30,8 +30,6 @@
 class TaskBase;						// when compiling without RTOS, this class is never defined and task handles are always nullptr
 typedef TaskBase *TaskHandle;
 
-#define RRFLIBS_SAMC21	(defined(__SAMC21G18A__) && __SAMC21G18A__)
-
 /** \brief  Enable IRQ Interrupts
 
   This function enables IRQ interrupts by clearing the I-bit in the CPSR.
@@ -386,13 +384,10 @@ public:
 private:
 
 #ifdef RTOS
-# if RRFLIBS_SAMC21
-	volatile uint8_t numReaders;			// SAMC21 doesn't support atomic operations, neither does the library
-# else
-	std::atomic_uint8_t numReaders;			// MSB is set if a task is writing or write pending, lower bits are the number of readers
-	static_assert(std::atomic_uint8_t::is_always_lock_free);
-# endif
-	TaskBase * volatile writeLockOwner;		// handle of the task that owns the write lock
+	std::atomic_uint8_t numReaders;						// MSB is set if a task is writing or write pending, lower bits are the number of readers
+	// The following assertion fails for SAMC21
+//	static_assert(std::atomic_uint8_t::is_always_lock_free);
+	TaskBase * volatile writeLockOwner;					// handle of the task that owns the write lock
 #endif
 };
 
