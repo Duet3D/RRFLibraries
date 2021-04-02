@@ -15,11 +15,11 @@ uint32_t isqrt64(uint64_t num) noexcept
 	{
 		// 32-bit square root. Use the DIVAS to calculate it.
 		// We need to disable interrupts to prevent other tasks or ISRs using the DIVAS at the same time.
-		const irqflags_t flags = cpu_irq_save();
+		const irqflags_t flags = IrqSave();
 		DIVAS->SQRNUM.reg = (uint32_t)num;
 		while (DIVAS->STATUS.bit.BUSY) { }
 		const uint32_t rslt = DIVAS->RESULT.reg;
-		cpu_irq_restore(flags);
+		IrqRestore(flags);
 		return rslt;
 	}
 
@@ -33,12 +33,12 @@ uint32_t isqrt64(uint64_t num) noexcept
 	uint32_t numLow = (uint32_t)num;
 	uint32_t res;
 	{
-		const irqflags_t flags = cpu_irq_save();
+		const irqflags_t flags = IrqSave();
 		DIVAS->SQRNUM.reg = numHigh;
 		while (DIVAS->STATUS.bit.BUSY) { }
 		res = DIVAS->RESULT.reg;
 		numHigh = DIVAS->REM.reg;
-		cpu_irq_restore(flags);
+		IrqRestore(flags);
 	}
 
 	// At this point, res is twice the square root of the msw of the original number, in the range 0..2^16-2 with the input restricted to 62 bits
