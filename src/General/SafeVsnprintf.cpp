@@ -410,7 +410,7 @@ bool FormattedPrinter::PrintI(int i) noexcept
 #ifndef NO_PRINTF_FLOAT
 
 // Print a number in scientific format
-// apBuf.flags.printLimit is the number of decimal digits required
+// flags.printLimit is the number of decimal digits required
 bool FormattedPrinter::PrintFloat(double d, char formatLetter) noexcept
 {
 	if (std::isnan(d))
@@ -429,7 +429,7 @@ bool FormattedPrinter::PrintFloat(double d, char formatLetter) noexcept
 	}
 
 	int exponent = 0;
-	if (formatLetter == 'e' || formatLetter == 'E')
+	if (formatLetter == 'e' || formatLetter == 'E' || formatLetter == 'g' || formatLetter == 'G')
 	{
 		// Using exponent format, so calculate the exponent and normalise ud to be >=1.0 but <=10.0
 		// The following loops are inefficient, however we don't expect to print very large or very small numbers
@@ -459,11 +459,26 @@ bool FormattedPrinter::PrintFloat(double d, char formatLetter) noexcept
 		// ud is now at least 1.0 but less than 10.0 and exponent is the exponent
 	}
 
-	// Multiply ud by 10 to the power of the number of decimal digits required, or until it becomes too big to print easily
 	if (flags.printLimit < 0)
 	{
 		flags.printLimit = 6;					// set the default number of decimal digits
 	}
+
+	if (formatLetter == 'g' || formatLetter == 'G')
+	{
+		// Convert G format to E or F format
+	    if (exponent > -4 && exponent <= flags.printLimit)
+	    {
+	    	formatLetter -= 1;					// change g to f
+	    	ud = fabs(d);						// restore original value of ud
+	    }
+	    else
+	    {
+	    	formatLetter -= 2;					// change g to e
+	    }
+	}
+
+	// Multiply ud by 10 to the power of the number of decimal digits required, or until it becomes too big to print easily
 	int digitsAfterPoint = 0;
 	long limit = 10;
 	while (digitsAfterPoint < flags.printLimit && ud < LONG_LONG_MAX/10 && limit <= LONG_LONG_MAX/10)
@@ -617,7 +632,7 @@ int FormattedPrinter::Print(const char *format, va_list args) noexcept
 		}
 
 #ifndef NO_PRINTF_FLOAT
-		if (ch == 'f' || ch == 'e' || ch == 'F' || ch == 'E')
+		if (ch == 'f' || ch == 'e' || ch == 'g' || ch == 'F' || ch == 'E' || ch == 'G')
 		{
 			if (!PrintFloat(va_arg(args, double), ch))
 			{
