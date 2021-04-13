@@ -178,6 +178,17 @@ void TaskBase::TerminateAndUnlink() noexcept
 	}
 }
 
+// Wake up this task from an ISR
+void TaskBase::GiveFromISR() noexcept
+{
+	if (taskId != 0)			// check that the task has been created and not terminated
+	{
+		BaseType_t higherPriorityTaskWoken = pdFALSE;
+		vTaskNotifyGiveFromISR(GetFreeRTOSHandle(), &higherPriorityTaskWoken);
+		portYIELD_FROM_ISR(higherPriorityTaskWoken);
+	}
+}
+
 #endif
 
 void ReadWriteLock::LockForReading() noexcept

@@ -158,15 +158,7 @@ public:
 	}
 
 	// Wake up this task from an ISR
-	void GiveFromISR() noexcept
-	{
-		if (taskId != 0)			// check that the task has been created and not terminated
-		{
-			BaseType_t higherPriorityTaskWoken = pdFALSE;
-			vTaskNotifyGiveFromISR(GetFreeRTOSHandle(), &higherPriorityTaskWoken);
-			portYIELD_FROM_ISR(higherPriorityTaskWoken);
-		}
-	}
+	void GiveFromISR() noexcept;
 
 	// Wake up this task but not from an ISR
 	void Give() noexcept
