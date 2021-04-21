@@ -148,6 +148,8 @@ public:
 	void Suspend() noexcept { vTaskSuspend(GetFreeRTOSHandle()); }
 	void Resume() noexcept { vTaskResume(GetFreeRTOSHandle()); }
 
+	bool IsRunning() const noexcept { return taskId != 0; }
+
 	// Wake up a task identified by its handle from an ISR. Safe to call with a null handle.
 	static void GiveFromISR(TaskBase *h) noexcept
 	{
