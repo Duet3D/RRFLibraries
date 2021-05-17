@@ -11,7 +11,7 @@
 #include <cstdint>
 #include <cstddef>
 #include <climits>
-#include "inplace_function.h"
+#include "function_ref.h"
 
 // Helper functions to work on bitmaps of various lengths.
 // The primary purpose of these is to allow us to switch between 16, 32 and 64-bit bitmaps.
@@ -156,8 +156,8 @@ public:
 	}
 
 	// Iterate over the bits
-	void Iterate(stdext::inplace_function<void(unsigned int, unsigned int) /*noexcept*/ > func) const noexcept;
-	bool IterateWhile(stdext::inplace_function<bool(unsigned int, unsigned int) /*noexcept*/ > func) const noexcept;
+	void Iterate(function_ref<void(unsigned int, unsigned int) /*noexcept*/ > func) const noexcept;
+	bool IterateWhile(function_ref<bool(unsigned int, unsigned int) /*noexcept*/ > func) const noexcept;
 
 	// Make a bitmap with the lowest n bits set
 	static Bitmap<BaseType> MakeLowestNBits(unsigned int n) noexcept
@@ -229,7 +229,7 @@ template<class BaseType> int Bitmap<BaseType>::GetSetBitNumber(size_t index) con
 }
 
 // Iterate over the bits
-template<class BaseType> void Bitmap<BaseType>::Iterate(stdext::inplace_function<void(unsigned int, unsigned int) /*noexcept*/ > func) const noexcept
+template<class BaseType> void Bitmap<BaseType>::Iterate(function_ref<void(unsigned int, unsigned int) /*noexcept*/ > func) const noexcept
 {
 	BaseType copyBits = bits;
 	unsigned int count = 0;
@@ -243,7 +243,7 @@ template<class BaseType> void Bitmap<BaseType>::Iterate(stdext::inplace_function
 }
 
 // Iterate over the bits
-template<class BaseType> bool Bitmap<BaseType>::IterateWhile(stdext::inplace_function<bool(unsigned int, unsigned int) /*noexcept*/ > func) const noexcept
+template<class BaseType> bool Bitmap<BaseType>::IterateWhile(function_ref<bool(unsigned int, unsigned int) /*noexcept*/ > func) const noexcept
 {
 	BaseType copyBits = bits;
 	unsigned int count = 0;

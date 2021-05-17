@@ -71,11 +71,11 @@ struct xPrintFlags
 class FormattedPrinter
 {
 public:
-	FormattedPrinter(stdext::inplace_function<bool(char) /*noexcept*/ > pcf) noexcept;
+	FormattedPrinter(const PutcFunc_t& pcf) noexcept;
 	int Print(const char *format, va_list args) noexcept;
 
 private:
-	stdext::inplace_function<bool(char) /*noexcept*/ > putchar;
+	PutcFunc_t putchar;
 	int curLen;
 	xPrintFlags flags;
 
@@ -90,7 +90,7 @@ private:
 	bool DoPrefix() noexcept;
 };
 
-FormattedPrinter::FormattedPrinter(stdext::inplace_function<bool(char) /*noexcept*/ > pcf) noexcept
+FormattedPrinter::FormattedPrinter(const PutcFunc_t& pcf) noexcept
 	: putchar(pcf), curLen(0)
 {
 	Init();
@@ -747,34 +747,36 @@ int FormattedPrinter::Print(const char *format, va_list args) noexcept
 
 /*-----------------------------------------------------------*/
 
-int vuprintf(stdext::inplace_function<bool(char) /*noexcept*/ > putc, const char *format, va_list args) noexcept
+int vuprintf(PutcFunc_t putc, const char *format, va_list args) noexcept
 {
 	FormattedPrinter fp(putc);
 	return fp.Print(format, args);
 }
 
-int uprintf(stdext::inplace_function<bool(char) /*noexcept*/ > putc, const char *format, ...) noexcept
+int uprintf(PutcFunc_t putc, const char *format, ...) noexcept
 {
 	va_list vargs;
 	va_start(vargs, format);
-	const int ret = vuprintf(putc, format, vargs);
+	FormattedPrinter fp(putc);
+	const int ret = fp.Print(format, vargs);
 	va_end(vargs);
 	return ret;
 }
 
 int SafeVsnprintf(char *buffer, size_t maxLen, const char *format, va_list args) noexcept
 {
-	FormattedPrinter fp([&buffer, &maxLen](char c) noexcept -> bool
-							{
-								if (c != 0 && maxLen > 1)
-								{
-									*buffer++ = c;
-									--maxLen;
-									return true;
-								}
-								return false;
-							}
-						 );
+	// Declare the lambda function separately from declaring the FormattedPrinter so that it doesn't go out of scope before the FormattedPrinter does
+	auto lambda = [&buffer, &maxLen](char c) noexcept -> bool
+					{
+						if (c != 0 && maxLen > 1)
+						{
+							*buffer++ = c;
+							--maxLen;
+							return true;
+						}
+						return false;
+					};
+	FormattedPrinter fp(lambda);
 	const int ret = fp.Print(format, args);
 	*buffer = 0;
 	return ret;

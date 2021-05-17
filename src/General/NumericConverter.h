@@ -9,7 +9,7 @@
 #define SRC_GENERAL_NUMERICCONVERTER_H_
 
 #include <cstdint>
-#include "inplace_function.h"
+#include "function_ref.h"
 
 // Class to read fixed and floating point numbers
 class NumericConverter
@@ -25,7 +25,7 @@ public:
 	static constexpr OptionsType AcceptSignedFloat = AcceptNegative | AcceptFloat;
 
 	NumericConverter() noexcept {}
-	bool Accumulate(char c, OptionsType options, stdext::inplace_function<char() /*noexcept*/> NextChar) noexcept;
+	bool Accumulate(char c, OptionsType options, function_ref<char() /*noexcept*/> NextChar) noexcept;
 	bool FitsInInt32() const noexcept;
 	bool FitsInUint32() const noexcept;
 	int32_t GetInt32() const noexcept;
