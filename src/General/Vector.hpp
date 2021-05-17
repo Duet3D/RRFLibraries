@@ -14,7 +14,7 @@
 #undef result
 #undef value
 #include <cstddef>					// for size_t
-#include "inplace_function.h"
+#include "function_ref.h"
 
 // Bounded vector class
 template<class T, size_t N> class Vector
@@ -48,13 +48,13 @@ public:
 
 	const T* _ecv_array c_ptr() noexcept { return storage; }
 
-	void Sort(stdext::inplace_function<bool(T, T) /*noexcept*/ > sortfunc) noexcept;
+	void Sort(function_ref<bool(T, T) /*noexcept*/ > sortfunc) noexcept;
 
 	bool Replace(T oldVal, T newVal) noexcept;
 
-	bool IterateWhile(stdext::inplace_function<bool(T&, size_t) /*noexcept*/ > func, size_t startAt = 0) noexcept;
+	bool IterateWhile(function_ref<bool(T&, size_t) /*noexcept*/ > func, size_t startAt = 0) noexcept;
 
-	bool IterateWhile(stdext::inplace_function<bool(const T&, size_t) /*noexcept*/ > func, size_t startAt = 0) const noexcept;
+	bool IterateWhile(function_ref<bool(const T&, size_t) /*noexcept*/ > func, size_t startAt = 0) const noexcept;
 
 protected:
 	T storage[N];
@@ -95,7 +95,7 @@ template<class T, size_t N> bool Vector<T, N>::Add(const T* _ecv_array p, size_t
 }
 
 // The sort function has to return true if the first element is greater than the second element
-template<class T, size_t N> void Vector<T, N>::Sort(stdext::inplace_function<bool(T, T) /*noexcept*/ > sortfunc) noexcept
+template<class T, size_t N> void Vector<T, N>::Sort(function_ref<bool(T, T) /*noexcept*/ > sortfunc) noexcept
 {
 	for (size_t i = 1; i < filled; ++i)
 	{
@@ -150,7 +150,7 @@ template<class T, size_t N> bool Vector<T, N>::Replace(T oldVal, T newVal) noexc
 }
 
 
-template<class T, size_t N> bool Vector<T, N>::IterateWhile(stdext::inplace_function<bool(T&, size_t) /*noexcept*/ > func, size_t startAt) noexcept
+template<class T, size_t N> bool Vector<T, N>::IterateWhile(function_ref<bool(T&, size_t) /*noexcept*/ > func, size_t startAt) noexcept
 {
 	const size_t totalElements = Size();
 	if (startAt >= totalElements)
@@ -169,7 +169,7 @@ template<class T, size_t N> bool Vector<T, N>::IterateWhile(stdext::inplace_func
 	return true;
 }
 
-template<class T, size_t N> bool Vector<T, N>::IterateWhile(stdext::inplace_function<bool(const T&, size_t) /*noexcept*/ > func, size_t startAt) const noexcept
+template<class T, size_t N> bool Vector<T, N>::IterateWhile(function_ref<bool(const T&, size_t) /*noexcept*/ > func, size_t startAt) const noexcept
 {
 	const size_t totalElements = Size();
 	if (startAt >= totalElements)
