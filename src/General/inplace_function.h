@@ -195,7 +195,7 @@ template<
     size_t Capacity = inplace_function_detail::InplaceFunctionDefaultCapacity,
     size_t Alignment = alignof(inplace_function_detail::aligned_storage_t<Capacity>)
 >
-class [[deprecated("use function_ref instead if the landa will remain in scope")]] inplace_function; // unspecified
+class [[deprecated("use function_ref instead if the lambda will remain in scope")]] inplace_function; // unspecified
 
 namespace inplace_function_detail {
     template<class> struct is_inplace_function : std::false_type {};
