@@ -212,6 +212,28 @@ void ReadWriteLock::LockForReading() noexcept
 #endif
 }
 
+bool ReadWriteLock::ConditionalLockForReading() noexcept
+{
+#ifdef RTOS
+	if (writeLockOwner != TaskBase::GetCallerTaskHandle())
+	{
+		for (;;)
+		{
+			uint8_t nr = numReaders;
+			if (nr & 0x80)
+			{
+				return false;
+			}
+			if (numReaders.compare_exchange_strong(nr, nr + 1))
+			{
+				break;
+			}
+		}
+	}
+#endif
+	return true;
+}
+
 void ReadWriteLock::ReleaseReader() noexcept
 {
 #ifdef RTOS
@@ -246,6 +268,21 @@ void ReadWriteLock::LockForWriting() noexcept
 	}
 
 	writeLockOwner = TaskBase::GetCallerTaskHandle();
+#endif
+}
+
+bool ReadWriteLock::ConditionalLockForWriting() noexcept
+{
+#ifdef RTOS
+	uint8_t nr = numReaders;
+	if (nr == 0 && numReaders.compare_exchange_strong(nr, nr | 0x80))
+	{
+		writeLockOwner = TaskBase::GetCallerTaskHandle();
+		return true;
+	}
+	return false;
+#else
+	return true;
 #endif
 }
 
