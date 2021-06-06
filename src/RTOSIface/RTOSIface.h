@@ -364,15 +364,14 @@ public:
 	{ }
 
 	void LockForReading() noexcept;
+	bool ConditionalLockForReading() noexcept;
 	void ReleaseReader() noexcept;
 	void LockForWriting() noexcept;
+	bool ConditionalLockForWriting() noexcept;
 	void ReleaseWriter() noexcept;
 	void DowngradeWriter() noexcept;					// turn a write lock into a read lock (but you can't go back again)
 #ifdef RTOS
 	TaskBase *GetWriteLockOwner() const volatile { return writeLockOwner; }
-    bool IsLocked() const volatile noexcept { return numReaders != 0 || writeLockOwner != nullptr; }
-#else
-    bool IsLocked() const volatile noexcept { return false; }
 #endif
 
 private:
@@ -400,6 +399,17 @@ private:
 	ReadWriteLock* lock;
 };
 
+class ConditionalReadLocker
+{
+public:
+	ConditionalReadLocker(ReadWriteLock& p_lock) noexcept : lock((p_lock.ConditionalLockForReading()) ? &p_lock : nullptr) { }
+	~ConditionalReadLocker() { if (lock != nullptr) { lock->ReleaseReader(); } }
+	bool IsLocked() const noexcept { return lock != nullptr; }
+
+private:
+	ReadWriteLock* lock;
+};
+
 class WriteLocker
 {
 public:
@@ -421,6 +431,17 @@ public:
 
 	WriteLocker(const WriteLocker&) = delete;
 	WriteLocker(WriteLocker&& other) noexcept : lock(other.lock) { other.lock = nullptr; }
+
+private:
+	ReadWriteLock* lock;
+};
+
+class ConditionalWriteLocker
+{
+public:
+	ConditionalWriteLocker(ReadWriteLock& p_lock) noexcept : lock((p_lock.ConditionalLockForWriting()) ? &p_lock : nullptr) { }
+	~ConditionalWriteLocker() { if (lock != nullptr) { lock->ReleaseWriter(); } }
+	bool IsLocked() const noexcept { return lock != nullptr; }
 
 private:
 	ReadWriteLock* lock;
