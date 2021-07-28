@@ -1,6 +1,6 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required( VERSION 3.11 )
 
-project(librrf VERSION 3.3)
+project( librrf )
 
 # skip compiler build tests
 set(CMAKE_C_COMPILER_FORCED True)
