@@ -2,10 +2,6 @@ cmake_minimum_required( VERSION 3.11 )
 
 project( librrf )
 
-# skip compiler build tests
-set(CMAKE_C_COMPILER_FORCED True)
-set(CMAKE_CXX_COMPILER_FORCED True)
-
 message( "librrf C_FLAGS: " ${CMAKE_C_FLAGS} )
 message( "librrf CXX_FLAGS: " ${CMAKE_CXX_FLAGS} )
 message( "librrf ASM_FLAGS: " ${CMAKE_ASM_FLAGS} )
