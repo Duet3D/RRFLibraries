@@ -53,6 +53,11 @@ inline constexpr float fsquare(float arg) noexcept
 	return arg * arg;
 }
 
+inline constexpr float fcube(float arg) noexcept
+{
+	return arg * arg * arg;
+}
+
 inline constexpr double dsquare(double arg) noexcept
 {
 	return arg * arg;
