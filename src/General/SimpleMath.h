@@ -101,18 +101,23 @@ inline constexpr bool XNor(bool a, bool b) noexcept
 	return (a) ? b : !b;
 }
 
-// Built-in square root function that just uses the ARM floating point instruction
+#if (defined(__FPU_USED) && __FPU_USED) || (defined (__VFP_FP__) && !defined(__SOFTFP__))
+
+// Built-in square root function that just uses the ARM floating point instruction for best speed
 // This differs from __builtin_sqrtf by not checking for a negative operand, which is supposed to set error codes
 inline float fastSqrtf(float f) noexcept
 {
-#if (defined(__FPU_USED) && __FPU_USED) || (defined (__VFP_FP__) && !defined(__SOFTFP__))
 	float ret;
 	asm("vsqrt.f32 %0,%1" : "=t" (ret) : "t" (f));
 	return ret;
-#else
-	return sqrtf(f);
-#endif
 }
+
+#else
+
+// This function is defined in Math/Isqrt.cpp but declared here for convenience
+extern float fastSqrtf(float f) noexcept;
+
+#endif
 
 // Macro to give us the number of elements in an array
 #ifndef ARRAY_SIZE

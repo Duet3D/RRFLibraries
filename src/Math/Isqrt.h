@@ -12,4 +12,8 @@
 
 extern uint32_t isqrt64(uint64_t num) noexcept;		// This is defined in its own file, Isqrt.cpp or Isqrt.asm
 
+#if !((defined(__FPU_USED) && __FPU_USED) || (defined (__VFP_FP__) && !defined(__SOFTFP__)))
+float fastSqrtf(float f) noexcept;
+#endif
+
 #endif /* SRC_LIBRARIES_MATH_ISQRT_H_ */

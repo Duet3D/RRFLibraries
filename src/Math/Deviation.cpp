@@ -7,7 +7,6 @@
 
 #include "Deviation.h"
 #include "../General/SimpleMath.h"
-#include <cmath>
 
 Deviation::Deviation() noexcept : mean(0.0), deviationFromMean(0.0)
 {
