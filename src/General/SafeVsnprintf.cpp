@@ -431,14 +431,14 @@ bool FormattedPrinter::PrintFloat(double d, char formatLetter) noexcept
 	int exponent = 0;
 	if (formatLetter == 'e' || formatLetter == 'E' || formatLetter == 'g' || formatLetter == 'G')
 	{
-		// Using exponent format, so calculate the exponent and normalise ud to be >=1.0 but <=10.0
+		// Using exponent format, so calculate the exponent and normalise ud to be >=1.0 but <10.0
 		// The following loops are inefficient, however we don't expect to print very large or very small numbers
-		while (ud > (double)100000.0)
+		while (ud >= (double)100000.0)
 		{
 			ud /= (double)100000.0;
 			exponent += 5;
 		}
-		while (ud > (double)10.0)
+		while (ud >= (double)10.0)
 		{
 			ud /= (double)10.0;
 			++exponent;
@@ -497,9 +497,9 @@ bool FormattedPrinter::PrintFloat(double d, char formatLetter) noexcept
 	if (formatLetter == 'e' || formatLetter == 'E')
 	{
 		// Rounding ud may have caused 9.99999... to become 10
-		if (ud >= limit)
+		if (u >= limit)
 		{
-			ud /= 10;
+			u /= 10;
 			++exponent;
 		}
 
