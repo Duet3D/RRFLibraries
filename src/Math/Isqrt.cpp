@@ -79,14 +79,14 @@ uint32_t isqrt64(uint64_t num) noexcept
 		uint32_t num32 = (uint32_t)num;
 		uint32_t res = 0;
 
-# define iter32(N)								\
-		{										\
-			uint32_t temp = res | (1 << N);		\
-			if (num32 >= temp << N)				\
-			{									\
-				num32 -= temp << N;				\
-				res |= 2 << N;					\
-			}									\
+# define iter32(N)									\
+		{											\
+			const uint32_t temp = res | (1u << N);	\
+			if (num32 >= temp << N)					\
+			{										\
+				num32 -= temp << N;					\
+				res |= 2u << N;						\
+			}										\
 		}
 
 		// We need to do 16 iterations
@@ -110,15 +110,15 @@ uint32_t isqrt64(uint64_t num) noexcept
 		// 62-bit square root
 		uint32_t res = 0;
 
-# define iter64a(N) 							\
-		{										\
-			res <<= 1;							\
-			uint32_t temp = (res | 1) << (N);	\
-			if (numHigh >= temp)				\
-			{									\
-				numHigh -= temp;				\
-				res |= 2;						\
-			}									\
+# define iter64a(N) 									\
+		{												\
+			res <<= 1;									\
+			const uint32_t temp = (res | 1u) << (N);	\
+			if (numHigh >= temp)						\
+			{											\
+				numHigh -= temp;						\
+				res |= 2u;								\
+			}											\
 		}
 
 		// We need to do 15 iterations (not 16 because we have eliminated the top 2 bits)
@@ -133,15 +133,15 @@ uint32_t isqrt64(uint64_t num) noexcept
 		// At this point, res is twice the square root of the msw, in the range 0..2^16-2 with the input restricted to 62 bits
 		// numAll may have up to 24 bits set
 		// On the SAME5x the following code is faster than the SAMC21 version (2.61us vs. 3.37us)
-# define iter64b(N) 									\
-		{												\
-			res <<= 1;									\
-			uint64_t temp = (uint64_t)(res | 1) << (N);	\
-			if (numAll >= temp)							\
-			{											\
-				numAll -= temp;							\
-				res |= 2;								\
-			}											\
+# define iter64b(N) 											\
+		{														\
+			res <<= 1;											\
+			const uint64_t temp = (uint64_t)(res | 1u) << (N);	\
+			if (numAll >= temp)									\
+			{													\
+				numAll -= temp;									\
+				res |= 2u;										\
+			}													\
 		}
 
 		// We need to do 16 iterations.
@@ -164,7 +164,7 @@ uint32_t isqrt64(uint64_t num) noexcept
 
 // This is a fast floating point square root function for processor that don't have a FPU.
 // It doesn't handle negative, infinite, NaN or denormalised operands correctly. For normal operands it usually returns exactly the same result as calling sqrtf().
-// On the SAM4S it takes 1.85us compared to 3.25us for sqrtf.
+// On the SAM4S it takes 1.69us compared to 3.25us for sqrtf. On the SAMC21 it takes 4.02us compared to 8.28us for sqrtf.
 float fastSqrtf(float f) noexcept
 {
 	// 1. Represent the IEEE float as unsigned integer so that we can work on the bits.
@@ -232,33 +232,37 @@ float fastSqrtf(float f) noexcept
 	// Thanks to Wilco Dijkstra for this efficient ARM algorithm
 	uint32_t res = 0;
 
-#  define iter32(N)							\
-	{										\
-		uint32_t temp = res | (1 << N);		\
-		if (fraction >= temp << N)			\
-		{									\
-			fraction -= temp << N;			\
-			res |= 2 << N;					\
-		}									\
+#  define iter32(N)								\
+	{											\
+		const uint32_t temp = res | (1u << N);	\
+		if (fraction >= temp << N)				\
+		{										\
+			fraction -= temp << N;				\
+			res |= 2u << N;						\
+		}										\
 	}
 
-	iter32(15) iter32(14) iter32(13) iter32(12)
-	iter32(11) iter32(10) iter32(9)  iter32(8)
-	iter32(7)  iter32(6)  iter32(5)  iter32(4)
-	iter32(3)  iter32(2)  iter32(1)  iter32(0)
+	iter32(15) iter32(14) iter32(13) iter32(12) iter32(11) iter32(10) iter32(9)  iter32(8)
+	iter32(7)  iter32(6)  iter32(5)  iter32(4) 	iter32(3)  iter32(2)  iter32(1)  iter32(0)
 
-	// We have 16 binary digits but we want 24 including the leading 1. The remainder may have 17 digits, so we can't shift it left by 16.
-	fraction <<= 8;
-	res <<= 4;
-	iter32(3)  iter32(2)  iter32(1)  iter32(0)
-
-	fraction <<= 8;
-	res <<= 4;
-	iter32(3)  iter32(2)  iter32(1)  iter32(0)
+	// We have 16 binary digits but we want 24 including the leading 1.
+	// The remainder may have 17 digits, so we can't shift it left by 16 and then do 8 iterations. So shift it left 14 and do 7 iterations.
+	fraction <<= 14;
+	res <<= 7;
+	iter32(6) iter32(5) iter32(4) iter32(3) iter32(2) iter32(1) iter32(0)
 
 #  undef iter32
 
-	res >>= 1;
+	// Do one more iteration. We can avoid some shifting by doing it slightly differently.
+	fraction <<= 2;
+	{
+		const uint32_t temp = (res << 1) | 1u;
+		if (fraction >= temp)
+		{
+			fraction -= temp;
+			res |= 1u;
+		}
+	}
 # endif
 
 	// Round the result. The remainder is in the range 0..(2 * res - 1)
