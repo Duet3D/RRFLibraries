@@ -25,6 +25,9 @@ add_library(rrf STATIC
 
 target_include_directories(rrf PUBLIC
 	${CMAKE_CURRENT_SOURCE_DIR}/src
+)
+
+target_include_directories(rrf PRIVATE
 	${CMAKE_CURRENT_SOURCE_DIR}/../FreeRTOS/src/include
 	${CMAKE_CURRENT_SOURCE_DIR}/../FreeRTOS/src/portable/GCC/ARM_CM4F/
 )
