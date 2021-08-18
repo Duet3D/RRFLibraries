@@ -21,6 +21,8 @@ template<class X> inline constexpr X max(X _a, X _b) noexcept
 	return (_a > _b) ? _a : _b;
 }
 
+#ifndef __ECV__		// eCv doesn't currently handle template specializations
+
 // Specialisations for float and double to handle NaNs properly
 template<> inline constexpr float min(float _a, float _b) noexcept
 {
@@ -41,6 +43,8 @@ template<> inline constexpr double max(double _a, double _b) noexcept
 {
 	return (std::isnan(_a) || _a > _b) ? _a : _b;
 }
+
+#endif
 
 // Note that constrain<float> will return NaN for a NaN input because of the way we define min<float> and max<float>
 template<class T> inline constexpr T constrain(T val, T vmin, T vmax) noexcept
