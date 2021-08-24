@@ -50,11 +50,11 @@ Mutex *Mutex::mutexList = nullptr;
 
 #else
 
-void Mutex::Create(const char *pName) noexcept
+void Mutex::Create(const char *) noexcept
 {
 }
 
-bool Mutex::Take(uint32_t timeout) noexcept
+bool Mutex::Take(uint32_t) noexcept
 {
 	return true;
 }
@@ -71,7 +71,7 @@ TaskHandle Mutex::GetHolder() const noexcept
 
 #endif
 
-MutexLocker::MutexLocker(Mutex *m, uint32_t timeout) noexcept
+MutexLocker::MutexLocker(Mutex *m, uint32_t timeout [[maybe_unused]]) noexcept
 {
 	handle = m;
 	acquired =
@@ -82,7 +82,7 @@ MutexLocker::MutexLocker(Mutex *m, uint32_t timeout) noexcept
 #endif
 }
 
-MutexLocker::MutexLocker(Mutex& m, uint32_t timeout) noexcept
+MutexLocker::MutexLocker(Mutex& m, uint32_t timeout [[maybe_unused]]) noexcept
 {
 	handle = &m;
 	acquired =
@@ -111,7 +111,7 @@ void MutexLocker::Release() noexcept
 }
 
 // Acquire it again, if it isn't already owned (non-counting)
-bool MutexLocker::ReAcquire(uint32_t timeout) noexcept
+bool MutexLocker::ReAcquire(uint32_t timeout [[maybe_unused]]) noexcept
 {
 #ifdef RTOS
 	if (!acquired)
