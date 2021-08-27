@@ -228,11 +228,11 @@ class MutexLocker
 public:
 	MutexLocker(Mutex *pm, uint32_t timeout = Mutex::TimeoutUnlimited) noexcept;	// acquire lock
 	MutexLocker(Mutex& pm, uint32_t timeout = Mutex::TimeoutUnlimited) noexcept;	// acquire lock
+	~MutexLocker();
 
 	void Release() noexcept;																// release the lock early (also gets released by destructor)
 	bool ReAcquire(uint32_t timeout = Mutex::TimeoutUnlimited) noexcept;					// acquire it again, if it isn't already owned (non-counting)
-	~MutexLocker() noexcept;
-	operator bool() const noexcept { return acquired; }
+	bool IsAcquired() const noexcept { return acquired; }
 
 	MutexLocker(const MutexLocker&) = delete;
 	MutexLocker& operator=(const MutexLocker&) = delete;
