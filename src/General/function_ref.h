@@ -9,7 +9,7 @@
 #define GENERAL_FUNCTION_REF_H
 
 #include <type_traits>
-#include <functional>
+#include <utility>
 
 template<typename Fn> class function_ref;
 
