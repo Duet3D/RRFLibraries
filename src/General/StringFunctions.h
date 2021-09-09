@@ -9,7 +9,10 @@
 #define SRC_GENERAL_STRINGFUNCTIONS_H_
 
 #include "ecv.h"
-#undef array
+
+#ifdef array
+# undef array
+#endif
 
 #include <cstdint>
 #include <cstddef>

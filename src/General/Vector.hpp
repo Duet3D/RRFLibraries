@@ -10,9 +10,17 @@
 #define SRC_GENERAL_VECTOR_H_
 
 #include "ecv.h"
-#undef array
-#undef result
-#undef value
+
+#ifdef array
+# undef array
+#endif
+#ifdef result
+# undef result
+#endif
+#ifdef value
+# undef value
+#endif
+
 #include <cstddef>					// for size_t
 #include "function_ref.h"
 
