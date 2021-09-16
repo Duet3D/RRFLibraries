@@ -11,6 +11,15 @@
 #include <type_traits>
 #include <utility>
 
+#ifdef __ECV__
+
+// eCv doesn't yet handle variadic templates, so use a dummy definition for now
+template<typename Fn> class function_ref
+{
+};
+
+#else
+
 template<typename Fn> class function_ref;
 
 template<typename Ret, typename ...Params>
@@ -39,5 +48,7 @@ public:
 		return callback(callable, std::forward<Params>(params)...);
 	}
 };
+
+#endif
 
 #endif /* GENERAL_FUNCTION_REF_H */

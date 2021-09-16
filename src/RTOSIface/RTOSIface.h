@@ -452,8 +452,8 @@ template<class T> class ReadLockedPointer
 public:
 	ReadLockedPointer(ReadLocker& p_locker, T* p_ptr) noexcept : locker(std::move(p_locker)), ptr(p_ptr) { }
 	ReadLockedPointer(std::nullptr_t, T* p_ptr) noexcept : locker(nullptr), ptr(p_ptr) { }
-	ReadLockedPointer(const ReadLockedPointer&) = delete;
-	ReadLockedPointer(ReadLockedPointer&& other) noexcept : locker(std::move(other.locker)), ptr(other.ptr) { other.ptr = nullptr; }
+	ReadLockedPointer(const ReadLockedPointer<T>&) = delete;
+	ReadLockedPointer(ReadLockedPointer<T>&& other) noexcept : locker(std::move(other.locker)), ptr(other.ptr) { other.ptr = nullptr; }
 
 	bool IsNull() const noexcept { return ptr == nullptr; }
 	bool IsNotNull() const noexcept { return ptr != nullptr; }
@@ -470,8 +470,8 @@ template<class T> class WriteLockedPointer
 public:
 	WriteLockedPointer(WriteLocker& p_locker, T* p_ptr) noexcept : locker(std::move(p_locker)), ptr(p_ptr) { }
 	WriteLockedPointer(std::nullptr_t, T* p_ptr) noexcept : locker(nullptr), ptr(p_ptr) { }
-	WriteLockedPointer(const WriteLockedPointer&) = delete;
-	WriteLockedPointer(WriteLockedPointer&& other) noexcept : locker(std::move(other.locker)), ptr(other.ptr) { other.ptr = nullptr; }
+	WriteLockedPointer(const WriteLockedPointer<T>&) = delete;
+	WriteLockedPointer(WriteLockedPointer<T>&& other) noexcept : locker(std::move(other.locker)), ptr(other.ptr) { other.ptr = nullptr; }
 
 	bool IsNull() const noexcept { return ptr == nullptr; }
 	bool IsNotNull() const noexcept { return ptr != nullptr; }
