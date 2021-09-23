@@ -193,7 +193,6 @@ float fastSqrtf(float f) noexcept
 	int32_t exponent = (int32_t)uexponent - 127;
 
 	// 5. Make the exponent even, also shift it left to get more result bits. This puts fraction in the range 2^30 to 2^32 - 2^8 + 1.
-	//    Fill the extra bits with 1s because this gives us a more accurate result.
 	fraction <<= 7 + (exponent & 1);
 
 	// 6. Halve the exponent, which also gets rid of the odd bit if it is present. Shift right is arithmetic in gcc, so the sign is preserved.
