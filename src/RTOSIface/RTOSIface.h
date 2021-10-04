@@ -23,6 +23,7 @@
 # include "FreeRTOS.h"
 # include "task.h"
 # include "semphr.h"
+# include "freertos_task_additions.h"
 # include <atomic>
 
 #endif
@@ -189,6 +190,8 @@ public:
 	TaskBase& operator=(const TaskBase&) = delete;	// it's not safe to assign these
 
 	static TaskBase *GetTaskList() noexcept { return taskList; }
+
+	static const uint32_t *GetCurrentTaskStackBase() noexcept { return pxTaskGetCurrentStackBase(); }
 
 	static constexpr uint32_t TimeoutUnlimited = 0xFFFFFFFF;
 
