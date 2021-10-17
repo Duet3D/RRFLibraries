@@ -43,6 +43,24 @@ inline unsigned int LowestSetBit(unsigned long long val) noexcept
 	return (unsigned int)__builtin_ctzll(val);
 }
 
+// Extract one bit from a value and move it to a target bit number, returning a value with only the target bit possibly set
+// T should be an unsigned integer type
+template<class T> inline constexpr T ExtractBit(T val, unsigned int fromBitNumber, unsigned int toBitNumber) noexcept
+{
+	if (fromBitNumber == toBitNumber)
+	{
+		return val & ((T)1 << toBitNumber);
+	}
+	else if (toBitNumber > fromBitNumber)
+	{
+		return (val << (toBitNumber - fromBitNumber)) & ((T)1 << toBitNumber);
+	}
+	else
+	{
+		return (val >> (fromBitNumber - toBitNumber)) & ((T)1 << toBitNumber);
+	}
+}
+
 template<class BaseType> class Bitmap
 {
 public:
