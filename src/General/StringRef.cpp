@@ -90,7 +90,7 @@ bool StringRef::copy(const char* src) const noexcept
 	return overflow;
 }
 
-// This is quicker than printf for printing constant strings
+// This is quicker than printf for copying constant strings
 bool StringRef::copy(const char* src, size_t maxlen) const noexcept
 {
 	const size_t slen = Strnlen(src, maxlen);
@@ -101,7 +101,7 @@ bool StringRef::copy(const char* src, size_t maxlen) const noexcept
 	return overflow;
 }
 
-// This is quicker than catf for printing constant strings
+// This is quicker than catf for appending constant strings
 bool StringRef::cat(const char* src) const noexcept
 {
 	const size_t length = strlen();
@@ -113,10 +113,10 @@ bool StringRef::cat(const char* src) const noexcept
 	return overflow;
 }
 
-// As cat but add a newline first if the string being appended to is not empty
+// As cat but add a newline first if the string being appended to is not empty and doesn't end in newline
 bool StringRef::lcat(const char* src) const noexcept
 {
-	if (!IsEmpty())
+	if (!IsEmpty() && p[strlen() - 1] != '\n')
 	{
 		if (cat('\n'))
 		{
@@ -138,10 +138,10 @@ bool StringRef::catn(const char *src, size_t n) const noexcept
 	return overflow;
 }
 
-// As catn but add a newline first if the string being appended to is not empty
+// As catn but add a newline first if the string being appended to is not empty and doesn't end in newline
 bool StringRef::lcatn(const char *src, size_t n) const noexcept
 {
-	if (!IsEmpty())
+	if (!IsEmpty() && p[strlen() - 1] != '\n')
 	{
 		if (cat('\n'))
 		{
