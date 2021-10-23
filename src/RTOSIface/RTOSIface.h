@@ -464,6 +464,8 @@ public:
 	T* operator->() const noexcept { return ptr; }
 	T* Ptr() const noexcept { return ptr; }
 
+	void Release() noexcept { ptr = nullptr; locker.Release(); }
+
 private:
 	ReadLocker locker;
 	T* ptr;
