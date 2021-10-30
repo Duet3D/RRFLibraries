@@ -230,8 +230,8 @@ private:
 class MutexLocker
 {
 public:
-	MutexLocker(Mutex *pm, uint32_t timeout = Mutex::TimeoutUnlimited) noexcept;	// acquire lock
-	MutexLocker(Mutex& pm, uint32_t timeout = Mutex::TimeoutUnlimited) noexcept;	// acquire lock
+	explicit MutexLocker(Mutex *pm, uint32_t timeout = Mutex::TimeoutUnlimited) noexcept;	// acquire lock
+	explicit MutexLocker(Mutex& pm, uint32_t timeout = Mutex::TimeoutUnlimited) noexcept;	// acquire lock
 	~MutexLocker();
 
 	void Release() noexcept;																// release the lock early (also gets released by destructor)
@@ -340,7 +340,7 @@ public:
 class ConditionalTaskCriticalSectionLocker
 {
 public:
-	ConditionalTaskCriticalSectionLocker(bool doLock) noexcept : locked(doLock) { if (locked) { RTOSIface::EnterTaskCriticalSection(); } }
+	explicit ConditionalTaskCriticalSectionLocker(bool doLock) noexcept : locked(doLock) { if (locked) { RTOSIface::EnterTaskCriticalSection(); } }
 	~ConditionalTaskCriticalSectionLocker() noexcept { if (locked) { RTOSIface::LeaveTaskCriticalSection(); } }
 
 	ConditionalTaskCriticalSectionLocker(const ConditionalTaskCriticalSectionLocker&) = delete;
@@ -391,8 +391,8 @@ private:
 class ReadLocker
 {
 public:
-	ReadLocker(ReadWriteLock& p_lock) noexcept : lock(&p_lock) { lock->LockForReading(); }
-	ReadLocker(ReadWriteLock *p_lock) noexcept : lock(p_lock) { if (lock != nullptr) { lock->LockForReading(); } }
+	explicit ReadLocker(ReadWriteLock& p_lock) noexcept : lock(&p_lock) { lock->LockForReading(); }
+	explicit ReadLocker(ReadWriteLock *p_lock) noexcept : lock(p_lock) { if (lock != nullptr) { lock->LockForReading(); } }
 	~ReadLocker() { if (lock != nullptr) { lock->ReleaseReader(); } }
 	void Release() noexcept { if (lock != nullptr) { lock->ReleaseReader(); lock = nullptr; } }
 
@@ -406,7 +406,7 @@ private:
 class ConditionalReadLocker
 {
 public:
-	ConditionalReadLocker(ReadWriteLock& p_lock) noexcept : lock((p_lock.ConditionalLockForReading()) ? &p_lock : nullptr) { }
+	explicit ConditionalReadLocker(ReadWriteLock& p_lock) noexcept : lock((p_lock.ConditionalLockForReading()) ? &p_lock : nullptr) { }
 	~ConditionalReadLocker() { if (lock != nullptr) { lock->ReleaseReader(); } }
 	bool IsLocked() const noexcept { return lock != nullptr; }
 
@@ -417,8 +417,8 @@ private:
 class WriteLocker
 {
 public:
-	WriteLocker(ReadWriteLock& p_lock) noexcept : lock(&p_lock) { lock->LockForWriting(); }
-	WriteLocker(ReadWriteLock *p_lock) noexcept : lock(p_lock) { if (lock != nullptr) { lock->LockForWriting(); } }
+	explicit WriteLocker(ReadWriteLock& p_lock) noexcept : lock(&p_lock) { lock->LockForWriting(); }
+	explicit WriteLocker(ReadWriteLock *p_lock) noexcept : lock(p_lock) { if (lock != nullptr) { lock->LockForWriting(); } }
 	~WriteLocker() { if (lock != nullptr) { lock->ReleaseWriter(); } }
 	void Release() noexcept { if (lock != nullptr) { lock->ReleaseWriter(); lock = nullptr; } }
 	void Downgrade() noexcept
@@ -443,7 +443,7 @@ private:
 class ConditionalWriteLocker
 {
 public:
-	ConditionalWriteLocker(ReadWriteLock& p_lock) noexcept : lock((p_lock.ConditionalLockForWriting()) ? &p_lock : nullptr) { }
+	explicit ConditionalWriteLocker(ReadWriteLock& p_lock) noexcept : lock((p_lock.ConditionalLockForWriting()) ? &p_lock : nullptr) { }
 	~ConditionalWriteLocker() { if (lock != nullptr) { lock->ReleaseWriter(); } }
 	bool IsLocked() const noexcept { return lock != nullptr; }
 
