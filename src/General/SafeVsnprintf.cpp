@@ -23,6 +23,8 @@
 	  sprintf("IP = %pip\n", pxIPv6_Address);
 */
 
+#include "SafeVsnprintf.h"
+
 #include <cstdarg>
 #include <cstdio>
 #include <cstdlib>
@@ -31,7 +33,6 @@
 #include <cmath>
 
 #include "Strnlen.h"
-#include "SafeVsnprintf.h"
 
 // The following should be enough for 32-bit int/long and 64-bit long long
 constexpr size_t MaxLongDigits = 10;	// to print 4294967296

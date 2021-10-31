@@ -24,7 +24,7 @@
 
 #include "NumericConverter.h"
 
-float SafeStrtof(const char *s, const char **endptr) noexcept
+float SafeStrtof(const char *_ecv_array s, const char *_ecv_array *null endptr) noexcept
 {
 	// Save the end pointer in case of failure
 	if (endptr != nullptr)
@@ -46,7 +46,7 @@ float SafeStrtof(const char *s, const char **endptr) noexcept
 	return 0.0f;
 }
 
-static uint32_t StrToU32Opt(const char *s, const char **endptr, NumericConverter::OptionsType options) noexcept
+static uint32_t StrToU32Opt(const char *_ecv_array s, const char *_ecv_array *null endptr, NumericConverter::OptionsType options) noexcept
 {
 	// Save the end pointer in case of failure
 	if (endptr != nullptr)
@@ -68,7 +68,7 @@ static uint32_t StrToU32Opt(const char *s, const char **endptr, NumericConverter
 	return 0;
 }
 
-uint32_t StrToU32(const char *s, const char **endptr) noexcept
+uint32_t StrToU32(const char *_ecv_array s, const char *_ecv_array *null endptr) noexcept
 {
 	return StrToU32Opt(s, endptr, NumericConverter::AcceptOnlyUnsignedDecimal);
 }
@@ -78,12 +78,12 @@ uint32_t StrOptHexToU32(const char *s, const char **endptr) noexcept
 	return StrToU32Opt(s, endptr, NumericConverter::AcceptHex);
 }
 
-uint32_t StrHexToU32(const char *s, const char **endptr) noexcept
+uint32_t StrHexToU32(const char *_ecv_array s, const char *_ecv_array *null endptr) noexcept
 {
 	return StrToU32Opt(s, endptr, NumericConverter::DefaultHex);
 }
 
-int32_t StrToI32(const char *s, const char **endptr) noexcept
+int32_t StrToI32(const char *_ecv_array s, const char *_ecv_array *null endptr) noexcept
 {
 	// Save the end pointer in case of failure
 	if (endptr != nullptr)
@@ -107,7 +107,7 @@ int32_t StrToI32(const char *s, const char **endptr) noexcept
 	return 0;
 }
 
-unsigned long SafeStrtoul(const char *s, const char **endptr, int base) noexcept
+unsigned long SafeStrtoul(const char *_ecv_array s, const char *_ecv_array *null endptr, int base) noexcept
 {
 	// strtoul() accepts a leading minus-sign, which we don't want to allow
 	while (*s == ' ' || *s == '\t')
@@ -122,7 +122,7 @@ unsigned long SafeStrtoul(const char *s, const char **endptr, int base) noexcept
 		}
 		return 0;
 	}
-	return strtoul(s, const_cast<char**>(endptr), base);
+	return strtoul(s, const_cast<char*_ecv_array *null>(endptr), base);
 }
 
 // End

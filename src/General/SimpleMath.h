@@ -9,6 +9,7 @@
 #define SRC_GENERAL_SIMPLEMATH_H_
 
 #include <cstdint>
+#include <cstddef>
 #include <cmath>
 #include "gcc_builtins.h"
 
@@ -106,7 +107,7 @@ inline constexpr bool XNor(bool a, bool b) noexcept
 	return (a) ? b : !b;
 }
 
-#if (defined(__FPU_USED) && __FPU_USED) || (defined (__VFP_FP__) && !defined(__SOFTFP__))
+#if (defined(__FPU_USED) && __FPU_USED != 0) || (defined (__VFP_FP__) && !defined(__SOFTFP__))
 
 // Built-in square root function that just uses the ARM floating point instruction for best speed
 // This differs from __builtin_sqrtf by not checking for a negative operand, which is supposed to set error codes

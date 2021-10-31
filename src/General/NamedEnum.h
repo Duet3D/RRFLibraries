@@ -8,6 +8,8 @@
 #ifndef SRC_NAMEDENUM_H_
 #define SRC_NAMEDENUM_H_
 
+#include "../ecv_duet3d.h"
+
 // Plumbing to allow overloaded STRINGLIST macro
 #define CAT( A, B ) A ## B
 #define SELECT( NAME, NUM ) CAT( NAME ## _, NUM )
@@ -74,9 +76,9 @@
 	#_v1,#_v2,#_v3,#_v4,#_v5,#_v6,#_v7,#_v8,#_v9,#_v10,#_v11,#_v12,#_v13,#_v14,#_v15,#_v16,#_v17,#_v18,#_v19,#_v20,#_v21,#_v22,#_v23,#_v24,#_v25,#_v26,#_v27,#_v28,#_v29,#_v30,#_v31,#_v32,#_v33,#_v34,#_v35,#_v36
 
 // Function to search the table of names for a match. Returns numNames if not found.
-unsigned int NamedEnumLookup(const char *s, const char * const names[], unsigned int numNames) noexcept;
+unsigned int NamedEnumLookup(const char *_ecv_array s, const char * _ecv_array const names[], unsigned int numNames) noexcept;
 
-static inline const char *SkipLeadingUnderscore(const char *s) noexcept
+static inline const char * _ecv_array SkipLeadingUnderscore(const char * _ecv_array s) noexcept
 {
 	return (*s == '_') ? s + 1 : s;
 }
@@ -92,14 +94,14 @@ static inline const char *SkipLeadingUnderscore(const char *s) noexcept
 // If any of the names is a C++ reserved word or starts with a digit, prefix it with a single underscore
 // IMPORTANT! If the constructor from string is used then the names must be in alphabetical order (ignoring the leading underscore) because it uses a binary search
 #define NamedEnum(_typename, _baseType, _v1, ...) \
-class _typename { \
+class _typename final { \
 public: \
 	typedef _baseType BaseType;																					/* alias for the base type */ \
 	enum RawType : BaseType { _v1 = 0, __VA_ARGS__ };															/* underlying enumeration */ \
 	static constexpr unsigned int NumValues = VA_SIZE(__VA_ARGS__) + 1;											/* count of members */ \
-	_typename(RawType arg) noexcept { v = arg; }																/* constructor */ \
+	_typename(RawType arg) noexcept { v = arg; }																/* constructor - cannot be declared 'explicit' because we need the conversion */ \
 	explicit _typename(BaseType arg) noexcept { v = static_cast<RawType>(arg); }								/* constructor */ \
-	explicit _typename(const char *s) noexcept { v = static_cast<RawType>(NamedEnumLookup(s, _names, NumValues)); }	/* constructor from string - NAMES MUST BE ORDERED when using this */ \
+	explicit _typename(const char * _ecv_array s) noexcept { v = static_cast<RawType>(NamedEnumLookup(s, _names, NumValues)); }	/* constructor from string - NAMES MUST BE ORDERED when using this */ \
 	_typename(const _typename& arg) noexcept { v = arg.v; }														/* copy constructor */ \
 	bool operator==(_typename arg) const noexcept { return v == arg.v; }										/* equality operator */ \
 	bool operator!=(_typename arg) const noexcept { return v != arg.v; }										/* inequality operator */ \
@@ -118,12 +120,12 @@ public: \
 	constexpr RawType RawValue() const noexcept { return v; }													/* return the raw enum value, which we can switch on */ \
 	constexpr BaseType ToBaseType() const noexcept { return static_cast<BaseType>(v); }							/* convert to integral base type */ \
 	static constexpr BaseType ToBaseType(RawType arg) noexcept { return static_cast<BaseType>(arg); }			/* convert to integral base type */ \
-	const char* ToString() const noexcept { return (v < NumValues) ? SkipLeadingUnderscore(_names[v]) : "invalid"; }	/* conversion to C string */ \
+	const char* _ecv_array ToString() const noexcept { return (v < NumValues) ? SkipLeadingUnderscore(_names[v]) : "invalid"; }	/* conversion to C string */ \
 	void Assign(BaseType arg) noexcept { v = static_cast<RawType>(arg); }										/* assignment from integral base type */ \
 	bool IsValid() const noexcept { return v < NumValues; }														/* check validity */ \
 private: \
 	RawType v; \
-	static constexpr const char* _names[NumValues] = { STRINGLIST(_v1, __VA_ARGS__) }; \
+	static constexpr const char* _ecv_array _names[NumValues] = { STRINGLIST(_v1, __VA_ARGS__) }; \
 }
 
 #endif /* SRC_NAMEDENUM_H_ */

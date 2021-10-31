@@ -26,14 +26,14 @@ public:
 	constexpr bool IsV4() const noexcept { return true; }
 	constexpr bool IsV6() const noexcept { return false; }
 	constexpr uint32_t GetV4LittleEndian() const noexcept { return v4Address; }
-	constexpr uint8_t GetQuad(unsigned int n) const noexcept { return (v4Address >> (8 * n)) & 0x00FF; }
+	constexpr uint8_t GetQuad(unsigned int n) const noexcept { return (v4Address >> (8 * n)) & 0x00FFu; }
 	constexpr bool IsNull() const noexcept { return v4Address == 0; }
-	constexpr bool IsBroadcast() const noexcept { return v4Address == 0xFFFFFFFF; }
+	constexpr bool IsBroadcast() const noexcept { return v4Address == 0xFFFFFFFFu; }
 
 	void SetV4LittleEndian(uint32_t ip) noexcept { v4Address = ip; }
 	void SetV4(const uint8_t ip[4]) noexcept;
 	void SetNull() noexcept { v4Address = 0; }
-	void SetBroadcast() noexcept { v4Address = 0xFFFFFFFF; }
+	void SetBroadcast() noexcept { v4Address = 0xFFFFFFFFu; }
 
 #if 0		// these functions are not currently used
 	uint32_t GetV4BigEndian() const noexcept { return __builtin_bswap32(v4Address); }

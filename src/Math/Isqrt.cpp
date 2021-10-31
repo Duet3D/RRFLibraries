@@ -103,7 +103,7 @@ uint32_t isqrt64(uint64_t num) noexcept
 	else if ((numHigh & (3u << 30)) != 0)
 	{
 		// Input out of range - probably negative, so return -1
-		return 0xFFFFFFFF;
+		return 0xFFFFFFFFu;
 	}
 	else
 	{
@@ -160,7 +160,7 @@ uint32_t isqrt64(uint64_t num) noexcept
 
 #endif
 
-#if !((defined(__FPU_USED) && __FPU_USED) || (defined (__VFP_FP__) && !defined(__SOFTFP__)))
+#if !((defined(__FPU_USED) && __FPU_USED != 0) || (defined (__VFP_FP__) && !defined(__SOFTFP__)))
 
 // This is a fast floating point square root function for processors that don't have a FPU.
 // It doesn't handle negative, infinite, NaN or denormalised operands correctly. For normal operands it usually returns exactly the same result as calling sqrtf().
@@ -170,7 +170,7 @@ float fastSqrtf(float f) noexcept
 	// 1. Represent the IEEE float as unsigned integer so that we can work on the bits.
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wstrict-aliasing"
-	const int32_t operand = *reinterpret_cast<const uint32_t*>(&f);
+	const int32_t operand = *reinterpret_cast<const int32_t*>(&f);
 #pragma GCC diagnostic pop
 
 	// 2. If negative, zero or negative zero, return zero.
@@ -187,13 +187,13 @@ float fastSqrtf(float f) noexcept
 	}
 
 	// 4. Extract the 23-bit fraction and add the implicit leading 1
-	uint32_t fraction = (operand & ((1u << 23) - 1)) | (1u << 23);
+	uint32_t fraction = ((uint32_t)operand & ((1u << 23) - 1)) | (1u << 23);
 
 	// 4a. Subtract the +127 exponent bias
 	int32_t exponent = (int32_t)uexponent - 127;
 
 	// 5. Make the exponent even, also shift it left to get more result bits. This puts fraction in the range 2^30 to 2^32 - 2^8 + 1.
-	fraction <<= 7 + (exponent & 1);
+	fraction <<= 7 + ((uint32_t)exponent & 1u);
 
 	// 6. Halve the exponent, which also gets rid of the odd bit if it is present. Shift right is arithmetic in gcc, so the sign is preserved.
 	exponent >>= 1;

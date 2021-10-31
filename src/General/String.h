@@ -71,7 +71,7 @@ template<size_t Len> void String<Len>::CopyAndPad(const char* _ecv_array src) no
 // Do a constant time compare. Both this string and the other one much be padded with nulls.
 template<size_t Len> bool String<Len>::ConstantTimeEquals(String<Len> other) const noexcept
 {
-	char rslt = 0;
+	uint8_t rslt = 0;
 	for (size_t i = 0; i < Len; ++i)
 	{
 		rslt |= ((uint8_t)storage[i] ^ (uint8_t)other.storage[i]);
@@ -158,14 +158,14 @@ template<size_t Len> bool String<Len>::EndsWith(char c) const noexcept
 
 template<size_t Len> int String<Len>::Contains(const char * _ecv_array s) const noexcept
 {
-	const char * const p = strstr(storage, s);
-	return (p == nullptr) ? -1 : p - storage;
+	const char * _ecv_array null const p = strstr(storage, s);
+	return (p == nullptr) ? -1 : not_null(p) - storage;
 }
 
 template<size_t Len> int String<Len>::Contains(char c) const noexcept
 {
-	const char * const p = strchr(storage, c);
-	return (p == nullptr) ? -1 : p - storage;
+	const char * _ecv_array null const p = strchr(storage, (int)c);
+	return (p == nullptr) ? -1 : not_null(p) - storage;
 }
 
 #endif /* SRC_GENERAL_STRING_H_ */

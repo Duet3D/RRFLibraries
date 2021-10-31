@@ -54,7 +54,7 @@ __attribute__( ( always_inline ) ) static inline void DisableInterrupts() noexce
 }
 
 // Mutex class. This uses the FreeRTOS static semaphore type, but adds a name and links them all together in a list
-class Mutex
+class Mutex final
 #ifdef RTOS
 	: public StaticSemaphore_t
 #endif
@@ -233,7 +233,7 @@ class MutexLocker
 public:
 	explicit MutexLocker(Mutex *pm, uint32_t timeout = Mutex::TimeoutUnlimited) noexcept;	// acquire lock
 	explicit MutexLocker(Mutex& pm, uint32_t timeout = Mutex::TimeoutUnlimited) noexcept;	// acquire lock
-	~MutexLocker();
+	~MutexLocker() { Release(); }
 
 	void Release() noexcept;																// release the lock early (also gets released by destructor)
 	bool ReAcquire(uint32_t timeout = Mutex::TimeoutUnlimited) noexcept;					// acquire it again, if it isn't already owned (non-counting)

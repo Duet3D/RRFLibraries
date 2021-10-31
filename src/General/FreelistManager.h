@@ -25,10 +25,10 @@ namespace FreelistManager
 		static void Release(void *p) noexcept;
 
 	private:
-		static void *freelist;
+		static void * null freelist;
 	};
 
-	template<size_t Sz> void *Freelist<Sz>::freelist = nullptr;
+	template<size_t Sz> void *null Freelist<Sz>::freelist = nullptr;
 
 	template<size_t Sz> void *Freelist<Sz>::Allocate() noexcept
 	{

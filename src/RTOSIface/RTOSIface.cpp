@@ -38,15 +38,15 @@ bool Mutex::Release() noexcept
 	return xSemaphoreGiveRecursive(GetHandle()) == pdTRUE;
 }
 
-TaskBase *Mutex::GetHolder() const noexcept
+TaskHandle Mutex::GetHolder() const noexcept
 {
 	return reinterpret_cast<TaskBase *>(xSemaphoreGetMutexHolder(GetConstHandle()));
 }
 
-TaskBase *TaskBase::taskList = nullptr;
+TaskBase *null TaskBase::taskList = nullptr;
 TaskBase::TaskId TaskBase::numTasks = 0;
 
-Mutex *Mutex::mutexList = nullptr;
+Mutex *null Mutex::mutexList = nullptr;
 
 #else
 
@@ -122,11 +122,6 @@ bool MutexLocker::ReAcquire(uint32_t timeout) noexcept
 	acquired = true;
 #endif
 	return acquired;
-}
-
-MutexLocker::~MutexLocker() noexcept
-{
-	Release();
 }
 
 #ifdef RTOS
