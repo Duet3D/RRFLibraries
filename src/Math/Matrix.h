@@ -8,8 +8,8 @@
 #ifndef MATRIX_H_
 #define MATRIX_H_
 
+#include "../ecv_duet3d.h"
 #include <cstddef>		// for size_t
-#include "../General/ecv.h"
 
 // Base class for matrices, allows us to write functions that work with any size matrix
 template<class T> class MathMatrix

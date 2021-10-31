@@ -15,6 +15,7 @@
 #ifndef SRC_RTOSIFACE_H_
 #define SRC_RTOSIFACE_H_
 
+#include "../ecv_duet3d.h"
 #include <cstdint>
 #include <utility>
 
@@ -71,30 +72,30 @@ public:
 	TaskHandle GetHolder() const noexcept;
 
 #ifdef RTOS
-	const Mutex *GetNext() const noexcept { return next; }
-	const char *GetName() const noexcept { return name; }
+	const Mutex * null GetNext() const noexcept { return next; }
+	const char * null GetName() const noexcept { return name; }
 #endif
 
 	Mutex(const Mutex&) = delete;
 	Mutex& operator=(const Mutex&) = delete;
 
-	static constexpr uint32_t TimeoutUnlimited = 0xFFFFFFFF;
+	static constexpr uint32_t TimeoutUnlimited = 0xFFFFFFFFu;
 
 #ifdef RTOS
-	static const Mutex *GetMutexList() noexcept { return mutexList; }
+	static const Mutex * null GetMutexList() noexcept { return mutexList; }
 #endif
 
 private:
 
 #ifdef RTOS
-	Mutex *next;
-	const char *name;
+	Mutex * null next;
+	const char * null name;
 	QueueHandle_t GetHandle() noexcept { return reinterpret_cast<QueueHandle_t>(this); }
 
 	// This next one is dangerous because of the const_cast. Use it only to call FreeRTOS functions that we know don't mutate the queue.
 	QueueHandle_t GetConstHandle() const noexcept { return reinterpret_cast<const QueueHandle_t>(const_cast<Mutex*>(this)); }
 
-	static Mutex *mutexList;
+	static Mutex * null mutexList;
 #else
 	void *handle;
 #endif
@@ -112,7 +113,7 @@ public:
 	bool Take(uint32_t timeout = TimeoutUnlimited) noexcept;
 	bool Give() noexcept;
 
-	static constexpr uint32_t TimeoutUnlimited = 0xFFFFFFFF;
+	static constexpr uint32_t TimeoutUnlimited = 0xFFFFFFFFu;
 
 private:
 #ifdef RTOS
@@ -153,11 +154,11 @@ public:
 	bool IsRunning() const noexcept { return taskId != 0; }
 
 	// Wake up a task identified by its handle from an ISR. Safe to call with a null handle.
-	static void GiveFromISR(TaskBase *h) noexcept
+	static void GiveFromISR(TaskBase * null h) noexcept
 	{
 		if (h != nullptr)				// check that the task exists
 		{
-			h->GiveFromISR();
+			not_null(h)->GiveFromISR();
 		}
 	}
 
@@ -177,7 +178,7 @@ public:
 	}
 
 	// Clear a task notification count
-	static uint32_t ClearNotifyCount(TaskBase* h = GetCallerTaskHandle(), uint32_t bitsToClear = 0xFFFFFFFF) noexcept
+	static uint32_t ClearNotifyCount(TaskBase* h = GetCallerTaskHandle(), uint32_t bitsToClear = 0xFFFFFFFFu) noexcept
 	{
 		ulTaskNotifyValueClear(h->GetFreeRTOSHandle(), bitsToClear);
 		return ulTaskNotifyValueClear(h->GetFreeRTOSHandle(), bitsToClear);
@@ -194,13 +195,13 @@ public:
 
 	static const uint32_t *GetCurrentTaskStackBase() noexcept { return pxTaskGetCurrentStackBase(); }
 
-	static constexpr uint32_t TimeoutUnlimited = 0xFFFFFFFF;
+	static constexpr uint32_t TimeoutUnlimited = 0xFFFFFFFFu;
 
 protected:
-	TaskBase *next;
+	TaskBase * null next;
 	TaskId taskId;
 
-	static TaskBase *taskList;
+	static TaskBase * null taskList;
 	static TaskId numTasks;
 };
 
@@ -216,7 +217,7 @@ public:
 
 	// These functions should be used only to tell FreeRTOS where the corresponding data is
 	StaticTask_t *GetTaskMemory() noexcept { return this; }
-	uint32_t *GetStackBase() noexcept { return stack; }
+	uint32_t * _ecv_array GetStackBase() noexcept { return stack; }
 	uint32_t GetStackSize() const noexcept { return StackWords; }
 
 private:
@@ -375,7 +376,7 @@ public:
 	void ReleaseWriter() noexcept;
 	void DowngradeWriter() noexcept;					// turn a write lock into a read lock (but you can't go back again)
 #ifdef RTOS
-	TaskBase *GetWriteLockOwner() const volatile { return writeLockOwner; }
+	TaskBase * null GetWriteLockOwner() const volatile { return writeLockOwner; }
 #endif
 
 private:
@@ -384,52 +385,52 @@ private:
 	std::atomic_uint8_t numReaders;						// MSB is set if a task is writing or write pending, lower bits are the number of readers
 	// The following assertion fails for SAMC21
 //	static_assert(std::atomic_uint8_t::is_always_lock_free);
-	TaskBase * volatile writeLockOwner;					// handle of the task that owns the write lock
+	TaskBase * null volatile writeLockOwner;			// handle of the task that owns the write lock
 #endif
 };
 
 class ReadLocker
 {
 public:
-	explicit ReadLocker(ReadWriteLock& p_lock) noexcept : lock(&p_lock) { lock->LockForReading(); }
-	explicit ReadLocker(ReadWriteLock *p_lock) noexcept : lock(p_lock) { if (lock != nullptr) { lock->LockForReading(); } }
-	~ReadLocker() { if (lock != nullptr) { lock->ReleaseReader(); } }
-	void Release() noexcept { if (lock != nullptr) { lock->ReleaseReader(); lock = nullptr; } }
+	explicit ReadLocker(ReadWriteLock& p_lock) noexcept : lock(&p_lock) { not_null(lock)->LockForReading(); }
+	explicit ReadLocker(ReadWriteLock * null p_lock) noexcept : lock(p_lock) { if (lock != nullptr) { not_null(lock)->LockForReading(); } }
+	~ReadLocker() { if (lock != nullptr) { not_null(lock)->ReleaseReader(); } }
+	void Release() noexcept { if (lock != nullptr) { not_null(lock)->ReleaseReader(); lock = nullptr; } }
 
 	ReadLocker(const ReadLocker&) = delete;
 	ReadLocker(ReadLocker&& other) noexcept : lock(other.lock) { other.lock = nullptr; }
 
 private:
-	ReadWriteLock* lock;
+	ReadWriteLock* null lock;
 };
 
 class ConditionalReadLocker
 {
 public:
 	explicit ConditionalReadLocker(ReadWriteLock& p_lock) noexcept : lock((p_lock.ConditionalLockForReading()) ? &p_lock : nullptr) { }
-	~ConditionalReadLocker() { if (lock != nullptr) { lock->ReleaseReader(); } }
+	~ConditionalReadLocker() { if (lock != nullptr) { not_null(lock)->ReleaseReader(); } }
 	bool IsLocked() const noexcept { return lock != nullptr; }
 
 private:
-	ReadWriteLock* lock;
+	ReadWriteLock* null lock;
 };
 
 class WriteLocker
 {
 public:
-	explicit WriteLocker(ReadWriteLock& p_lock) noexcept : lock(&p_lock) { lock->LockForWriting(); }
-	explicit WriteLocker(ReadWriteLock *p_lock) noexcept : lock(p_lock) { if (lock != nullptr) { lock->LockForWriting(); } }
-	~WriteLocker() { if (lock != nullptr) { lock->ReleaseWriter(); } }
-	void Release() noexcept { if (lock != nullptr) { lock->ReleaseWriter(); lock = nullptr; } }
+	explicit WriteLocker(ReadWriteLock& p_lock) noexcept : lock(&p_lock) { not_null(lock)->LockForWriting(); }
+	explicit WriteLocker(ReadWriteLock * null p_lock) noexcept : lock(p_lock) { if (lock != nullptr) { not_null(lock)->LockForWriting(); } }
+	~WriteLocker() { if (lock != nullptr) { not_null(lock)->ReleaseWriter(); } }
+	void Release() noexcept { if (lock != nullptr) { not_null(lock)->ReleaseWriter(); lock = nullptr; } }
 	void Downgrade() noexcept
 	{
 		if (   lock != nullptr
 #ifdef RTOS
-			&& lock->GetWriteLockOwner() == TaskBase::GetCallerTaskHandle()
+			&& not_null(lock)->GetWriteLockOwner() == TaskBase::GetCallerTaskHandle()
 #endif
 		   )
 		{
-			lock->DowngradeWriter();
+			not_null(lock)->DowngradeWriter();
 		}
 	}
 
@@ -437,18 +438,18 @@ public:
 	WriteLocker(WriteLocker&& other) noexcept : lock(other.lock) { other.lock = nullptr; }
 
 private:
-	ReadWriteLock* lock;
+	ReadWriteLock* null lock;
 };
 
 class ConditionalWriteLocker
 {
 public:
 	explicit ConditionalWriteLocker(ReadWriteLock& p_lock) noexcept : lock((p_lock.ConditionalLockForWriting()) ? &p_lock : nullptr) { }
-	~ConditionalWriteLocker() { if (lock != nullptr) { lock->ReleaseWriter(); } }
+	~ConditionalWriteLocker() { if (lock != nullptr) { not_null(lock)->ReleaseWriter(); } }
 	bool IsLocked() const noexcept { return lock != nullptr; }
 
 private:
-	ReadWriteLock* lock;
+	ReadWriteLock* null lock;
 };
 
 template<class T> class ReadLockedPointer
@@ -468,14 +469,14 @@ public:
 
 private:
 	ReadLocker locker;
-	T* ptr;
+	T* null ptr;
 };
 
 template<class T> class WriteLockedPointer
 {
 public:
-	WriteLockedPointer(WriteLocker& p_locker, T* p_ptr) noexcept : locker(std::move(p_locker)), ptr(p_ptr) { }
-	WriteLockedPointer(std::nullptr_t, T* p_ptr) noexcept : locker(nullptr), ptr(p_ptr) { }
+	WriteLockedPointer(WriteLocker& p_locker, T* null p_ptr) noexcept : locker(std::move(p_locker)), ptr(p_ptr) { }
+	WriteLockedPointer(std::nullptr_t, T* null p_ptr) noexcept : locker(nullptr), ptr(p_ptr) { }
 	WriteLockedPointer(const WriteLockedPointer<T>&) = delete;
 	WriteLockedPointer(WriteLockedPointer<T>&& other) noexcept : locker(std::move(other.locker)), ptr(other.ptr) { other.ptr = nullptr; }
 
@@ -486,7 +487,7 @@ public:
 
 private:
 	WriteLocker locker;
-	T* ptr;
+	T* null ptr;
 };
 
 #ifdef RTOS
@@ -497,17 +498,17 @@ class QueueBase
 public:
 	QueueBase() noexcept : handle(nullptr), next(nullptr), name(nullptr) { }
 
-	const QueueBase *GetNext() const noexcept { return next; }
+	const QueueBase * null GetNext() const noexcept { return next; }
 
-	static const QueueBase *GetThread() noexcept { return thread; }
+	static const QueueBase * null GetThread() noexcept { return thread; }
 
 protected:
-	QueueHandle_t handle;
-	QueueBase *next;
-	const char *name;
+	QueueHandle_t null handle;
+	QueueBase * null next;
+	const char * null name;
 	StaticQueue_t storage;
 
-	static QueueBase *thread;
+	static QueueBase * null thread;
 };
 
 template <class Message> class Queue : public QueueBase
@@ -522,7 +523,7 @@ public:
 	bool IsValid() const noexcept { return handle != nullptr; }
 
 private:
-	uint8_t *messageStorage;
+	uint8_t * _ecv_array null messageStorage;
 };
 
 template <class Message> void Queue<Message>::Create(const char *p_name, size_t capacity) noexcept

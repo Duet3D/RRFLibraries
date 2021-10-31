@@ -10,6 +10,7 @@
 
 #include <cstdint>
 #include <cmath>
+#include "gcc_builtins.h"
 
 template<class X> inline constexpr X min(X _a, X _b) noexcept
 {
