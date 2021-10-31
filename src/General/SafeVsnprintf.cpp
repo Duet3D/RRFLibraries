@@ -25,6 +25,7 @@
 
 #include "SafeVsnprintf.h"
 
+#include <cstdint>
 #include <cstdarg>
 #include <cstdio>
 #include <cstdlib>
@@ -72,27 +73,27 @@ struct xPrintFlags
 class FormattedPrinter
 {
 public:
-	FormattedPrinter(const PutcFunc_t& pcf) noexcept;
-	int Print(const char *format, va_list args) noexcept;
+	explicit FormattedPrinter(const PutcFunc_t& pcf) noexcept;
+	int Print(const char *_ecv_array format, va_list args) noexcept;
 
 private:
-	PutcFunc_t putchar;
+	PutcFunc_t putcharFunc;
 	int curLen;
 	xPrintFlags flags;
 
 	void Init() noexcept;
-	bool PutString(const char *apString) noexcept;
-	bool PutJson(const char *apString) noexcept;
+	bool PutString(const char *_ecv_array apString) noexcept;
+	bool PutJson(const char *_ecv_array apString) noexcept;
 	bool PrintLL(long long i) noexcept;
 	bool PrintI(int i) noexcept;
 	bool PrintFloat(double d, char formatLetter) noexcept;
 	bool PutChar(char c) noexcept;
-	bool PutStringWithSign(char *s, bool isNegative) noexcept;
+	bool PutStringWithSign(char *_ecv_array s, bool isNegative) noexcept;
 	bool DoPrefix() noexcept;
 };
 
 FormattedPrinter::FormattedPrinter(const PutcFunc_t& pcf) noexcept
-	: putchar(pcf), curLen(0)
+	: putcharFunc(pcf), curLen(0)
 {
 	Init();
 }
@@ -106,7 +107,7 @@ void FormattedPrinter::Init() noexcept
 
 bool FormattedPrinter::PutChar(char c) noexcept
 {
-	const bool ret = putchar(c) && c != 0;
+	const bool ret = putcharFunc(c) && c != 0;
 	if (ret)
 	{
 		++curLen;
@@ -117,7 +118,7 @@ bool FormattedPrinter::PutChar(char c) noexcept
 /*-----------------------------------------------------------*/
 
 // Print the string s to the string buffer adding any necessary padding
-bool FormattedPrinter::PutString(const char *apString) noexcept
+bool FormattedPrinter::PutString(const char *_ecv_array apString) noexcept
 {
 	int count;
 	if (flags.printLimit > 0 && flags.isString)
@@ -201,7 +202,7 @@ bool FormattedPrinter::PutString(const char *apString) noexcept
 }
 
 // Write a string in JSON format returning true if successful. Width specifiers are ignored.
-bool FormattedPrinter::PutJson(const char *apString) noexcept
+bool FormattedPrinter::PutJson(const char *_ecv_array apString) noexcept
 {
 	bool ok = true;
 	while (ok)
@@ -250,7 +251,7 @@ bool FormattedPrinter::PutJson(const char *apString) noexcept
 
 // Output the string representation of the number to be printed, with a sign uf necessary, padded as required
 // 's' is the string representation of the number to be printed, with space for a sign to be added at the front
-bool FormattedPrinter::PutStringWithSign(char *s, bool isNegative) noexcept
+bool FormattedPrinter::PutStringWithSign(char *_ecv_array s, bool isNegative) noexcept
 {
 	const char sign = (isNegative) ? '-'
 						: flags.forceSign ? '+'
@@ -316,7 +317,7 @@ bool FormattedPrinter::PrintLL(long long i) noexcept
 	}
 
 	char print_buf[MaxUllDigits + 2];
-	char *s = print_buf + sizeof print_buf - 1;
+	char *_ecv_array s = print_buf + sizeof print_buf - 1;
 	*s = '\0';
 	while (u != 0)
 	{
@@ -358,7 +359,7 @@ bool FormattedPrinter::PrintI(int i) noexcept
 	}
 
 	char print_buf[MaxLongDigits + 2];
-	char *s = print_buf + sizeof print_buf - 1;
+	char *_ecv_array s = print_buf + sizeof print_buf - 1;
 	*s = '\0';
 
 	switch (base)
@@ -366,7 +367,7 @@ bool FormattedPrinter::PrintI(int i) noexcept
 	case 16:
 		while (u != 0)
 		{
-			unsigned int t = u & 0xF;
+			unsigned int t = u & 0xFu;
 			if (t >= 10)
 			{
 				t += flags.letBase - '0' - 10;
@@ -424,7 +425,7 @@ bool FormattedPrinter::PrintFloat(double d, char formatLetter) noexcept
 	}
 
 	double ud = fabs(d);
-	if (ud > (double)LONG_LONG_MAX && (formatLetter == 'f' || formatLetter == 'F'))
+	if (ud > (double)LLONG_MAX && (formatLetter == 'f' || formatLetter == 'F'))
 	{
 		--formatLetter;			// number is too big to print easily in fixed point format, so use exponent format
 	}
@@ -482,7 +483,7 @@ bool FormattedPrinter::PrintFloat(double d, char formatLetter) noexcept
 	// Multiply ud by 10 to the power of the number of decimal digits required, or until it becomes too big to print easily
 	int digitsAfterPoint = 0;
 	long limit = 10;
-	while (digitsAfterPoint < flags.printLimit && ud < LONG_LONG_MAX/10 && limit <= LONG_LONG_MAX/10)
+	while (digitsAfterPoint < flags.printLimit && ud < (double)(LLONG_MAX/10) && limit <= LLONG_MAX/10)
 	{
 		ud *= (double)10.0;
 		limit *= 10;
@@ -490,7 +491,7 @@ bool FormattedPrinter::PrintFloat(double d, char formatLetter) noexcept
 	}
 
 	char print_buf[MaxUllDigits + MaxLongDigits + 5];
-	char *s = print_buf + sizeof print_buf - 1;
+	char *_ecv_array s = print_buf + sizeof print_buf - 1;
 	*s = '\0';
 
 	long long u = llrint(ud);
@@ -542,7 +543,7 @@ bool FormattedPrinter::PrintFloat(double d, char formatLetter) noexcept
 
 /*-----------------------------------------------------------*/
 
-int FormattedPrinter::Print(const char *format, va_list args) noexcept
+int FormattedPrinter::Print(const char *_ecv_array format, va_list args) noexcept
 {
 	for (;;)
 	{
@@ -651,7 +652,7 @@ int FormattedPrinter::Print(const char *format, va_list args) noexcept
 
 		if (ch == 's')
 		{
-			const char *s = va_arg(args, const char *);
+			const char *_ecv_array null s = va_arg(args, const char *_ecv_array null);
 			flags.isString = true;
 			// RRF extension: if the current format specifier is exactly "%.s" then perform JSON escaping.
 			// We would like to use "%j" instead, but that gives rise to gcc warnings about unrecognised format specifiers and extra arguments.
@@ -748,23 +749,23 @@ int FormattedPrinter::Print(const char *format, va_list args) noexcept
 
 /*-----------------------------------------------------------*/
 
-int vuprintf(PutcFunc_t putc, const char *format, va_list args) noexcept
+int vuprintf(PutcFunc_t putc_f, const char *_ecv_array format, va_list args) noexcept
 {
-	FormattedPrinter fp(putc);
+	FormattedPrinter fp(putc_f);
 	return fp.Print(format, args);
 }
 
-int uprintf(PutcFunc_t putc, const char *format, ...) noexcept
+int uprintf(PutcFunc_t putc_f, const char *_ecv_array format, ...) noexcept
 {
 	va_list vargs;
 	va_start(vargs, format);
-	FormattedPrinter fp(putc);
+	FormattedPrinter fp(putc_f);
 	const int ret = fp.Print(format, vargs);
 	va_end(vargs);
 	return ret;
 }
 
-int SafeVsnprintf(char *buffer, size_t maxLen, const char *format, va_list args) noexcept
+int SafeVsnprintf(char *_ecv_array buffer, size_t maxLen, const char *_ecv_array format, va_list args) noexcept
 {
 	// Declare the lambda function separately from declaring the FormattedPrinter so that it doesn't go out of scope before the FormattedPrinter does
 	auto lambda = [&buffer, &maxLen](char c) noexcept -> bool
@@ -783,7 +784,7 @@ int SafeVsnprintf(char *buffer, size_t maxLen, const char *format, va_list args)
 	return ret;
 }
 
-int SafeSnprintf(char* buffer, size_t buf_size, const char* format, ...) noexcept
+int SafeSnprintf(char *_ecv_array buffer, size_t buf_size, const char *_ecv_array format, ...) noexcept
 {
 	va_list vargs;
 	va_start(vargs, format);
