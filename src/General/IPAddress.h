@@ -11,7 +11,7 @@
 #include <cstdint>
 
 // Class to represent an IP address. Currently it only supports IPV4 addresses, but eventually it will be expanded to support IPV6 too.
-class IPAddress
+class IPAddress final
 {
 public:
 	constexpr IPAddress() noexcept : v4Address(0) {  }
