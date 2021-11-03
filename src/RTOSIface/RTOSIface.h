@@ -145,7 +145,7 @@ public:
 	// Link the task into the thread list and allocate a short task ID to it. This function is called directly for tasks that are created by FreeRTOS, so it must be public
 	void AddToList() noexcept;
 	void TerminateAndUnlink() noexcept;
-	TaskBase *GetNext() noexcept { return next; }
+	TaskBase *_ecv_from null GetNext() noexcept { return next; }
 
 	void Suspend() noexcept { vTaskSuspend(GetFreeRTOSHandle()); }
 	void Resume() noexcept { vTaskResume(GetFreeRTOSHandle()); }
@@ -154,7 +154,7 @@ public:
 	bool IsRunning() const noexcept { return taskId != 0; }
 
 	// Wake up a task identified by its handle from an ISR. Safe to call with a null handle.
-	static void GiveFromISR(TaskBase * null h) noexcept
+	static void GiveFromISR(TaskBase *_ecv_from null h) noexcept
 	{
 		if (h != nullptr)				// check that the task exists
 		{
@@ -178,30 +178,30 @@ public:
 	}
 
 	// Clear a task notification count
-	static uint32_t ClearNotifyCount(TaskBase* h = GetCallerTaskHandle(), uint32_t bitsToClear = 0xFFFFFFFFu) noexcept
+	static uint32_t ClearNotifyCount(TaskBase *_ecv_from h = GetCallerTaskHandle(), uint32_t bitsToClear = 0xFFFFFFFFu) noexcept
 	{
 		ulTaskNotifyValueClear(h->GetFreeRTOSHandle(), bitsToClear);
 		return ulTaskNotifyValueClear(h->GetFreeRTOSHandle(), bitsToClear);
 	}
 
-	static TaskBase *GetCallerTaskHandle() noexcept { return reinterpret_cast<TaskBase *>(xTaskGetCurrentTaskHandle()); }
+	static TaskBase *_ecv_from GetCallerTaskHandle() noexcept { return reinterpret_cast<TaskBase *>(xTaskGetCurrentTaskHandle()); }
 
 	static TaskId GetCallerTaskId() noexcept { return GetCallerTaskHandle()->taskId; }
 
 	TaskBase(const TaskBase&) = delete;				// it's not safe to copy these
 	TaskBase& operator=(const TaskBase&) = delete;	// it's not safe to assign these
 
-	static TaskBase *GetTaskList() noexcept { return taskList; }
+	static TaskBase *_ecv_from null GetTaskList() noexcept { return taskList; }
 
 	static const uint32_t *GetCurrentTaskStackBase() noexcept { return pxTaskGetCurrentStackBase(); }
 
 	static constexpr uint32_t TimeoutUnlimited = 0xFFFFFFFFu;
 
 protected:
-	TaskBase * null next;
+	TaskBase *_ecv_from null next;
 	TaskId taskId;
 
-	static TaskBase * null taskList;
+	static TaskBase *_ecv_from null taskList;
 	static TaskId numTasks;
 };
 
@@ -216,8 +216,8 @@ public:
 	}
 
 	// These functions should be used only to tell FreeRTOS where the corresponding data is
-	StaticTask_t *GetTaskMemory() noexcept { return this; }
-	uint32_t * _ecv_array GetStackBase() noexcept { return stack; }
+	StaticTask_t * /*_ecv_from*/ GetTaskMemory() noexcept { return this; }
+	uint32_t *_ecv_array GetStackBase() noexcept { return stack; }
 	uint32_t GetStackSize() const noexcept { return StackWords; }
 
 private:
@@ -231,7 +231,7 @@ private:
 class MutexLocker
 {
 public:
-	explicit MutexLocker(Mutex *pm, uint32_t timeout = Mutex::TimeoutUnlimited) noexcept;	// acquire lock
+	explicit MutexLocker(Mutex *null pm, uint32_t timeout = Mutex::TimeoutUnlimited) noexcept;	// acquire lock
 	explicit MutexLocker(Mutex& pm, uint32_t timeout = Mutex::TimeoutUnlimited) noexcept;	// acquire lock
 	~MutexLocker() { Release(); }
 
@@ -244,7 +244,7 @@ public:
 	MutexLocker(MutexLocker&& other) noexcept : handle(other.handle), acquired(other.acquired) { other.handle = nullptr; other.acquired = false; }
 
 private:
-	Mutex *handle;
+	Mutex *null handle;
 	bool acquired;
 };
 
@@ -376,7 +376,7 @@ public:
 	void ReleaseWriter() noexcept;
 	void DowngradeWriter() noexcept;					// turn a write lock into a read lock (but you can't go back again)
 #ifdef RTOS
-	TaskBase * null GetWriteLockOwner() const volatile { return writeLockOwner; }
+	TaskBase *_ecv_from null GetWriteLockOwner() const volatile { return writeLockOwner; }
 #endif
 
 private:
@@ -385,7 +385,7 @@ private:
 	std::atomic_uint8_t numReaders;						// MSB is set if a task is writing or write pending, lower bits are the number of readers
 	// The following assertion fails for SAMC21
 //	static_assert(std::atomic_uint8_t::is_always_lock_free);
-	TaskBase * null volatile writeLockOwner;			// handle of the task that owns the write lock
+	TaskBase *_ecv_from null volatile writeLockOwner;			// handle of the task that owns the write lock
 #endif
 };
 

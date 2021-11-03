@@ -18,4 +18,10 @@
 #undef value
 #undef result	// used in cmsis_gcc.h
 
+// C++ doesn't define a 16-bit floating point type, so eCv uses _ecv_float16_t
+
+#ifdef __ECV__
+typedef _ecv_float16_t __fp16;		// define ARM GCC's floating type to be the same as the eCv builtin one
+#endif
+
 #endif /* SRC_GENERAL_ECV_RRF_H_ */

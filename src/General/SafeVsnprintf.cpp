@@ -60,13 +60,13 @@ struct xPrintFlags
 				long32 : 1,
 				long64 : 1,
 				hash : 1;
-		};
-		uint32_t allFlags;
-	};
+		} b;
+		uint32_t all;
+	} u;
 
 	bool NeedPrefix() const noexcept
 	{
-		return hash && (base == 16 || base == 8);
+		return u.b.hash && (base == 16 || base == 8);
 	}
 };
 
@@ -102,7 +102,7 @@ void FormattedPrinter::Init() noexcept
 {
 	flags.base = flags.width = 0;
 	flags.printLimit = -1;
-	flags.allFlags = 0;
+	flags.u.all = 0;
 }
 
 bool FormattedPrinter::PutChar(char c) noexcept
@@ -121,7 +121,7 @@ bool FormattedPrinter::PutChar(char c) noexcept
 bool FormattedPrinter::PutString(const char *_ecv_array apString) noexcept
 {
 	int count;
-	if (flags.printLimit > 0 && flags.isString)
+	if (flags.printLimit > 0 && flags.u.b.isString)
 	{
 		// It's a string so printLimit is the max number of characters to print from the string.
 		// Don't call strlen on it because it might not be null terminated, use Strnlen instead.
@@ -133,7 +133,7 @@ bool FormattedPrinter::PutString(const char *_ecv_array apString) noexcept
 	}
 
 	int rightSpacesNeeded = 0;
-	const bool hasMinimumDigits = (flags.isNumber && flags.printLimit > 0);
+	const bool hasMinimumDigits = (flags.u.b.isNumber && flags.printLimit > 0);
 	if (hasMinimumDigits || flags.width > 0)
 	{
 		// We may have some padding to do
@@ -145,11 +145,11 @@ bool FormattedPrinter::PutString(const char *_ecv_array apString) noexcept
 		if (count + leftZerosNeeded < flags.width)
 		{
 			const int remainingPaddingNeeded = flags.width - (count + leftZerosNeeded);
-			if (flags.padRight)
+			if (flags.u.b.padRight)
 			{
 				rightSpacesNeeded = remainingPaddingNeeded;
 			}
-			else if (flags.padZero)
+			else if (flags.u.b.padZero)
 			{
 				leftZerosNeeded += remainingPaddingNeeded;
 			}
@@ -254,12 +254,12 @@ bool FormattedPrinter::PutJson(const char *_ecv_array apString) noexcept
 bool FormattedPrinter::PutStringWithSign(char *_ecv_array s, bool isNegative) noexcept
 {
 	const char sign = (isNegative) ? '-'
-						: flags.forceSign ? '+'
-							: flags.signOrSpace ? ' '
+						: flags.u.b.forceSign ? '+'
+							: flags.u.b.signOrSpace ? ' '
 								: 0;
 	if (sign != 0)
 	{
-		if (flags.width != 0 && flags.padZero)
+		if (flags.width != 0 && flags.u.b.padZero)
 		{
 			if (!PutChar(sign))
 			{
@@ -287,7 +287,7 @@ bool FormattedPrinter::DoPrefix() noexcept
 		}
 		if (flags.base == 16)
 		{
-			return PutChar(flags.letBase + ('X' - 'A'));
+			return PutChar((char)(flags.u.b.letBase + (unsigned int)('X' - 'A')));
 		}
 	}
 	return true;
@@ -297,7 +297,7 @@ bool FormattedPrinter::DoPrefix() noexcept
 
 bool FormattedPrinter::PrintLL(long long i) noexcept
 {
-	flags.isNumber = true;	/* Parameter for prints */
+	flags.u.b.isNumber = true;	/* Parameter for prints */
 	if (i == 0LL)
 	{
 		return PutString("0");
@@ -310,7 +310,7 @@ bool FormattedPrinter::PrintLL(long long i) noexcept
 
 	bool neg = false;
 	unsigned long long u = i;
-	if ((flags.isSigned) && (flags.base == 10) && (i < 0LL))
+	if ((flags.u.b.isSigned) && (flags.base == 10) && (i < 0LL))
 	{
 		neg = true;
 		u = -i;
@@ -325,9 +325,9 @@ bool FormattedPrinter::PrintLL(long long i) noexcept
 		u /= (unsigned int)flags.base;
 		if (t >= 10)
 		{
-			t += flags.letBase - '0' - 10;
+			t += flags.u.b.letBase - ((unsigned int)'0' + 10);
 		}
-		*--s = t + '0';
+		*--s = (char)(t + (unsigned int)'0');
 	}
 
 	return PutStringWithSign(s, neg);
@@ -337,7 +337,7 @@ bool FormattedPrinter::PrintLL(long long i) noexcept
 
 bool FormattedPrinter::PrintI(int i) noexcept
 {
-	flags.isNumber = true;	/* Parameter for prints */
+	flags.u.b.isNumber = true;
 
 	if (i == 0)
 	{
@@ -352,7 +352,7 @@ bool FormattedPrinter::PrintI(int i) noexcept
 	bool neg = false;
 	unsigned int u = i;
 	unsigned base = flags.base;
-	if ((flags.isSigned) && (base == 10) && (i < 0))
+	if ((flags.u.b.isSigned) && (base == 10) && (i < 0))
 	{
 		neg = true;
 		u = -i;
@@ -370,9 +370,9 @@ bool FormattedPrinter::PrintI(int i) noexcept
 			unsigned int t = u & 0xFu;
 			if (t >= 10)
 			{
-				t += flags.letBase - '0' - 10;
+				t += flags.u.b.letBase - ((unsigned int)'0' + 10);
 			}
-			*--s = t + '0';
+			*--s = (char)(t + (unsigned int)'0');
 			u >>= 4;
 		}
 		break;
@@ -383,7 +383,7 @@ bool FormattedPrinter::PrintI(int i) noexcept
 		while (u != 0)
 		{
 			const unsigned int t = u % base;
-			*--s = t + '0';
+			*--s = (char)(t + (unsigned int)'0');
 			u /= base;
 		}
 		break;
@@ -471,12 +471,12 @@ bool FormattedPrinter::PrintFloat(double d, char formatLetter) noexcept
 		// Convert G format to E or F format
 	    if (exponent > -4 && exponent <= flags.printLimit)
 	    {
-	    	formatLetter -= 1;					// change g to f
+	    	formatLetter = (char)((int)formatLetter - 1);					// change g to f
 	    	ud = fabs(d);						// restore original value of ud
 	    }
 	    else
 	    {
-	    	formatLetter -= 2;					// change g to e
+	    	formatLetter = (char)((int)formatLetter - 2);					// change g to e
 	    }
 	}
 
@@ -509,7 +509,7 @@ bool FormattedPrinter::PrintFloat(double d, char formatLetter) noexcept
 		int iexp = abs(exponent);
 		do
 		{
-			*--s = (iexp % 10) + '0';
+			*--s = (char)((iexp % 10) + (int)'0');
 			iexp = iexp/10;
 		} while (iexp != 0);
 		*--s = (exponent < 0) ? '-' : '+';
@@ -517,7 +517,7 @@ bool FormattedPrinter::PrintFloat(double d, char formatLetter) noexcept
 	}
 
 	// Store the non-exponent part
-	if (digitsAfterPoint == 0 && !flags.hash)
+	if (digitsAfterPoint == 0 && !flags.u.b.hash)
 	{
 		--digitsAfterPoint;				// make digitsAfterPoint negative to suppress the decimal point
 	}
@@ -531,7 +531,7 @@ bool FormattedPrinter::PrintFloat(double d, char formatLetter) noexcept
 		--digitsAfterPoint;
 
 		const lldiv_t lldiv_result = lldiv(u, 10);
-		*--s = (char)((unsigned int)lldiv_result.rem + '0');
+		*--s = (char)((unsigned int)lldiv_result.rem + (unsigned int)'0');
 		u = lldiv_result.quot;
 	}
 	while (u != 0 || digitsAfterPoint >= 0);
@@ -579,19 +579,19 @@ int FormattedPrinter::Print(const char *_ecv_array format, va_list args) noexcep
 			switch (ch)
 			{
 			case '#':
-				flags.hash = true;
+				flags.u.b.hash = true;
 				break;
 			case '-':
-				flags.padRight = true;
+				flags.u.b.padRight = true;
 				break;
 			case '0':
-				flags.padZero = true;
+				flags.u.b.padZero = true;
 				break;
 			case '+':
-				flags.forceSign = true;
+				flags.u.b.forceSign = true;
 				break;
 			case ' ':
-				flags.signOrSpace = true;
+				flags.u.b.signOrSpace = true;
 				break;
 			default:
 				goto doneFlags;
@@ -609,7 +609,7 @@ int FormattedPrinter::Print(const char *_ecv_array format, va_list args) noexcep
 			while (ch >= '0' && ch <= '9')
 			{
 				flags.width *= 10;
-				flags.width += ch - '0';
+				flags.width += (int)ch - (int)'0';
 				ch = *format++;
 			}
 		}
@@ -627,7 +627,7 @@ int FormattedPrinter::Print(const char *_ecv_array format, va_list args) noexcep
 				while (ch >= '0' && ch <= '9')
 				{
 					flags.printLimit *= 10;
-					flags.printLimit += ch - '0';
+					flags.printLimit += (int)ch - (int)'0';
 					ch = *format++;
 				}
 			}
@@ -653,7 +653,7 @@ int FormattedPrinter::Print(const char *_ecv_array format, va_list args) noexcep
 		if (ch == 's')
 		{
 			const char *_ecv_array null s = va_arg(args, const char *_ecv_array null);
-			flags.isString = true;
+			flags.u.b.isString = true;
 			// RRF extension: if the current format specifier is exactly "%.s" then perform JSON escaping.
 			// We would like to use "%j" instead, but that gives rise to gcc warnings about unrecognised format specifiers and extra arguments.
 			if (*(format - 2) == '.' && *(format - 3) == '%')
@@ -690,21 +690,21 @@ int FormattedPrinter::Print(const char *_ecv_array format, va_list args) noexcep
 			if (ch == 'l')
 			{
 				ch = *format++;
-				flags.long64 = 1;
+				flags.u.b.long64 = 1;
 			}
 			else
 			{
-				flags.long32 = 1;
+				flags.u.b.long32 = 1;
 			}
 		}
 
 		flags.base = 10;
-		flags.letBase = 'a';
+		flags.u.b.letBase = (unsigned int)'a';
 
 		if (ch == 'd' || ch == 'u' || ch == 'i')
 		{
-			flags.isSigned = (ch != 'u');
-			if (flags.long64)
+			flags.u.b.isSigned = (ch != 'u');
+			if (flags.u.b.long64)
 			{
 				if (!PrintLL(va_arg(args, long long)))
 				{
@@ -723,13 +723,13 @@ int FormattedPrinter::Print(const char *_ecv_array format, va_list args) noexcep
 		{
 			if (ch == 'X')
 			{
-				flags.letBase = 'A';
+				flags.u.b.letBase = (unsigned int)'A';
 			}
 			else if (ch == 'o')
 			{
 				flags.base = 8;
 			}
-			if (flags.long64)
+			if (flags.u.b.long64)
 			{
 				if (!PrintLL(va_arg(args, long long)))
 				{
@@ -768,16 +768,16 @@ int uprintf(PutcFunc_t putc_f, const char *_ecv_array format, ...) noexcept
 int SafeVsnprintf(char *_ecv_array buffer, size_t maxLen, const char *_ecv_array format, va_list args) noexcept
 {
 	// Declare the lambda function separately from declaring the FormattedPrinter so that it doesn't go out of scope before the FormattedPrinter does
-	auto lambda = [&buffer, &maxLen](char c) noexcept -> bool
-					{
-						if (c != 0 && maxLen > 1)
+	PutcFunc_t lambda = [&buffer, &maxLen](char c) noexcept -> bool
 						{
-							*buffer++ = c;
-							--maxLen;
-							return true;
-						}
-						return false;
-					};
+							if (c != 0 && maxLen > 1)
+							{
+								*buffer++ = c;
+								--maxLen;
+								return true;
+							}
+							return false;
+						};
 	FormattedPrinter fp(lambda);
 	const int ret = fp.Print(format, args);
 	*buffer = 0;
