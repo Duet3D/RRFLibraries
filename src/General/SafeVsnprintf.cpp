@@ -768,7 +768,7 @@ int uprintf(PutcFunc_t putc_f, const char *_ecv_array format, ...) noexcept
 int SafeVsnprintf(char *_ecv_array buffer, size_t maxLen, const char *_ecv_array format, va_list args) noexcept
 {
 	// Declare the lambda function separately from declaring the FormattedPrinter so that it doesn't go out of scope before the FormattedPrinter does
-	PutcFunc_t lambda = [&buffer, &maxLen](char c) noexcept -> bool
+	auto lambda = [&buffer, &maxLen](char c) noexcept -> bool
 						{
 							if (c != 0 && maxLen > 1)
 							{
