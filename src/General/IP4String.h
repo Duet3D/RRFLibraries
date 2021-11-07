@@ -8,6 +8,7 @@
 #ifndef SRC_LIBRARIES_GENERAL_IP4STRING_H_
 #define SRC_LIBRARIES_GENERAL_IP4STRING_H_
 
+#include "../ecv_duet3d.h"
 #include <cstdint>
 #include "IPAddress.h"
 
@@ -15,11 +16,11 @@
 class IP4String
 {
 public:
-	IP4String(const uint8_t ip[4]) noexcept;
-	IP4String(uint32_t ip) noexcept;
-	IP4String(IPAddress ip) noexcept : IP4String(ip.GetV4LittleEndian()) {}
+	explicit IP4String(const uint8_t ip[4]) noexcept;
+	explicit IP4String(uint32_t ip) noexcept;
+	explicit IP4String(IPAddress ip) noexcept : IP4String(ip.GetV4LittleEndian()) {}
 
-	const char *c_str() const noexcept { return buf; }
+	const char *_ecv_array c_str() const noexcept { return buf; }
 
 private:
 	char buf[16];		// long enough for e.g. "255.255.255.255" including a null terminator

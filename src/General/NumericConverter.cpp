@@ -6,9 +6,20 @@
  */
 
 #include "NumericConverter.h"
-#include <limits>
 #include <cmath>
 #include <cctype>
+#include <cstddef>
+
+#ifdef __ECV__	// eCv doesn't support numeric_limits yet
+constexpr uint32_t Uint32Max = 0xffffffffu;
+constexpr int32_t Int32Max = 0x7fffffff;
+constexpr int32_t Int32Min = -Int32Max - 1;
+#else
+# include <limits>
+constexpr uint32_t Uint32Max = std::numeric_limits<uint32_t>::max();
+constexpr int32_t Int32Max= std::numeric_limits<int32_t>::max();
+constexpr int32_t Int32Min = std::numeric_limits<int32_t>::min();
+#endif
 
 // Function to read an unsigned integer or real literal and store the values in this object
 // On entry, 'c' is the first character to consume and NextChar is the function to get another character
@@ -48,13 +59,13 @@ bool NumericConverter::Accumulate(char c, OptionsType options, function_ref<char
 	{
 		hadDigit = true;
 		c = NextChar();
-		if (toupper(c) == 'X')
+		if ((char)toupper(c) == 'X')
 		{
 			base = 16;
 			options &= ~AcceptFloat;
 			c = NextChar();
 		}
-		else if (toupper(c) == 'B')
+		else if ((char)toupper(c) == 'B')
 		{
 			base = 2;
 			options &= ~AcceptFloat;
@@ -89,9 +100,9 @@ bool NumericConverter::Accumulate(char c, OptionsType options, function_ref<char
 	bool overflowed = false;
 	for (;;)
 	{
-		if (isxdigit(c))
+		if ((bool)isxdigit(c))
 		{
-			const unsigned int digit = (c <= '9') ? c - '0' : (toupper(c) - 'A') + 10;
+			const unsigned int digit = (c <= '9') ? c - '0' : (toupper(c) - (int)'A') + 10;
 			if (digit >= base)
 			{
 				break;
@@ -106,7 +117,7 @@ bool NumericConverter::Accumulate(char c, OptionsType options, function_ref<char
 				{
 					++twos;
 				}
-				else if (lvalue <= std::numeric_limits<uint32_t>::max()/2)
+				else if (lvalue <= Uint32Max/2)
 				{
 					lvalue = (lvalue << 1u) + digit;
 				}
@@ -126,8 +137,8 @@ bool NumericConverter::Accumulate(char c, OptionsType options, function_ref<char
 						++twos;
 					}
 				}
-				else if (   lvalue <= (std::numeric_limits<uint32_t>::max() - 9u)/10u		// avoid slow division if we can
-						 || lvalue <= (std::numeric_limits<uint32_t>::max() - digit)/10u
+				else if (   lvalue <= (Uint32Max - 9u)/10u		// avoid slow division if we can
+						 || lvalue <= (Uint32Max - digit)/10u
 					    )
 				{
 					lvalue = (lvalue * 10u) + digit;
@@ -141,7 +152,7 @@ bool NumericConverter::Accumulate(char c, OptionsType options, function_ref<char
 				{
 					overflowed = true;
 					const unsigned int fivesDigit = (digit + 1u)/2u;
-					if (lvalue <= (std::numeric_limits<uint32_t>::max() - fivesDigit)/5u)
+					if (lvalue <= (Uint32Max - fivesDigit)/5u)
 					{
 						lvalue = (lvalue * 5u) + fivesDigit;
 						if (hadDecimalPoint)
@@ -156,7 +167,7 @@ bool NumericConverter::Accumulate(char c, OptionsType options, function_ref<char
 					else
 					{
 						const unsigned int twosDigit = (digit + 4u)/5u;
-						if (lvalue <= (std::numeric_limits<uint32_t>::max() - twosDigit)/2u)
+						if (lvalue <= (Uint32Max - twosDigit)/2u)
 						{
 							lvalue = (lvalue * 2u) + twosDigit;
 							if (hadDecimalPoint)
@@ -182,24 +193,24 @@ bool NumericConverter::Accumulate(char c, OptionsType options, function_ref<char
 				{
 					twos += 4;
 				}
-				else if (lvalue <= std::numeric_limits<uint32_t>::max()/16)
+				else if (lvalue <= Uint32Max/16)
 				{
 					lvalue = (lvalue << 4u) + digit;
 				}
 				else
 				{
 					overflowed = true;
-					if (lvalue <= std::numeric_limits<uint32_t>::max()/8)
+					if (lvalue <= Uint32Max/8)
 					{
 						lvalue = (lvalue << 3u) | ((digit + 1u) >> 1u);
 						++twos;
 					}
-					else if (lvalue <= std::numeric_limits<uint32_t>::max()/4)
+					else if (lvalue <= Uint32Max/4)
 					{
 						lvalue = (lvalue << 2u) | ((digit + 2u) >> 2u);
 						twos += 2;
 					}
-					else if (lvalue <= std::numeric_limits<uint32_t>::max()/2)
+					else if (lvalue <= Uint32Max/2)
 					{
 						lvalue = (lvalue << 1u) | ((digit + 4u) >> 3u);
 						twos += 3;
@@ -229,7 +240,7 @@ bool NumericConverter::Accumulate(char c, OptionsType options, function_ref<char
 	}
 
 	// Check for an exponent
-	if ((options & AcceptFloat) != 0 && toupper(c) == 'E')
+	if ((options & AcceptFloat) != 0 && (char)toupper(c) == 'E')
 	{
 		c = NextChar();
 
@@ -240,7 +251,7 @@ bool NumericConverter::Accumulate(char c, OptionsType options, function_ref<char
 			c = NextChar();
 		}
 
-		if (!isdigit(c))
+		if (!(bool)isdigit(c))
 		{
 			return false;								// E or e not followed by a number
 		}
@@ -248,21 +259,21 @@ bool NumericConverter::Accumulate(char c, OptionsType options, function_ref<char
 		// 5b. Read exponent digits
 		hadExponent = true;
 		unsigned int exponent = 0;
-		while (isdigit(c))
+		while ((bool)isdigit(c))
 		{
-			exponent = (10u * exponent) + (c - '0');		// could overflow, but anyone using such large numbers is being very silly
+			exponent = (10u * exponent) + (unsigned int)(c - '0');		// could overflow, but anyone using such large numbers is being very silly
 			c = NextChar();
 		}
 
 		if (expNegative)
 		{
-			twos -= exponent;
-			fives -= exponent;
+			twos -= (int)exponent;
+			fives -= (int)exponent;
 		}
 		else
 		{
-			twos += exponent;
-			fives += exponent;
+			twos += (int)exponent;
+			fives += (int)exponent;
 		}
 	}
 
@@ -273,7 +284,7 @@ bool NumericConverter::Accumulate(char c, OptionsType options, function_ref<char
 // Note, we don't allow the value to be the most negative int32_t available
 bool NumericConverter::FitsInInt32() const noexcept
 {
-	return !hadDecimalPoint && !hadExponent && twos == 0 && fives == 0 && lvalue <= (uint32_t)std::numeric_limits<int32_t>::max();
+	return !hadDecimalPoint && !hadExponent && twos == 0 && fives == 0 && lvalue <= (uint32_t)Int32Max;
 }
 
 // Return true if the number fits in a uint32 and wasn't specified with a decimal point or an exponent
@@ -329,7 +340,7 @@ float NumericConverter::GetFloat() const noexcept
 		}
 		else
 		{
-			dvalue *= pow(DOUBLE(10.0), tens);
+			dvalue *= pow(DOUBLE(10.0), (double)tens);
 		}
 	}
 

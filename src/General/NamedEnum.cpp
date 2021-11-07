@@ -10,7 +10,7 @@
 #include <cstring>
 
 // Function to search the table of names for a match. Returns numNames if not found.
-unsigned int NamedEnumLookup(const char *s, const char * const names[], size_t numNames) noexcept
+unsigned int NamedEnumLookup(const char *_ecv_array s, const char *_ecv_array const names[], size_t numNames) noexcept
 {
 	unsigned int low = 0, high = numNames;
 	while (high > low)
