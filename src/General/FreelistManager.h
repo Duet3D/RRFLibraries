@@ -15,6 +15,8 @@
 # include "../RTOSIface/RTOSIface.h"
 #endif
 
+#include "../ecv_original.h"
+
 namespace FreelistManager
 {
 	// Free list manager class
