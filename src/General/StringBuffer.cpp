@@ -22,7 +22,7 @@ bool StringBuffer::Fix() noexcept
 
 // Concatenate two strings, placing the result at the end of the buffer. Return true if insufficient space.
 // One or both strings may already be in the buffer, and we don't need to keep them intact. Optimise storage where possible.
-bool StringBuffer::Concat(const char *s1, const char *s2) noexcept
+bool StringBuffer::Concat(const char *_ecv_array s1, const char *_ecv_array s2) noexcept
 {
 	const size_t s2LenPlusOne = strlen(s2) + 1;
 	const size_t s1Len = strlen(s1);
@@ -31,7 +31,7 @@ bool StringBuffer::Concat(const char *s1, const char *s2) noexcept
 		// s2 is the last fixed string in the buffer. If s1 is the previous string, we can just slide s2 down one place.
 		if (s1 + s1Len + 1 == s2)
 		{
-			memmove(const_cast<char *>(s1 + s1Len), s2, s2LenPlusOne);
+			memmove(const_cast<char *_ecv_array>(s1 + s1Len), s2, s2LenPlusOne);
 			used -= (s1Len + 1 + s2LenPlusOne);
 			return false;
 		}
@@ -48,12 +48,12 @@ bool StringBuffer::Concat(const char *s1, const char *s2) noexcept
 }
 
 // The is called when we have finished using a string, which may be in the buffer. If it is the last string in the buffer, we can delete it.
-void StringBuffer::FinishedUsing(const char *s) noexcept
+void StringBuffer::FinishedUsing(const char *_ecv_array s) noexcept
 {
-	const size_t len = strlen(s) + 1;
-	if (s + len == p + used)
+	const size_t tlen = strlen(s) + 1;
+	if (s + tlen == p + used)
 	{
-		used -= len;
+		used -= tlen;
 		p[used] = 0;
 	}
 }

@@ -28,13 +28,13 @@ public:
 	bool PutItem(T val) noexcept;
 
 	// Store a block returning the number of items actually stored
-	size_t PutBlock(const T* buffer, size_t buflen) noexcept;
+	size_t PutBlock(const T* _ecv_array buffer, size_t buflen) noexcept;
 
 	// Get one item returning true if successful
 	bool GetItem(T& val) noexcept;
 
 	// Get a block returning the number of items actually fetched
-	size_t GetBlock(T* buffer, size_t buflen) noexcept;
+	size_t GetBlock(T* _ecv_array buffer, size_t buflen) noexcept;
 
 	// Return the number of items we could currently add to the buffer
 	size_t SpaceLeft() const noexcept;
@@ -56,7 +56,7 @@ private:
 
 	// Declare the data volatile so that it can be accessed by multiple threads or ISRs (but max 1 getter and 1 putter concurrently)
 	volatile size_t putIndex, getIndex;
-	volatile T *data;
+	volatile T * _ecv_array _ecv_null data;
 };
 
 template<class T> RingBuffer<T>::RingBuffer() noexcept
@@ -89,7 +89,7 @@ template<class T> inline bool RingBuffer<T>::PutItem(T val) noexcept
 	const size_t newPutIndex = (oldPutIndex + 1) & capacity;
 	if (newPutIndex != getIndex)
 	{
-		data[oldPutIndex] = val;
+		not_null(data)[oldPutIndex] = val;
 		putIndex = newPutIndex;
 		return true;
 	}
@@ -101,7 +101,7 @@ template<class T> inline bool RingBuffer<T>::GetItem(T& val) noexcept
 	const size_t currentGetIndex = getIndex;			// capture volatile
 	if (currentGetIndex != putIndex)
 	{
-		val = data[currentGetIndex];
+		val = not_null(data)[currentGetIndex];
 		getIndex = (currentGetIndex + 1) & capacity;
 		return true;
 	}
@@ -123,7 +123,7 @@ template<class T> inline bool RingBuffer<T>::IsEmpty() const noexcept
 	return getIndex == putIndex;
 }
 
-template<class T> size_t RingBuffer<T>::PutBlock(const T* buffer, size_t buflen) noexcept
+template<class T> size_t RingBuffer<T>::PutBlock(const T* _ecv_array buffer, size_t buflen) noexcept
 {
 	// Capture volatile variables to avoid reloading them unnecessarily
 	const size_t currentGetIndex = getIndex;
@@ -146,11 +146,11 @@ template<class T> size_t RingBuffer<T>::PutBlock(const T* buffer, size_t buflen)
 			if (toCopy < toCopyFirst)
 			{
 				// We don't reach the end of the buffer
-				memcpy(const_cast<T*>(data) + currentPutIndex, buffer, toCopy * sizeof(T));
+				memcpy(const_cast<T* _ecv_array>(not_null(data)) + currentPutIndex, buffer, toCopy * sizeof(T));
 				putIndex = currentPutIndex + toCopy;
 				return toCopy;
 			}
-			memcpy(const_cast<T*>(data) + currentPutIndex, buffer, toCopyFirst * sizeof(T));
+			memcpy(const_cast<T* _ecv_array>(not_null(data)) + currentPutIndex, buffer, toCopyFirst * sizeof(T));
 			currentPutIndex = 0;
 			toCopyNext = toCopy - toCopyFirst;
 			buffer += toCopyFirst;
@@ -159,13 +159,13 @@ template<class T> size_t RingBuffer<T>::PutBlock(const T* buffer, size_t buflen)
 		{
 			toCopyNext = toCopy;
 		}
-		memcpy(const_cast<T*>(data) + currentPutIndex, buffer, toCopyNext * sizeof(T));
+		memcpy(const_cast<T* _ecv_array>(not_null(data)) + currentPutIndex, buffer, toCopyNext * sizeof(T));
 		putIndex = currentPutIndex + toCopyNext;
 	}
 	return toCopy;
 }
 
-template<class T> size_t RingBuffer<T>::GetBlock(T* buffer, size_t buflen) noexcept
+template<class T> size_t RingBuffer<T>::GetBlock(T* _ecv_array buffer, size_t buflen) noexcept
 {
 	// Capture volatile variables to avoid reloading them unnecessarily
 	size_t currentGetIndex = getIndex;
@@ -188,11 +188,11 @@ template<class T> size_t RingBuffer<T>::GetBlock(T* buffer, size_t buflen) noexc
 			if (toCopy < toCopyFirst)
 			{
 				// We don't reach the end of the buffer
-				memcpy(buffer, const_cast<const T*>(data) + currentGetIndex, toCopy * sizeof(T));
+				memcpy(buffer, const_cast<const T* _ecv_array>(not_null(data)) + currentGetIndex, toCopy * sizeof(T));
 				getIndex = currentGetIndex + toCopy;
 				return toCopy;
 			}
-			memcpy(buffer, const_cast<const T*>(data) + currentGetIndex, toCopyFirst * sizeof(T));
+			memcpy(buffer, const_cast<const T* _ecv_array>(not_null(data)) + currentGetIndex, toCopyFirst * sizeof(T));
 			currentGetIndex = 0;
 			toCopyNext = toCopy - toCopyFirst;
 			buffer += toCopyFirst;
@@ -201,7 +201,7 @@ template<class T> size_t RingBuffer<T>::GetBlock(T* buffer, size_t buflen) noexc
 		{
 			toCopyNext = toCopy;
 		}
-		memcpy(buffer, const_cast<const T*>(data) + currentGetIndex, toCopyNext * sizeof(T));
+		memcpy(buffer, const_cast<const T* _ecv_array>(not_null(data)) + currentGetIndex, toCopyNext * sizeof(T));
 		getIndex = currentGetIndex + toCopyNext;
 	}
 	return toCopy;

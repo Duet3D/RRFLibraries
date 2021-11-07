@@ -12,6 +12,7 @@
 #include <cstddef>
 #include <climits>
 #include "function_ref.h"
+#include "gcc_builtins.h"
 
 // Helper functions to work on bitmaps of various lengths.
 // The primary purpose of these is to allow us to switch between 16, 32 and 64-bit bitmaps.
@@ -41,6 +42,24 @@ inline unsigned int LowestSetBit(unsigned long val) noexcept
 inline unsigned int LowestSetBit(unsigned long long val) noexcept
 {
 	return (unsigned int)__builtin_ctzll(val);
+}
+
+// Extract one bit from a value and move it to a target bit number, returning a value with only the target bit possibly set
+// T should be an unsigned integer type
+template<class T> inline constexpr T ExtractBit(T val, unsigned int fromBitNumber, unsigned int toBitNumber) noexcept
+{
+	if (fromBitNumber == toBitNumber)
+	{
+		return val & ((T)1 << toBitNumber);
+	}
+	else if (toBitNumber > fromBitNumber)
+	{
+		return (val << (toBitNumber - fromBitNumber)) & ((T)1 << toBitNumber);
+	}
+	else
+	{
+		return (val >> (fromBitNumber - toBitNumber)) & ((T)1 << toBitNumber);
+	}
 }
 
 template<class BaseType> class Bitmap
@@ -189,8 +208,11 @@ public:
 		return Bitmap<BaseType>(b);
 	}
 
-	// Convert an array of longs to a bit map with overflow checking
+	// Convert an array of unsigned longs to a bit map with overflow checking
 	static Bitmap<BaseType> MakeFromArray(const uint32_t *arr, size_t numEntries) noexcept;
+
+	// Convert an array of longs to a bit map with overflow checking
+	static Bitmap<BaseType> MakeFromArray(const int32_t *arr, size_t numEntries) noexcept;
 
 private:
 	static constexpr uint8_t BitCount[16] = { 0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4 };
@@ -260,7 +282,7 @@ template<class BaseType> bool Bitmap<BaseType>::IterateWhile(function_ref<bool(u
 	return true;
 }
 
-// Convert an array of longs to a bit map with overflow checking
+// Convert an array of unsigned longs to a bit map with overflow checking
 template<class BaseType> Bitmap<BaseType> Bitmap<BaseType>::MakeFromArray(const uint32_t *arr, size_t numEntries) noexcept
 {
 	BaseType res = 0;
@@ -270,6 +292,21 @@ template<class BaseType> Bitmap<BaseType> Bitmap<BaseType>::MakeFromArray(const 
 		if (f < Bitmap<BaseType>::MaxBits())
 		{
 			res |= (BaseType)1 << f;
+		}
+	}
+	return Bitmap<BaseType>(res);
+}
+
+// Convert an array of longs to a bit map with overflow checking
+template<class BaseType> Bitmap<BaseType> Bitmap<BaseType>::MakeFromArray(const int32_t *arr, size_t numEntries) noexcept
+{
+	BaseType res = 0;
+	for (size_t i = 0; i < numEntries; ++i)
+	{
+		const int32_t f = arr[i];
+		if (f >= 0 && f < (int32_t)Bitmap<BaseType>::MaxBits())
+		{
+			res |= (BaseType)1 << (unsigned int)f;
 		}
 	}
 	return Bitmap<BaseType>(res);

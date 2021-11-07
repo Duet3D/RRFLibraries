@@ -9,10 +9,7 @@
 #ifndef SRC_GENERAL_VECTOR_H_
 #define SRC_GENERAL_VECTOR_H_
 
-#include "ecv.h"
-#undef array
-#undef result
-#undef value
+#include "../ecv_duet3d.h"
 #include <cstddef>					// for size_t
 #include "function_ref.h"
 
