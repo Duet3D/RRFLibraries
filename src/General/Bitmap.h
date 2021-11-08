@@ -344,7 +344,7 @@ public:
 	static constexpr unsigned int NumBits() noexcept { return N; }
 
 private:
-	static constexpr size_t numDwords = (N + 31/32);
+	static constexpr size_t numDwords = (N + 31)/32;
 
 	uint32_t data[numDwords];
 };
