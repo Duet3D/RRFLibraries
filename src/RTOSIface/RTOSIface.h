@@ -216,7 +216,7 @@ public:
 	}
 
 	// These functions should be used only to tell FreeRTOS where the corresponding data is
-	StaticTask_t * /*_ecv_from*/ GetTaskMemory() noexcept { return this; }
+	StaticTask_t *_ecv_from GetTaskMemory() noexcept { return this; }
 	uint32_t *_ecv_array GetStackBase() noexcept { return stack; }
 	uint32_t GetStackSize() const noexcept { return StackWords; }
 
