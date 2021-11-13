@@ -21,8 +21,8 @@ namespace FreelistManager
 	template<size_t Sz> class Freelist
 	{
 	public:
-		static void *Allocate() noexcept;
-		static void Release(void *p) noexcept;
+		static void *AllocateItem() noexcept;
+		static void ReleaseItem(void *p) noexcept;
 
 	private:
 		static void * null freelist;
@@ -30,7 +30,7 @@ namespace FreelistManager
 
 	template<size_t Sz> void *null Freelist<Sz>::freelist = nullptr;
 
-	template<size_t Sz> void *Freelist<Sz>::Allocate() noexcept
+	template<size_t Sz> void *Freelist<Sz>::AllocateItem() noexcept
 	{
 #ifdef RTOS
 		TaskCriticalSectionLocker lock;
@@ -45,7 +45,7 @@ namespace FreelistManager
 		return ::operator new(Sz);
 	}
 
-	template<size_t Sz> void Freelist<Sz>::Release(void *p) noexcept
+	template<size_t Sz> void Freelist<Sz>::ReleaseItem(void *p) noexcept
 	{
 #ifdef RTOS
 		TaskCriticalSectionLocker lock;
@@ -66,12 +66,12 @@ namespace FreelistManager
 	// Operators new and delete for the classes that we want to use these freelists for should call the following functions
 	template<class T> inline void *Allocate() noexcept
 	{
-		return Freelist<RoundedUpSize(sizeof(T))>::Allocate();
+		return Freelist<RoundedUpSize(sizeof(T))>::AllocateItem();
 	}
 
 	template<class T> inline void Release(void *p) noexcept
 	{
-		Freelist<RoundedUpSize(sizeof(T))>::Release(p);
+		Freelist<RoundedUpSize(sizeof(T))>::ReleaseItem(p);
 	}
 }
 
