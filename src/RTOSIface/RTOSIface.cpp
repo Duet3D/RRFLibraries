@@ -194,7 +194,7 @@ void ReadWriteLock::LockForReading() noexcept
 		for (;;)
 		{
 			uint8_t nr = numReaders;
-			if (nr & 0x80)
+			if ((nr & 0x80) != 0)
 			{
 				vTaskDelay(1);					// delay while writing is pending or active
 			}
@@ -215,7 +215,7 @@ bool ReadWriteLock::ConditionalLockForReading() noexcept
 		for (;;)
 		{
 			uint8_t nr = numReaders;
-			if (nr & 0x80)
+			if ((nr & 0x80) !=  0)
 			{
 				return false;
 			}
@@ -246,7 +246,7 @@ void ReadWriteLock::LockForWriting() noexcept
 	for (;;)
 	{
 		uint8_t nr = numReaders;
-		if (nr & 0x80)
+		if ((nr & 0x80) !=  0)
 		{
 			vTaskDelay(1);					// delay while writing is pending or active
 		}
