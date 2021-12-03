@@ -157,7 +157,7 @@ template<class T, size_t N> bool Vector<T, N>::IterateWhile(function_ref<bool(T&
 	size_t count = 0;
 	for (size_t i = startAt; i < totalElements; ++i)
 	{
-		if(!func(storage[i], count))
+		if (!func(storage[i], count))
 		{
 			return false;
 		}
@@ -176,7 +176,7 @@ template<class T, size_t N> bool Vector<T, N>::IterateWhile(function_ref<bool(co
 	size_t count = 0;
 	for (size_t i = startAt; i < totalElements; ++i)
 	{
-		if(!func(storage[i], count))
+		if (!func(storage[i], count))
 		{
 			return false;
 		}

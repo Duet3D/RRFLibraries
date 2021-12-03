@@ -487,7 +487,7 @@ public:
 	void Release() noexcept { ptr = nullptr; locker.Release(); }
 
 	ReadLockedPointer(const ReadLockedPointer<T>&) = delete;
-	ReadLockedPointer& operator=(const ReadLockedPointer<T>&) = delete;
+	ReadLockedPointer<T>& operator=(const ReadLockedPointer<T>&) = delete;
 
 private:
 	ReadLocker locker;
@@ -507,7 +507,7 @@ public:
 	T* Ptr() const noexcept { return ptr; }
 
 	WriteLockedPointer(const WriteLockedPointer<T>&) = delete;
-	WriteLockedPointer& operator=(const WriteLockedPointer<T>&) = delete;
+	WriteLockedPointer<T>& operator=(const WriteLockedPointer<T>&) = delete;
 
 private:
 	WriteLocker locker;
