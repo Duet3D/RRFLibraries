@@ -275,7 +275,7 @@ template<class BaseType> Bitmap<BaseType> Bitmap<BaseType>::MakeFromArray(const 
 	return Bitmap<BaseType>(res);
 }
 
-// Class to hold a bitmap that won't fit into a single object f integral type
+// Class to hold a bitmap that won't fit into a single object of integral type
 template<unsigned int N> class LargeBitmap
 {
 public:
@@ -307,7 +307,7 @@ public:
 	static constexpr unsigned int NumBits() noexcept { return N; }
 
 private:
-	static constexpr size_t numDwords = (N + 31/32);
+	static constexpr size_t numDwords = (N + 31)/32;
 
 	uint32_t data[numDwords];
 };
