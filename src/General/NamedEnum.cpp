@@ -12,25 +12,12 @@
 // Function to search the table of names for a match. Returns numNames if not found.
 unsigned int NamedEnumLookup(const char *_ecv_array s, const char *_ecv_array const names[], size_t numNames) noexcept
 {
-	unsigned int low = 0, high = numNames;
-	while (high > low)
+	unsigned int i = 0;
+	while (i < numNames && strcmp(s, SkipLeadingUnderscore(names[i])) != 0)
 	{
-		const size_t mid = (high - low)/2 + low;
-		const int t = strcmp(s, SkipLeadingUnderscore(names[mid]));
-		if (t == 0)
-		{
-			return mid;
-		}
-		if (t > 0)
-		{
-			low = mid + 1u;
-		}
-		else
-		{
-			high = mid;
-		}
+		++i;
 	}
-	return (low < numNames && strcmp(s, SkipLeadingUnderscore(names[low])) == 0) ? low : numNames;
+	return i;
 }
 
 // End

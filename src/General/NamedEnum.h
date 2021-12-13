@@ -92,7 +92,6 @@ static inline const char * _ecv_array SkipLeadingUnderscore(const char * _ecv_ar
 //  printf("%s", myCar.ToString());
 //
 // If any of the names is a C++ reserved word or starts with a digit, prefix it with a single underscore
-// IMPORTANT! If the constructor from string is used then the names must be in alphabetical order (ignoring the leading underscore) because it uses a binary search
 // BaseType must be unsigned for IsValid and ToString to work correctly.
 
 #define NamedEnum(_typename, _baseType, _v1, ...) \
@@ -104,7 +103,7 @@ public: \
 	static constexpr unsigned int NumValues = VA_SIZE(__VA_ARGS__) + 1;											/* count of members */ \
 	_typename(RawType arg) noexcept { v = arg; }																/* constructor - cannot be declared 'explicit' because we need the conversion */ \
 	explicit _typename(BaseType arg) noexcept { v = static_cast<RawType>(arg); }								/* constructor */ \
-	explicit _typename(const char * _ecv_array s) noexcept { v = static_cast<RawType>(NamedEnumLookup(s, _names, NumValues)); }	/* constructor from string - NAMES MUST BE ORDERED when using this */ \
+	explicit _typename(const char * _ecv_array s) noexcept { v = static_cast<RawType>(NamedEnumLookup(s, _names, NumValues)); }	/* constructor from string */ \
 	_typename(const _typename& arg) noexcept { v = arg.v; }														/* copy constructor */ \
 	bool operator==(_typename arg) const noexcept { return v == arg.v; }										/* equality operator */ \
 	bool operator!=(_typename arg) const noexcept { return v != arg.v; }										/* inequality operator */ \
