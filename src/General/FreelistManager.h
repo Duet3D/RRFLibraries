@@ -39,7 +39,7 @@ namespace FreelistManager
 		if (freelist != nullptr)
 		{
 			void * const p = freelist;
-			freelist = *static_cast<void **>(p);
+			freelist = *reinterpret_cast<void **>(p);
 			return p;
 		}
 		return ::operator new(Sz);
@@ -51,7 +51,7 @@ namespace FreelistManager
 		TaskCriticalSectionLocker lock;
 #endif
 
-		*static_cast<void **>(p) = freelist;
+		*reinterpret_cast<void **>(p) = freelist;
 		freelist = p;
 	}
 
