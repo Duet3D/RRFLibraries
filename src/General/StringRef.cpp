@@ -287,4 +287,18 @@ int StringRef::Contains(char c) const noexcept
 	return (r == nullptr) ? -1 : not_null(r) - p;
 }
 
+// Replace the first instance of oldVal by newVal, returning true if a replacement was done
+bool StringRef::Replace(char oldVal, char newVal) const noexcept
+{
+	for (size_t i = 0; i < len && p[i] != 0; ++i)
+	{
+		if (p[i] == oldVal)
+		{
+			p[i] = newVal;
+			return true;
+		}
+	}
+	return false;
+}
+
 // End

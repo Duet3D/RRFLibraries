@@ -57,6 +57,7 @@ public:
 	bool EqualsIgnoreCase(const char * _ecv_array s) const noexcept { return StringEqualsIgnoreCase(p, s); }
 	int Contains(const char * _ecv_array s) const noexcept;
 	int Contains(char c) const noexcept;
+	bool Replace(char oldVal, char newVal) const noexcept;						// replace the first instance of oldVal by newVal
 };
 
 #endif /* STRINGREF_H_ */
