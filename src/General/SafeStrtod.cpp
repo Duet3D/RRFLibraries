@@ -83,7 +83,7 @@ uint32_t StrToU32(const char *_ecv_array s, const char *_ecv_array *null endptr)
 	return StrToU32Opt(s, endptr, NumericConverter::AcceptOnlyUnsignedDecimal);
 }
 
-uint32_t StrOptHexToU32(const char *s, const char **endptr) noexcept
+uint32_t StrOptHexToU32(const char *_ecv_array s, const char *_ecv_array *null endptr) noexcept
 {
 	return StrToU32Opt(s, endptr, NumericConverter::AcceptHex);
 }
