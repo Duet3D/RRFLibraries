@@ -193,7 +193,7 @@ void ReadWriteLock::LockForReading() noexcept
 	{
 		for (;;)
 		{
-			uint8_t nr = numReaders;
+			uint8_t nr = numReaders.load();
 			if ((nr & 0x80) != 0)
 			{
 				vTaskDelay(1);					// delay while writing is pending or active
@@ -214,7 +214,7 @@ bool ReadWriteLock::ConditionalLockForReading() noexcept
 	{
 		for (;;)
 		{
-			uint8_t nr = numReaders;
+			uint8_t nr = numReaders.load();
 			if ((nr & 0x80) !=  0)
 			{
 				return false;
@@ -245,7 +245,7 @@ void ReadWriteLock::LockForWriting() noexcept
 	// First wait for other writers to finish, then grab the write lock
 	for (;;)
 	{
-		uint8_t nr = numReaders;
+		uint8_t nr = numReaders.load();
 		if ((nr & 0x80) !=  0)
 		{
 			vTaskDelay(1);					// delay while writing is pending or active
@@ -257,7 +257,7 @@ void ReadWriteLock::LockForWriting() noexcept
 	}
 
 	// Now wait for readers to finish
-	while (numReaders != 0x80)
+	while (numReaders.load() != 0x80)
 	{
 		vTaskDelay(1);
 	}
@@ -269,7 +269,7 @@ void ReadWriteLock::LockForWriting() noexcept
 bool ReadWriteLock::ConditionalLockForWriting() noexcept
 {
 #ifdef RTOS
-	uint8_t nr = numReaders;
+	uint8_t nr = numReaders.load();
 	if (nr == 0 && numReaders.compare_exchange_strong(nr, nr | 0x80))
 	{
 		writeLockOwner = TaskBase::GetCallerTaskHandle();
@@ -289,7 +289,7 @@ void ReadWriteLock::ReleaseWriter() noexcept
 		writeLockOwner = nullptr;
 		numReaders = 0;
 	}
-	else if ((numReaders & 0x7F) != 0)
+	else if ((numReaders.load() & 0x7F) != 0)
 	{
 		// We must have downgraded to a read lock
 		--numReaders;
