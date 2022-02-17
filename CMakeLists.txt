@@ -7,6 +7,7 @@ message( "librrf CXX_FLAGS: " ${CMAKE_CXX_FLAGS} )
 message( "librrf ASM_FLAGS: " ${CMAKE_ASM_FLAGS} )
 
 add_library(rrf STATIC
+	src/General/CRC16.cpp
 	src/General/IP4String.cpp
 	src/General/IPAddress.cpp
 	src/General/NamedEnum.cpp
