@@ -41,7 +41,8 @@ public:
 	void CopyAndPad(const char *_ecv_array src) noexcept;
 	bool ConstantTimeEquals(String<Len> other) const noexcept;
 
-	bool Replace(char oldVal, char newVal) noexcept;
+	bool Replace(char oldVal, char newVal) noexcept { return GetRef().Replace(oldVal, newVal); }
+	unsigned int ReplaceAll(char oldVal, char newVal) noexcept { return GetRef().ReplaceAll(oldVal, newVal); }
 	void Truncate(size_t len) noexcept;
 	void Erase(size_t pos, size_t count = 1) noexcept;
 	bool Insert(size_t pos, char c) noexcept { return GetRef().Insert(pos, c); }		// returns true if buffer is too small
@@ -110,22 +111,6 @@ template<size_t Len> int String<Len>::catf(const char *_ecv_array fmt, ...) noex
 	const int ret = GetRef().vcatf(fmt, vargs);
 	va_end(vargs);
 	return ret;
-}
-
-// Replace the first occurrence of oldVal with newVal and return true
-// return false if oldVal was not contained
-template<size_t Len> bool String<Len>::Replace(char oldVal, char newVal) noexcept
-{
-	const size_t length = strlen();
-	for (size_t i = 0; i < length; ++i)
-	{
-		if (storage[i] == oldVal)
-		{
-			storage[i] = newVal;
-			return true;
-		}
-	}
-	return false;
 }
 
 template<size_t Len> void String<Len>::Truncate(size_t len) noexcept
