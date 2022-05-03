@@ -535,10 +535,10 @@ protected:
 	static QueueBase * null thread;
 };
 
-template <class Message> class Queue : public QueueBase
+template <class Message> class MessageQueue : public QueueBase
 {
 public:
-	Queue() noexcept : messageStorage(nullptr) { }
+	MessageQueue() noexcept : messageStorage(nullptr) { }
 
 	void Create(const char *p_name, size_t capacity) noexcept;
 	bool PutToBack(const Message &m, uint32_t timeout) noexcept;
@@ -550,7 +550,7 @@ private:
 	uint8_t * _ecv_array null messageStorage;
 };
 
-template <class Message> void Queue<Message>::Create(const char *p_name, size_t capacity) noexcept
+template <class Message> void MessageQueue<Message>::Create(const char *p_name, size_t capacity) noexcept
 {
 	if (handle == nullptr)
 	{
@@ -559,17 +559,17 @@ template <class Message> void Queue<Message>::Create(const char *p_name, size_t 
 	}
 }
 
-template <class Message> bool Queue<Message>::PutToBack(const Message &m, uint32_t timeout) noexcept
+template <class Message> bool MessageQueue<Message>::PutToBack(const Message &m, uint32_t timeout) noexcept
 {
 	return xQueueSendToBack(handle, &m, timeout) == pdTRUE;
 }
 
-template <class Message> bool Queue<Message>::PutToFront(const Message &m, uint32_t timeout) noexcept
+template <class Message> bool MessageQueue<Message>::PutToFront(const Message &m, uint32_t timeout) noexcept
 {
 	return xQueueSendToFront(handle, &m, timeout) == pdTRUE;
 }
 
-template <class Message> bool Queue<Message>::Get(Message& m, uint32_t timeout) noexcept
+template <class Message> bool MessageQueue<Message>::Get(Message& m, uint32_t timeout) noexcept
 {
 	return xQueueReceive(handle, &m, timeout) == pdTRUE;
 }
