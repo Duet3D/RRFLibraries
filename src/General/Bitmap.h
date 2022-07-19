@@ -13,6 +13,7 @@
 #include <climits>
 #include "function_ref.h"
 #include "gcc_builtins.h"
+#include "ecv_duet3d.h"
 
 // Helper functions to work on bitmaps of various lengths.
 // The primary purpose of these is to allow us to switch between 16, 32 and 64-bit bitmaps.
@@ -316,6 +317,8 @@ template<class BaseType> Bitmap<BaseType> Bitmap<BaseType>::MakeFromArray(const 
 template<unsigned int N> class LargeBitmap
 {
 public:
+	LargeBitmap() noexcept { ClearAll(); }
+
 	void ClearAll() noexcept;
 
 	void SetBit(unsigned int n) noexcept

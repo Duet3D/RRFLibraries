@@ -6,6 +6,7 @@
  */
 
 #include "NumericConverter.h"
+#include "SimpleMath.h"					// for ARRAY_SIZE
 #include <cmath>
 #include <cctype>
 #include <cstddef>
@@ -309,38 +310,39 @@ uint32_t NumericConverter::GetUint32() const noexcept
 // This macro lets us use a double precision constant, by declaring it as a long double one and then casting it to double.
 #define DOUBLE(_x) ((double)( _x ## L ))
 
-static constexpr double inversePowersOfTen[] =
+static constexpr double PowersOfTen[] =
 {
-	DOUBLE(0.1),
-	DOUBLE(0.01),
-	DOUBLE(0.001),
-	DOUBLE(0.0001),
-	DOUBLE(0.00001),
-	DOUBLE(0.000001),
-	DOUBLE(0.0000001),
-	DOUBLE(0.00000001),
-	DOUBLE(0.000000001),
-	DOUBLE(0.0000000001),
-	DOUBLE(0.00000000001),
-	DOUBLE(0.000000000001)
+	DOUBLE(1.0),
+	DOUBLE(10.0),
+	DOUBLE(100.0),
+	DOUBLE(1000.0),
+	DOUBLE(10000.0),
+	DOUBLE(100000.0),
+	DOUBLE(1000000.0),
+	DOUBLE(10000000.0),
+	DOUBLE(100000000.0),
+	DOUBLE(1000000000.0),
+	DOUBLE(10000000000.0)
 };
-
 
 // Return the value as a float
 float NumericConverter::GetFloat() const noexcept
 {
-	// The common cases are when we have zero to ~12 decimal places and no exponent, so optimise these
+	// The pow() function includes 4K of logarithm tables, so avoid using it
 	double dvalue = (double)lvalue;
-	const int tens = (twos < fives) ? twos : fives;
-	if (tens != 0)
 	{
-		if (tens < 0 && tens >= -(int)(sizeof(inversePowersOfTen)/sizeof(inversePowersOfTen[0])))
+		int tens = (twos < fives) ? twos : fives;
+		while (tens < 0)
 		{
-			dvalue *= inversePowersOfTen[-tens - 1];
+			const size_t power = min<size_t>((size_t)-tens, ARRAY_SIZE(PowersOfTen) - 1);
+			dvalue /= PowersOfTen[power];
+			tens += (int)power;
 		}
-		else
+		while (tens > 0)
 		{
-			dvalue *= pow(DOUBLE(10.0), (double)tens);
+			const size_t power = min<size_t>((size_t)tens, ARRAY_SIZE(PowersOfTen) - 1);
+			dvalue *= PowersOfTen[power];
+			tens -= (int)power;
 		}
 	}
 

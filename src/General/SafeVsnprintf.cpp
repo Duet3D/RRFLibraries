@@ -684,7 +684,11 @@ int FormattedPrinter::Print(const char *_ecv_array format, va_list args) noexcep
 
 			continue;
 		}
-		if (ch == 'l')
+		if (ch == 'h')					// used by Lwip debug
+		{
+			ch = *format++;				// we ignore it
+		}
+		else if (ch == 'l')
 		{
 			ch = *format++;
 			if (ch == 'l')
