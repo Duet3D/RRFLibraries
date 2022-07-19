@@ -316,6 +316,8 @@ template<class BaseType> Bitmap<BaseType> Bitmap<BaseType>::MakeFromArray(const 
 template<unsigned int N> class LargeBitmap
 {
 public:
+	LargeBitmap() noexcept { ClearAll(); }
+
 	void ClearAll() noexcept;
 
 	void SetBit(unsigned int n) noexcept
