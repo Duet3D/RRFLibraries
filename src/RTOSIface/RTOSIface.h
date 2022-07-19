@@ -216,7 +216,7 @@ public:
 	}
 
 	// These functions should be used only to tell FreeRTOS where the corresponding data is
-	StaticTask_t * /*_ecv_from*/ GetTaskMemory() noexcept { return this; }
+	StaticTask_t *_ecv_from GetTaskMemory() noexcept { return this; }
 	uint32_t *_ecv_array GetStackBase() noexcept { return stack; }
 	uint32_t GetStackSize() const noexcept { return StackWords; }
 
@@ -326,6 +326,8 @@ public:
 	~InterruptCriticalSectionLocker() noexcept { (void)RTOSIface::LeaveInterruptCriticalSection(); }
 
 	InterruptCriticalSectionLocker(const InterruptCriticalSectionLocker&) = delete;
+	InterruptCriticalSectionLocker(InterruptCriticalSectionLocker&&) = delete;
+	InterruptCriticalSectionLocker& operator=(const InterruptCriticalSectionLocker&) = delete;
 };
 
 class TaskCriticalSectionLocker
@@ -335,6 +337,8 @@ public:
 	~TaskCriticalSectionLocker() noexcept { RTOSIface::LeaveTaskCriticalSection(); }
 
 	TaskCriticalSectionLocker(const TaskCriticalSectionLocker&) = delete;
+	TaskCriticalSectionLocker(TaskCriticalSectionLocker&&) = delete;
+	TaskCriticalSectionLocker& operator=(const TaskCriticalSectionLocker&) = delete;
 };
 
 // Same as TaskCriticalSectionLocker except that we may not want to lock
@@ -345,6 +349,8 @@ public:
 	~ConditionalTaskCriticalSectionLocker() noexcept { if (locked) { RTOSIface::LeaveTaskCriticalSection(); } }
 
 	ConditionalTaskCriticalSectionLocker(const ConditionalTaskCriticalSectionLocker&) = delete;
+	ConditionalTaskCriticalSectionLocker(ConditionalTaskCriticalSectionLocker&&) = delete;
+	ConditionalTaskCriticalSectionLocker& operator=(const ConditionalTaskCriticalSectionLocker&) = delete;
 
 private:
 	bool locked;
@@ -379,13 +385,17 @@ public:
 	TaskBase *_ecv_from null GetWriteLockOwner() const volatile { return writeLockOwner; }
 #endif
 
+	ReadWriteLock(const ReadWriteLock&) = delete;
+	ReadWriteLock(const ReadWriteLock&&) = delete;
+	ReadWriteLock& operator=(const ReadWriteLock&) = delete;
+
 private:
 
 #ifdef RTOS
 	std::atomic_uint8_t numReaders;						// MSB is set if a task is writing or write pending, lower bits are the number of readers
 	// The following assertion fails for SAMC21
 //	static_assert(std::atomic_uint8_t::is_always_lock_free);
-	TaskBase *_ecv_from null volatile writeLockOwner;			// handle of the task that owns the write lock
+	TaskBase *_ecv_from null volatile writeLockOwner;	// handle of the task that owns the write lock
 #endif
 };
 
@@ -394,11 +404,12 @@ class ReadLocker
 public:
 	explicit ReadLocker(ReadWriteLock& p_lock) noexcept : lock(&p_lock) { not_null(lock)->LockForReading(); }
 	explicit ReadLocker(ReadWriteLock * null p_lock) noexcept : lock(p_lock) { if (lock != nullptr) { not_null(lock)->LockForReading(); } }
+	ReadLocker(ReadLocker&& other) noexcept : lock(other.lock) { other.lock = nullptr; }
 	~ReadLocker() { if (lock != nullptr) { not_null(lock)->ReleaseReader(); } }
 	void Release() noexcept { if (lock != nullptr) { not_null(lock)->ReleaseReader(); lock = nullptr; } }
 
 	ReadLocker(const ReadLocker&) = delete;
-	ReadLocker(ReadLocker&& other) noexcept : lock(other.lock) { other.lock = nullptr; }
+	ReadLocker& operator=(const ReadLocker&) = delete;
 
 private:
 	ReadWriteLock* null lock;
@@ -408,8 +419,12 @@ class ConditionalReadLocker
 {
 public:
 	explicit ConditionalReadLocker(ReadWriteLock& p_lock) noexcept : lock((p_lock.ConditionalLockForReading()) ? &p_lock : nullptr) { }
+	ConditionalReadLocker(ConditionalReadLocker&& other) noexcept : lock(other.lock) { other.lock = nullptr; }
 	~ConditionalReadLocker() { if (lock != nullptr) { not_null(lock)->ReleaseReader(); } }
 	bool IsLocked() const noexcept { return lock != nullptr; }
+
+	ConditionalReadLocker(const ConditionalReadLocker&) = delete;
+	ConditionalReadLocker& operator=(const ConditionalReadLocker&) = delete;
 
 private:
 	ReadWriteLock* null lock;
@@ -420,6 +435,7 @@ class WriteLocker
 public:
 	explicit WriteLocker(ReadWriteLock& p_lock) noexcept : lock(&p_lock) { not_null(lock)->LockForWriting(); }
 	explicit WriteLocker(ReadWriteLock * null p_lock) noexcept : lock(p_lock) { if (lock != nullptr) { not_null(lock)->LockForWriting(); } }
+	WriteLocker(WriteLocker&& other) noexcept : lock(other.lock) { other.lock = nullptr; }
 	~WriteLocker() { if (lock != nullptr) { not_null(lock)->ReleaseWriter(); } }
 	void Release() noexcept { if (lock != nullptr) { not_null(lock)->ReleaseWriter(); lock = nullptr; } }
 	void Downgrade() noexcept
@@ -435,7 +451,7 @@ public:
 	}
 
 	WriteLocker(const WriteLocker&) = delete;
-	WriteLocker(WriteLocker&& other) noexcept : lock(other.lock) { other.lock = nullptr; }
+	WriteLocker& operator=(const WriteLocker&) = delete;
 
 private:
 	ReadWriteLock* null lock;
@@ -445,8 +461,12 @@ class ConditionalWriteLocker
 {
 public:
 	explicit ConditionalWriteLocker(ReadWriteLock& p_lock) noexcept : lock((p_lock.ConditionalLockForWriting()) ? &p_lock : nullptr) { }
+	ConditionalWriteLocker(ConditionalWriteLocker&& other) noexcept : lock(other.lock) { other.lock = nullptr; }
 	~ConditionalWriteLocker() { if (lock != nullptr) { not_null(lock)->ReleaseWriter(); } }
 	bool IsLocked() const noexcept { return lock != nullptr; }
+
+	ConditionalWriteLocker(const ConditionalWriteLocker&) = delete;
+	ConditionalWriteLocker& operator=(const ConditionalWriteLocker&) = delete;
 
 private:
 	ReadWriteLock* null lock;
@@ -457,7 +477,6 @@ template<class T> class ReadLockedPointer
 public:
 	ReadLockedPointer(ReadLocker& p_locker, T* p_ptr) noexcept : locker(std::move(p_locker)), ptr(p_ptr) { }
 	ReadLockedPointer(std::nullptr_t, T* p_ptr) noexcept : locker(nullptr), ptr(p_ptr) { }
-	ReadLockedPointer(const ReadLockedPointer<T>&) = delete;
 	ReadLockedPointer(ReadLockedPointer<T>&& other) noexcept : locker(std::move(other.locker)), ptr(other.ptr) { other.ptr = nullptr; }
 
 	bool IsNull() const noexcept { return ptr == nullptr; }
@@ -466,6 +485,9 @@ public:
 	T* Ptr() const noexcept { return ptr; }
 
 	void Release() noexcept { ptr = nullptr; locker.Release(); }
+
+	ReadLockedPointer(const ReadLockedPointer<T>&) = delete;
+	ReadLockedPointer<T>& operator=(const ReadLockedPointer<T>&) = delete;
 
 private:
 	ReadLocker locker;
@@ -477,13 +499,15 @@ template<class T> class WriteLockedPointer
 public:
 	WriteLockedPointer(WriteLocker& p_locker, T* null p_ptr) noexcept : locker(std::move(p_locker)), ptr(p_ptr) { }
 	WriteLockedPointer(std::nullptr_t, T* null p_ptr) noexcept : locker(nullptr), ptr(p_ptr) { }
-	WriteLockedPointer(const WriteLockedPointer<T>&) = delete;
 	WriteLockedPointer(WriteLockedPointer<T>&& other) noexcept : locker(std::move(other.locker)), ptr(other.ptr) { other.ptr = nullptr; }
 
 	bool IsNull() const noexcept { return ptr == nullptr; }
 	bool IsNotNull() const noexcept { return ptr != nullptr; }
 	T* operator->() const noexcept { return ptr; }
 	T* Ptr() const noexcept { return ptr; }
+
+	WriteLockedPointer(const WriteLockedPointer<T>&) = delete;
+	WriteLockedPointer<T>& operator=(const WriteLockedPointer<T>&) = delete;
 
 private:
 	WriteLocker locker;
@@ -511,10 +535,10 @@ protected:
 	static QueueBase * null thread;
 };
 
-template <class Message> class Queue : public QueueBase
+template <class Message> class MessageQueue : public QueueBase
 {
 public:
-	Queue() noexcept : messageStorage(nullptr) { }
+	MessageQueue() noexcept : messageStorage(nullptr) { }
 
 	void Create(const char *p_name, size_t capacity) noexcept;
 	bool PutToBack(const Message &m, uint32_t timeout) noexcept;
@@ -526,7 +550,7 @@ private:
 	uint8_t * _ecv_array null messageStorage;
 };
 
-template <class Message> void Queue<Message>::Create(const char *p_name, size_t capacity) noexcept
+template <class Message> void MessageQueue<Message>::Create(const char *p_name, size_t capacity) noexcept
 {
 	if (handle == nullptr)
 	{
@@ -535,17 +559,17 @@ template <class Message> void Queue<Message>::Create(const char *p_name, size_t 
 	}
 }
 
-template <class Message> bool Queue<Message>::PutToBack(const Message &m, uint32_t timeout) noexcept
+template <class Message> bool MessageQueue<Message>::PutToBack(const Message &m, uint32_t timeout) noexcept
 {
 	return xQueueSendToBack(handle, &m, timeout) == pdTRUE;
 }
 
-template <class Message> bool Queue<Message>::PutToFront(const Message &m, uint32_t timeout) noexcept
+template <class Message> bool MessageQueue<Message>::PutToFront(const Message &m, uint32_t timeout) noexcept
 {
 	return xQueueSendToFront(handle, &m, timeout) == pdTRUE;
 }
 
-template <class Message> bool Queue<Message>::Get(Message& m, uint32_t timeout) noexcept
+template <class Message> bool MessageQueue<Message>::Get(Message& m, uint32_t timeout) noexcept
 {
 	return xQueueReceive(handle, &m, timeout) == pdTRUE;
 }

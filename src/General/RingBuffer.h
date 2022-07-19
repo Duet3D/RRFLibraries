@@ -8,6 +8,7 @@
 #ifndef SRC_GENERAL_RINGBUFFER_H_
 #define SRC_GENERAL_RINGBUFFER_H_
 
+#include <ecv_duet3d.h>
 #include <cstdint>
 #include <cstddef>
 #include <cstring>

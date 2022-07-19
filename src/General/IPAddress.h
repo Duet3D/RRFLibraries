@@ -8,6 +8,7 @@
 #ifndef SRC_GENERAL_IPADDRESS_H_
 #define SRC_GENERAL_IPADDRESS_H_
 
+#include "../ecv_duet3d.h"
 #include <cstdint>
 
 // Class to represent an IP address. Currently it only supports IPV4 addresses, but eventually it will be expanded to support IPV6 too.

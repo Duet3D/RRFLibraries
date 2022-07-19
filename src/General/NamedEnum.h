@@ -92,8 +92,10 @@ static inline const char * _ecv_array SkipLeadingUnderscore(const char * _ecv_ar
 //  printf("%s", myCar.ToString());
 //
 // If any of the names is a C++ reserved word or starts with a digit, prefix it with a single underscore
-// IMPORTANT! If the constructor from string is used then the names must be in alphabetical order (ignoring the leading underscore) because it uses a binary search
+// BaseType must be unsigned for IsValid and ToString to work correctly.
+
 #define NamedEnum(_typename, _baseType, _v1, ...) \
+static_assert((_baseType)0 < (_baseType)-1, "base type must be unsigned"); \
 class _typename final { \
 public: \
 	typedef _baseType BaseType;																					/* alias for the base type */ \
@@ -101,7 +103,7 @@ public: \
 	static constexpr unsigned int NumValues = VA_SIZE(__VA_ARGS__) + 1;											/* count of members */ \
 	_typename(RawType arg) noexcept { v = arg; }																/* constructor - cannot be declared 'explicit' because we need the conversion */ \
 	explicit _typename(BaseType arg) noexcept { v = static_cast<RawType>(arg); }								/* constructor */ \
-	explicit _typename(const char * _ecv_array s) noexcept { v = static_cast<RawType>(NamedEnumLookup(s, _names, NumValues)); }	/* constructor from string - NAMES MUST BE ORDERED when using this */ \
+	explicit _typename(const char * _ecv_array s) noexcept { v = static_cast<RawType>(NamedEnumLookup(s, _names, NumValues)); }	/* constructor from string */ \
 	_typename(const _typename& arg) noexcept { v = arg.v; }														/* copy constructor */ \
 	bool operator==(_typename arg) const noexcept { return v == arg.v; }										/* equality operator */ \
 	bool operator!=(_typename arg) const noexcept { return v != arg.v; }										/* inequality operator */ \
@@ -120,9 +122,9 @@ public: \
 	constexpr RawType RawValue() const noexcept { return v; }													/* return the raw enum value, which we can switch on */ \
 	constexpr BaseType ToBaseType() const noexcept { return static_cast<BaseType>(v); }							/* convert to integral base type */ \
 	static constexpr BaseType ToBaseType(RawType arg) noexcept { return static_cast<BaseType>(arg); }			/* convert to integral base type */ \
-	const char* _ecv_array ToString() const noexcept { return (v < NumValues) ? SkipLeadingUnderscore(_names[v]) : "invalid"; }	/* conversion to C string */ \
+	const char* _ecv_array ToString() const noexcept { return ((BaseType)v < NumValues) ? SkipLeadingUnderscore(_names[v]) : "invalid"; }	/* conversion to C string */ \
 	void Assign(BaseType arg) noexcept { v = static_cast<RawType>(arg); }										/* assignment from integral base type */ \
-	bool IsValid() const noexcept { return v < NumValues; }														/* check validity */ \
+	bool IsValid() const noexcept { return (BaseType)v < NumValues; }											/* check validity */ \
 private: \
 	RawType v; \
 	static constexpr const char* _ecv_array _names[NumValues] = { STRINGLIST(_v1, __VA_ARGS__) }; \
