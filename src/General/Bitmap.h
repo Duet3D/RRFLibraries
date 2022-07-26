@@ -63,6 +63,24 @@ template<class T> inline constexpr T ExtractBit(T val, unsigned int fromBitNumbe
 	}
 }
 
+// Extract two bits from a value and move it to a target bit number, returning a value with only the target bits possibly set
+// T should be an unsigned integer type
+template<class T> inline constexpr T ExtractTwoBits(T val, unsigned int fromBitNumber, unsigned int toBitNumber) noexcept
+{
+	if (fromBitNumber == toBitNumber)
+	{
+		return val & ((T)3 << toBitNumber);
+	}
+	else if (toBitNumber > fromBitNumber)
+	{
+		return (val << (toBitNumber - fromBitNumber)) & ((T)3 << toBitNumber);
+	}
+	else
+	{
+		return (val >> (fromBitNumber - toBitNumber)) & ((T)3 << toBitNumber);
+	}
+}
+
 template<class BaseType> class Bitmap
 {
 public:
