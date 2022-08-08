@@ -151,6 +151,9 @@ public:
 	void Resume() noexcept { vTaskResume(GetFreeRTOSHandle()); }
 
 	void SetPriority(unsigned int priority) noexcept { vTaskPrioritySet(GetFreeRTOSHandle(), priority); }
+
+	static void SetCurrentTaskPriority(unsigned int priority) noexcept { vTaskPrioritySet(nullptr, priority); }
+
 	bool IsRunning() const noexcept { return taskId != 0; }
 
 	// Wake up a task identified by its handle from an ISR. Safe to call with a null handle.
