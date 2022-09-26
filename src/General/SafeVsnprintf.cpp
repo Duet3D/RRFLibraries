@@ -608,8 +608,7 @@ int FormattedPrinter::Print(const char *_ecv_array format, va_list args) noexcep
 		{
 			while (ch >= '0' && ch <= '9')
 			{
-				flags.width *= 10;
-				flags.width += (int)ch - (int)'0';
+				flags.width = (flags.width * 10) + (ch - '0');
 				ch = *format++;
 			}
 		}
@@ -626,8 +625,7 @@ int FormattedPrinter::Print(const char *_ecv_array format, va_list args) noexcep
 				flags.printLimit = 0;
 				while (ch >= '0' && ch <= '9')
 				{
-					flags.printLimit *= 10;
-					flags.printLimit += (int)ch - (int)'0';
+					flags.printLimit = (flags.printLimit * 10) + (ch - '0');
 					ch = *format++;
 				}
 			}
