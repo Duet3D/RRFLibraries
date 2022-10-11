@@ -111,6 +111,12 @@ public:
 		bits &= ~((BaseType)1u << n);
 	}
 
+	// Clear a bit in a bitmap
+	constexpr void ClearBits(Bitmap<BaseType> other) noexcept
+	{
+		bits &= ~other.bits;
+	}
+
 	// Set a bit to a given state
 	constexpr void SetOrClearBit(unsigned int n, bool b)
 	{
