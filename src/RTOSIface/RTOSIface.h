@@ -183,7 +183,6 @@ public:
 	// Clear a task notification count
 	static uint32_t ClearNotifyCount(TaskBase *_ecv_from h = GetCallerTaskHandle(), uint32_t bitsToClear = 0xFFFFFFFFu) noexcept
 	{
-		ulTaskNotifyValueClear(h->GetFreeRTOSHandle(), bitsToClear);
 		return ulTaskNotifyValueClear(h->GetFreeRTOSHandle(), bitsToClear);
 	}
 
