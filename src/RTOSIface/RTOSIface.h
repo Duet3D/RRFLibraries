@@ -181,9 +181,15 @@ public:
 	}
 
 	// Clear a task notification count
-	static uint32_t ClearNotifyCount(TaskBase *_ecv_from h = GetCallerTaskHandle(), uint32_t bitsToClear = 0xFFFFFFFFu) noexcept
+	static uint32_t ClearNotifyCount(TaskBase *_ecv_from h, uint32_t bitsToClear = 0xFFFFFFFFu) noexcept
 	{
 		return ulTaskNotifyValueClear(h->GetFreeRTOSHandle(), bitsToClear);
+	}
+
+	// Clear the current task notification count
+	static uint32_t ClearCurrentTaskNotifyCount(uint32_t bitsToClear = 0xFFFFFFFFu) noexcept
+	{
+		return ulTaskNotifyValueClear(nullptr, bitsToClear);
 	}
 
 	static TaskBase *_ecv_from GetCallerTaskHandle() noexcept { return reinterpret_cast<TaskBase *>(xTaskGetCurrentTaskHandle()); }
