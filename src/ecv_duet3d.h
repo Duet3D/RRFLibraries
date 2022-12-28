@@ -17,6 +17,7 @@
 #undef out
 #undef value
 #undef result	// used in cmsis_gcc.h
+#undef from		// used in RP2040 SDK
 
 // C++ doesn't define a 16-bit floating point type, so eCv uses _ecv_float16_t
 
