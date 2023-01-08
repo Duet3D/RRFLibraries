@@ -117,22 +117,4 @@ int32_t StrToI32(const char *_ecv_array s, const char *_ecv_array *null endptr) 
 	return 0;
 }
 
-unsigned long SafeStrtoul(const char *_ecv_array s, const char *_ecv_array *null endptr, int base) noexcept
-{
-	// strtoul() accepts a leading minus-sign, which we don't want to allow
-	while (*s == ' ' || *s == '\t')
-	{
-		++s;
-	}
-	if (*s == '-')
-	{
-		if (endptr != nullptr)
-		{
-			*not_null(endptr) = s;
-		}
-		return 0;
-	}
-	return strtoul(s, const_cast<char*_ecv_array *null>(endptr), base);
-}
-
 // End
