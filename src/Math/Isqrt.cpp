@@ -1,6 +1,7 @@
 // Fast 62-bit integer square root algorithms
 
 #include <cstdint>
+#include "../ecv_duet3d.h"
 
 #ifdef __SAMC21G18A__
 
@@ -191,6 +192,7 @@ float fastSqrtf(float f) noexcept
 
 	// 4a. Subtract the +127 exponent bias
 	int32_t exponent = (int32_t)uexponent - 127;
+	_ecv_assert(exponent <= 127; exponent >= -127);
 
 	// 5. Make the exponent even, also shift it left to get more result bits. This puts fraction in the range 2^30 to 2^32 - 2^8 + 1.
 	fraction <<= 7 + ((uint32_t)exponent & 1u);
@@ -241,7 +243,7 @@ float fastSqrtf(float f) noexcept
 		}										\
 	}
 
-	iter32(15) iter32(14) iter32(13) iter32(12) iter32(11) iter32(10) iter32(9)  iter32(8)
+	iter32(15) iter32(14) iter32(13) iter32(12) iter32(11) iter32(10) iter32(9) iter32(8)
 	iter32(7)  iter32(6)  iter32(5)  iter32(4) 	iter32(3)  iter32(2)  iter32(1)  iter32(0)
 
 	// We have 16 binary digits but we want 24 including the leading 1.
