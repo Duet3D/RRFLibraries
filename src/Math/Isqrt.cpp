@@ -1,7 +1,6 @@
 // Fast 62-bit integer square root algorithms
 
-#include <cstdint>
-#include "../ecv_duet3d.h"
+#include "Isqrt.h"
 
 #ifdef __SAMC21G18A__
 
@@ -12,15 +11,18 @@
 uint32_t isqrt64(uint64_t num) noexcept
 {
 	uint32_t numHigh = (uint32_t)(num >> 32);
+	uint32_t numLow = (uint32_t)num;
 	if (numHigh == 0)
 	{
 		// 32-bit square root. Use the DIVAS to calculate it.
 		// We need to disable interrupts to prevent other tasks or ISRs using the DIVAS at the same time.
 		const irqflags_t flags = IrqSave();
-		DIVAS->SQRNUM.reg = (uint32_t)num;
+		DIVAS->SQRNUM.reg = numLow;
 		while (DIVAS->STATUS.bit.BUSY) { }
 		const uint32_t rslt = DIVAS->RESULT.reg;
 		IrqRestore(flags);
+		// eCv doesn't know the semantics of the DIVAS unit to we need to tell it
+		_ecv_assume(rslt * rslt <= numLow; (rslt + 1) * (rslt + 1) > numLow);
 		return rslt;
 	}
 
@@ -31,37 +33,38 @@ uint32_t isqrt64(uint64_t num) noexcept
 	}
 
 	// 62-bit square root. Use the DIVAS to calculate the top 30 bits of the result and the remainder.
-	uint32_t numLow = (uint32_t)num;
-	uint32_t res;
+	uint32_t res, rem;
 	{
 		const irqflags_t flags = IrqSave();
 		DIVAS->SQRNUM.reg = numHigh;
 		while (DIVAS->STATUS.bit.BUSY) { }
 		res = DIVAS->RESULT.reg;
-		numHigh = DIVAS->REM.reg;
+		rem = DIVAS->REM.reg;
 		IrqRestore(flags);
 	}
+	// eCv doesn't know the semantics of the DIVAS unit to we need to tell it
+	_ecv_assume(res * res <= numHigh; (res + 1) * (res + 1) > numHigh; res * res + rem == numHigh);
 
-	// At this point, res is twice the square root of the msw of the original number, in the range 0..2^16-2 with the input restricted to 62 bits
-	// numHigh may have up to 24 bits set
+	// At this point, res is the square root of the msw of the original number, in the range 0..2^16-2 with the input restricted to 62 bits
+	// rem may have up to 16 bits set
 	// On the SAMC21 I found 2 iterations per loop in the following to be faster than 3 or 4, probably because the SAMC21 flash cache is 64 bytes long.
 	// This is the most optimum SAM21 code I managed to create. I didn't manage to persuade gcc to get rid of the compare instruction at the end of the loop.
 	for (unsigned int i = 0; i < 8; ++i)
 	{
-		numHigh = (numHigh << 2) | (numLow >> 30);
+		rem = (rem << 2) | (numLow >> 30);
 		numLow <<= 2;
 		res <<= 2;
-		if (numHigh >= (res | 1u))
+		if (rem >= (res | 1u))
 		{
-			numHigh -= (res | 1u);
+			rem -= (res | 1u);
 			res |= 2u;
 		}
 
-		numHigh = (numHigh << 2) | (numLow >> 30);
+		rem = (rem << 2) | (numLow >> 30);
 		numLow <<= 2;
-		if (numHigh >= ((res << 1) | 1u))
+		if (rem >= ((res << 1) | 1u))
 		{
-			numHigh -= ((res << 1) | 1u);
+			rem -= ((res << 1) | 1u);
 			res |= 1u;
 		}
 	}
