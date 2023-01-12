@@ -13,7 +13,7 @@
 #include <cstddef>
 #include "function_ref.h"
 
-typedef function_ref<bool(char) /*noexcept*/ > PutcFunc_t;
+typedef function_ref_noexcept<bool(char) noexcept> PutcFunc_t;
 
 // These functions are like vprintf and printf but each character to print is sent through a function
 // The putc function must behave as follows:
