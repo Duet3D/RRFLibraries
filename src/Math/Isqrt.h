@@ -12,7 +12,7 @@
 #include "../ecv_duet3d.h"
 
 extern uint32_t isqrt64(uint64_t num) noexcept		// This is defined in its own file, Isqrt.cpp or Isqrt.asm
-	post(num <= 0x3FFFFFFF => (rresult * result <= num && (result + 1) * (result + 1) > num));
+	post(num <= 0x3FFFFFFF => (_ecv_result * _ecv_result <= num && (_ecv_result + 1) * (_ecv_result + 1) > num));
 
 #if !((defined(__FPU_USED) && __FPU_USED) || (defined (__VFP_FP__) && !defined(__SOFTFP__)))
 float fastSqrtf(float f) noexcept;
