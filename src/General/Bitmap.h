@@ -105,20 +105,26 @@ public:
 		bits |= ((BaseType)1u << n);
 	}
 
-	// Clear a bit in a bitmap
+	// Clear a bit
 	constexpr void ClearBit(unsigned int n) noexcept
 	{
 		bits &= ~((BaseType)1u << n);
 	}
 
-	// Clear a bit in a bitmap
+	// Invert a bit
+	constexpr void InvertBit(unsigned int n) noexcept
+	{
+		bits ^= ((BaseType)1u << n);
+	}
+
+	// Clear multiple bits
 	constexpr void ClearBits(Bitmap<BaseType> other) noexcept
 	{
 		bits &= ~other.bits;
 	}
 
 	// Set a bit to a given state
-	constexpr void SetOrClearBit(unsigned int n, bool b)
+	constexpr void SetOrClearBit(unsigned int n, bool b) noexcept
 	{
 		if (b)
 		{
