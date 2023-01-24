@@ -9,10 +9,14 @@
 
 #ifdef RTOS
 
+# include "../General/FreelistManager.h"
 # include "FreeRTOS.h"
 # include "task.h"
 # include "semphr.h"
 # include <atomic>
+
+extern "C" [[noreturn]] void vAssertCalled(uint32_t line, const char *file) noexcept;
+#define RTOS_ASSERT(_expr)	if (!(_expr)) { vAssertCalled(__LINE__, __FILE__); }
 
 static_assert(Mutex::TimeoutUnlimited == portMAX_DELAY, "Bad value for TimeoutUnlimited");
 
@@ -186,126 +190,324 @@ void TaskBase::GiveFromISR() noexcept
 
 #endif
 
+// Class ReadWriteLock members
+// Each element in the readLocks list is a lock if the count is nonzero or a request to read lock if the count is zero
+// Each element in the writeLocks list is a lock if the count is nonzero or a request to write lock if the count is zero
+// Only the head element in the writeLocks list can have a nonzero count
+
+#ifdef RTOS
+
+// Structure used to record a task that has a lock or want to have one, and how many times it has acquired the lock (0 = still waiting)
+struct ReadWriteLock::LockRecord
+{
+	DECLARE_FREELIST_NEW_DELETE(LockRecord);
+
+	LockRecord *_ecv_null next;
+	TaskBase *_ecv_from null owner;
+	uint32_t count;
+
+	LockRecord(LockRecord *_ecv_null p_next, TaskBase *_ecv_from null volatile p_owner) noexcept
+		: next(p_next), owner(p_owner), count(0) { }
+};
+
 void ReadWriteLock::LockForReading() noexcept
 {
-#ifdef RTOS
-	if (writeLockOwner != TaskBase::GetCallerTaskHandle())
+	TaskBase *_ecv_from const me = TaskBase::GetCallerTaskHandle();
+	RTOSIface::EnterTaskCriticalSection();
+
+	// If we own the write lock, ignore the read lock request
 	{
-		for (;;)
+		LockRecord *const wl = writeLocks;					// capture volatile variable
+		if (wl != nullptr && wl->owner == me)
 		{
-			uint8_t nr = numReaders.load();
-			if ((nr & 0x80) != 0)
-			{
-				vTaskDelay(1);					// delay while writing is pending or active
-			}
-			else if (numReaders.compare_exchange_strong(nr, nr + 1))
-			{
-				break;
-			}
+			RTOSIface::LeaveTaskCriticalSection();
+			return;
 		}
 	}
-#endif
+
+	// Check whether we already have a read lock, if we do then just increment the count
+	for (LockRecord *rl = readLocks; rl != nullptr; rl = rl->next)
+	{
+		if (rl->owner == me)
+		{
+			++rl->count;
+			RTOSIface::LeaveTaskCriticalSection();
+			return;
+		}
+	}
+
+	// We don't already own a read lock, so we need a new lock record
+	LockRecord *const lr = new LockRecord(readLocks, me);
+	readLocks = lr;
+
+	// If nobody owns or is trying to acquire write lock, we can read lock
+	if (writeLocks == nullptr)
+	{
+		++lr->count;
+		RTOSIface::LeaveTaskCriticalSection();
+		return;
+	}
+
+	// If we get here we must wait until we are notified
+	RTOSIface::LeaveTaskCriticalSection();
+	do
+	{
+		TaskBase::Take();
+	} while (lr->count == 0);
 }
 
 bool ReadWriteLock::ConditionalLockForReading() noexcept
 {
-#ifdef RTOS
-	if (writeLockOwner != TaskBase::GetCallerTaskHandle())
+	TaskBase *_ecv_from const me = TaskBase::GetCallerTaskHandle();
+	RTOSIface::EnterTaskCriticalSection();
+
+	// If we own the write lock, ignore the read lock request
 	{
-		for (;;)
+		LockRecord *const wl = writeLocks;					// capture volatile variable
+		if (wl != nullptr && wl->owner == me)
 		{
-			uint8_t nr = numReaders.load();
-			if ((nr & 0x80) !=  0)
-			{
-				return false;
-			}
-			if (numReaders.compare_exchange_strong(nr, nr + 1))
-			{
-				break;
-			}
+			RTOSIface::LeaveTaskCriticalSection();
+			return true;
 		}
 	}
-#endif
-	return true;
+
+	// Check whether we already have a read lock, if we do then just increment the count
+	for (LockRecord *readOwner = readLocks; readOwner != nullptr; readOwner = readOwner->next)
+	{
+		if (readOwner->owner == me)
+		{
+			++readOwner->count;
+			RTOSIface::LeaveTaskCriticalSection();
+			return true;
+		}
+	}
+
+	// We don't already own a read lock, so we need a new lock record
+
+	// If nobody owns or is trying to acquire write lock, we can read lock
+	if (writeLocks == nullptr)
+	{
+		LockRecord *const lr = new LockRecord(readLocks, me);
+		readLocks = lr;
+		++lr->count;
+		RTOSIface::LeaveTaskCriticalSection();
+		return true;
+	}
+
+	RTOSIface::LeaveTaskCriticalSection();
+	return false;
 }
 
 void ReadWriteLock::ReleaseReader() noexcept
 {
-#ifdef RTOS
-	if (writeLockOwner != TaskBase::GetCallerTaskHandle())
+	TaskBase *_ecv_from const me = TaskBase::GetCallerTaskHandle();
+	RTOSIface::EnterTaskCriticalSection();
+	if (writeLocks == nullptr || writeLocks->owner != me)		// if we own the write lock, ignore the read-unlock
 	{
-		--numReaders;
+		// Check whether we already have a read lock, if we do then just increment the count
+		bool foundOwnRecord = false;
+		LockRecord *_ecv_null prev = nullptr;
+		bool hasRemainingReadLocks = false;
+		for (LockRecord *rl = readLocks; rl != nullptr; )
+		{
+			if (rl->owner == me)
+			{
+				foundOwnRecord = true;
+				if ((--rl->count) == 0)
+				{
+					if (prev == nullptr)
+					{
+						readLocks = rl->next;
+					}
+					else
+					{
+						prev->next = rl->next;
+					}
+					LockRecord *tbd = rl;
+					rl = rl->next;
+					delete tbd;
+					if (hasRemainingReadLocks)
+					{
+						break;
+					}
+				}
+				else
+				{
+					hasRemainingReadLocks = true;
+					break;
+				}
+			}
+			else
+			{
+				if (rl->count != 0)
+				{
+					hasRemainingReadLocks = true;
+				}
+				prev = rl;
+				rl = rl->next;
+			}
+		}
+
+		RTOS_ASSERT(foundOwnRecord);
+		if (!hasRemainingReadLocks)
+		{
+			LockRecord *_ecv_null const wr = writeLocks;		// capture volatile variable
+			if (wr != nullptr && wr->count == 0)
+			{
+				++wr->count;
+				wr->owner->Give();
+			}
+		}
 	}
-#endif
+	RTOSIface::LeaveTaskCriticalSection();
 }
 
 void ReadWriteLock::LockForWriting() noexcept
 {
-#ifdef RTOS
-	// First wait for other writers to finish, then grab the write lock
-	for (;;)
+	TaskBase *_ecv_from const me = TaskBase::GetCallerTaskHandle();
+	RTOSIface::EnterTaskCriticalSection();
+
+	LockRecord *wr = writeLocks;
+	if (wr != nullptr && wr->owner == me)
 	{
-		uint8_t nr = numReaders.load();
-		if ((nr & 0x80) !=  0)
-		{
-			vTaskDelay(1);					// delay while writing is pending or active
-		}
-		else if (numReaders.compare_exchange_strong(nr, nr | 0x80))
-		{
-			break;
-		}
+		RTOS_ASSERT(wr->count != 0);
+		++wr->count;
+		RTOSIface::LeaveTaskCriticalSection();
+		return;
 	}
 
-	// Now wait for readers to finish
-	while (numReaders.load() != 0x80)
+	// We need a new lock record
+	LockRecord *newLock = new LockRecord(nullptr, me);
+	if (wr == nullptr)
 	{
-		vTaskDelay(1);
+		// Nobody else is waiting for the write lock, so make the write lock list point to our lock record
+		writeLocks = newLock;
+
+		// If there are no read locks, we can grab it. Any that exist must have a nonzero count.
+		if (readLocks == nullptr)
+		{
+			++newLock->count;
+			RTOSIface::LeaveTaskCriticalSection();
+			return;
+		}
+	}
+	else
+	{
+		// Add ourselves to the queue of tasks waiting for a write lock
+		while (wr->next != nullptr)
+		{
+			wr = wr->next;
+		}
+		wr->next = newLock;
 	}
 
-	writeLockOwner = TaskBase::GetCallerTaskHandle();
-#endif
+	RTOSIface::LeaveTaskCriticalSection();
+
+	// Wait until we are given the lock
+	do
+	{
+		TaskBase::Take();
+	}
+	while (newLock->count == 0);
 }
 
 bool ReadWriteLock::ConditionalLockForWriting() noexcept
 {
-#ifdef RTOS
-	uint8_t nr = numReaders.load();
-	if (nr == 0 && numReaders.compare_exchange_strong(nr, nr | 0x80))
+	TaskBase *_ecv_from const me = TaskBase::GetCallerTaskHandle();
+	RTOSIface::EnterTaskCriticalSection();
+
+	if (writeLocks == nullptr && readLocks == nullptr)
 	{
-		writeLockOwner = TaskBase::GetCallerTaskHandle();
+		// Nobody else is waiting for the write lock and there are no read locks
+		LockRecord *newLock = new LockRecord(nullptr, me);
+		writeLocks = newLock;
+		++newLock->count;
+		RTOSIface::LeaveTaskCriticalSection();
 		return true;
 	}
+
+	RTOSIface::LeaveTaskCriticalSection();
 	return false;
-#else
-	return true;
-#endif
 }
 
 void ReadWriteLock::ReleaseWriter() noexcept
 {
-#ifdef RTOS
-	if (writeLockOwner == TaskBase::GetCallerTaskHandle())
+	TaskBase *_ecv_from const me = TaskBase::GetCallerTaskHandle();
+	RTOSIface::EnterTaskCriticalSection();
+
+	LockRecord *wl = writeLocks;
+	RTOS_ASSERT(wl != nullptr && wl->owner == me && wl->count != 0);
+	if (--wl->count == 0)
 	{
-		writeLockOwner = nullptr;
-		numReaders = 0;
+		LockRecord *wl2 = wl->next;
+		writeLocks = wl2;
+		delete wl;
+
+		if (wl2 != nullptr)
+		{
+			// Another task is waiting for a write lock so pass the lock on to it
+			++wl2->count;
+			wl2->owner->Give();
+		}
+		else
+		{
+			// Wake up any tasks waiting for read locks
+			for (LockRecord *rl = readLocks; rl != nullptr; rl = rl->next)
+			{
+				if (rl->count == 0)			// this should always be true
+				{
+					++rl->count;
+					rl->owner->Give();
+				}
+			}
+		}
 	}
-	else if ((numReaders.load() & 0x7F) != 0)
-	{
-		// We must have downgraded to a read lock
-		--numReaders;
-	}
-#endif
+	RTOSIface::LeaveTaskCriticalSection();
 }
 
 void ReadWriteLock::DowngradeWriter() noexcept
 {
-#ifdef RTOS
-	if (writeLockOwner == TaskBase::GetCallerTaskHandle())
+	TaskBase *_ecv_from const me = TaskBase::GetCallerTaskHandle();
+	RTOSIface::EnterTaskCriticalSection();
+	LockRecord *const wl = writeLocks;
+	RTOS_ASSERT(wl != nullptr && wl->owner == me && wl->count == 1);
+	writeLocks = wl->next;
+	wl->next = readLocks;
+	readLocks = wl;
+
+	// Wake up any other tasks waiting for read locks
+	for (LockRecord *rl = wl->next; rl != nullptr; rl = rl->next)
 	{
-		numReaders = 1;
-		writeLockOwner = nullptr;
+		if (rl->count == 0)			// this should always be true
+		{
+			++rl->count;
+			rl->owner->Give();
+		}
 	}
-#endif
+	RTOSIface::LeaveTaskCriticalSection();
 }
 
+void ReadWriteLock::CheckHasWriteLock() noexcept
+{
+	const TaskBase *_ecv_from const me = TaskBase::GetCallerTaskHandle();
+	RTOSIface::EnterTaskCriticalSection();
+	LockRecord *wl = writeLocks;
+	RTOS_ASSERT(wl != nullptr && wl->owner == me && wl->count != 0);
+	RTOSIface::LeaveTaskCriticalSection();
+}
+
+void ReadWriteLock::CheckHasReadLock() noexcept
+{
+	const TaskBase *_ecv_from const me = TaskBase::GetCallerTaskHandle();
+	RTOSIface::EnterTaskCriticalSection();
+	LockRecord *rl = readLocks;
+	while (rl != nullptr && rl->owner != me)
+	{
+		rl = rl->next;
+	}
+	RTOS_ASSERT(rl != nullptr && rl->count != 0);
+	RTOSIface::LeaveTaskCriticalSection();
+}
+
+#endif
 // End
