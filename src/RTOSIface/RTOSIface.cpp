@@ -509,5 +509,22 @@ void ReadWriteLock::CheckHasReadLock() noexcept
 	RTOSIface::LeaveTaskCriticalSection();
 }
 
+void ReadWriteLock::CheckHasReadOrWriteLock() noexcept
+{
+	const TaskBase *_ecv_from const me = TaskBase::GetCallerTaskHandle();
+	RTOSIface::EnterTaskCriticalSection();
+	LockRecord *wl = writeLocks;
+	if (wl == nullptr || wl->owner != me || wl->count == 0)
+	{
+		LockRecord *rl = readLocks;
+		while (rl != nullptr && rl->owner != me)
+		{
+			rl = rl->next;
+		}
+		RTOS_ASSERT(rl != nullptr && rl->count != 0);
+	}
+	RTOSIface::LeaveTaskCriticalSection();
+}
+
 #endif
 // End

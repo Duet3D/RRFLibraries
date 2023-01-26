@@ -393,6 +393,7 @@ public:
 #ifdef RTOS
 	void CheckHasWriteLock() noexcept;
 	void CheckHasReadLock() noexcept;
+	void CheckHasReadOrWriteLock() noexcept;
 #endif
 
 	ReadWriteLock(const ReadWriteLock&) = delete;
