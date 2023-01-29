@@ -487,6 +487,12 @@ void ReadWriteLock::DowngradeWriter() noexcept
 	RTOSIface::LeaveTaskCriticalSection();
 }
 
+// Return true if there is an active write lock. Must only be called with interrupts disabled or scheduling disabled. Safe to call from an ISR.
+bool ReadWriteLock::IsWriteLocked() const noexcept
+{
+	return writeLocks != nullptr && writeLocks->count != 0;
+}
+
 void ReadWriteLock::CheckHasWriteLock() noexcept
 {
 	const TaskBase *_ecv_from const me = TaskBase::GetCallerTaskHandle();

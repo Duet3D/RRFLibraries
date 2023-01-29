@@ -374,6 +374,7 @@ private:
 // - If you have a read lock, you must not ask for a write lock on the same object, it will deadlock if you do.
 // - You can downgrade a write lock to a read lock
 // - There is no facility to upgrade a read lock to a write lock, because the system would deadlock if two tasks tried to do that at the same time
+// - Except where noted, the member functions are not safe to call from an ISR.
 class ReadWriteLock
 {
 public:
@@ -390,6 +391,7 @@ public:
 	bool ConditionalLockForWriting() noexcept;
 	void ReleaseWriter() noexcept;
 	void DowngradeWriter() noexcept;					// turn a write lock into a read lock (but you can't go back again)
+	bool IsWriteLocked() const noexcept;				// return true if there is an active write lock. Must only be called with interrupts disabled or scheduling disabled. Safe to call from an ISR.
 #ifdef RTOS
 	void CheckHasWriteLock() noexcept;
 	void CheckHasReadLock() noexcept;
