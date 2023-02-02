@@ -163,6 +163,11 @@ public:
 		return *this;
 	}
 
+	constexpr Bitmap<BaseType> operator - (Bitmap<BaseType> other) const noexcept
+	{
+		return Bitmap<BaseType>(bits & ~other.bits);
+	}
+
 	constexpr bool operator == (Bitmap<BaseType> other) const noexcept
 	{
 		return bits == other.bits;
