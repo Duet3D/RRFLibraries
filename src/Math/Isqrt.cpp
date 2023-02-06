@@ -86,11 +86,13 @@ uint32_t isqrt64(uint64_t num) noexcept
 # define iter32(N)									\
 		{											\
 			const uint32_t temp = res | (1u << N);	\
+			_ecv_assert(res < (1u << (15 - N)));	\
 			if (num32 >= temp << N)					\
 			{										\
 				num32 -= temp << N;					\
 				res |= 2u << N;						\
 			}										\
+			_ecv_assert(res < (1u << (N + 2)));		\
 		}
 
 		// We need to do 16 iterations
@@ -116,8 +118,10 @@ uint32_t isqrt64(uint64_t num) noexcept
 
 # define iter64a(N) 									\
 		{												\
+			_ecv_assert(res < (1u << (28 - N)));		\
 			res <<= 1;									\
 			const uint32_t temp = (res | 1u) << (N);	\
+			_ecv_assert(temp < (1u << (N + 1)));		\
 			if (numHigh >= temp)						\
 			{											\
 				numHigh -= temp;						\
