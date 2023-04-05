@@ -50,7 +50,7 @@ int StringRef::catf(const char *_ecv_array fmt, ...) const noexcept
 int StringRef::lcatf(const char *_ecv_array fmt, ...) const noexcept
 {
 	size_t n = strlen();
-	if (n != 0)
+	if (n != 0 && p[n - 1] != '\n')
 	{
 		if (cat('\n'))
 		{

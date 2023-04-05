@@ -37,20 +37,19 @@ typedef TaskBase *TaskHandle;
   This function enables IRQ interrupts by clearing the I-bit in the CPSR.
   Can only be executed in Privileged modes.
  */
-__attribute__( ( always_inline ) ) static inline void EnableInterrupts() noexcept
+__attribute__((always_inline)) static inline void EnableInterrupts() noexcept
 {
-  __asm volatile ("cpsie i" : : : "memory");
+	__asm volatile ("cpsie i" : : : "memory");
 }
-
 
 /** \brief  Disable IRQ Interrupts
 
   This function disables IRQ interrupts by setting the I-bit in the CPSR.
   Can only be executed in Privileged modes.
  */
-__attribute__( ( always_inline ) ) static inline void DisableInterrupts() noexcept
+__attribute__((always_inline)) static inline void DisableInterrupts() noexcept
 {
-  __asm volatile ("cpsid i" : : : "memory");
+	__asm volatile ("cpsid i" : : : "memory");
 }
 
 // Mutex class. This uses the FreeRTOS static semaphore type, but adds a name and links them all together in a list
@@ -151,6 +150,9 @@ public:
 	void Resume() noexcept { vTaskResume(GetFreeRTOSHandle()); }
 
 	void SetPriority(unsigned int priority) noexcept { vTaskPrioritySet(GetFreeRTOSHandle(), priority); }
+
+	static void SetCurrentTaskPriority(unsigned int priority) noexcept { vTaskPrioritySet(nullptr, priority); }
+
 	bool IsRunning() const noexcept { return taskId != 0; }
 
 	// Wake up a task identified by its handle from an ISR. Safe to call with a null handle.
@@ -178,15 +180,22 @@ public:
 	}
 
 	// Clear a task notification count
-	static uint32_t ClearNotifyCount(TaskBase *_ecv_from h = GetCallerTaskHandle(), uint32_t bitsToClear = 0xFFFFFFFFu) noexcept
+	static uint32_t ClearNotifyCount(TaskBase *_ecv_from h, uint32_t bitsToClear = 0xFFFFFFFFu) noexcept
 	{
-		ulTaskNotifyValueClear(h->GetFreeRTOSHandle(), bitsToClear);
 		return ulTaskNotifyValueClear(h->GetFreeRTOSHandle(), bitsToClear);
+	}
+
+	// Clear the current task notification count
+	static uint32_t ClearCurrentTaskNotifyCount(uint32_t bitsToClear = 0xFFFFFFFFu) noexcept
+	{
+		return ulTaskNotifyValueClear(nullptr, bitsToClear);
 	}
 
 	static TaskBase *_ecv_from GetCallerTaskHandle() noexcept { return reinterpret_cast<TaskBase *>(xTaskGetCurrentTaskHandle()); }
 
 	static TaskId GetCallerTaskId() noexcept { return GetCallerTaskHandle()->taskId; }
+
+	static void Yield() noexcept { taskYIELD(); }
 
 	TaskBase(const TaskBase&) = delete;				// it's not safe to copy these
 	TaskBase& operator=(const TaskBase&) = delete;	// it's not safe to assign these
@@ -365,12 +374,13 @@ private:
 // - If you have a read lock, you must not ask for a write lock on the same object, it will deadlock if you do.
 // - You can downgrade a write lock to a read lock
 // - There is no facility to upgrade a read lock to a write lock, because the system would deadlock if two tasks tried to do that at the same time
+// - Except where noted, the member functions are not safe to call from an ISR.
 class ReadWriteLock
 {
 public:
 	ReadWriteLock() noexcept
 #ifdef RTOS
-		: numReaders(0), writeLockOwner(nullptr)
+		: readLocks(nullptr), writeLocks(nullptr)
 #endif
 	{ }
 
@@ -381,8 +391,11 @@ public:
 	bool ConditionalLockForWriting() noexcept;
 	void ReleaseWriter() noexcept;
 	void DowngradeWriter() noexcept;					// turn a write lock into a read lock (but you can't go back again)
+	bool IsWriteLocked() const noexcept;				// return true if there is an active write lock. Must only be called with interrupts disabled or scheduling disabled. Safe to call from an ISR.
 #ifdef RTOS
-	TaskBase *_ecv_from null GetWriteLockOwner() const volatile { return writeLockOwner; }
+	void CheckHasWriteLock() noexcept;
+	void CheckHasReadLock() noexcept;
+	void CheckHasReadOrWriteLock() noexcept;
 #endif
 
 	ReadWriteLock(const ReadWriteLock&) = delete;
@@ -392,12 +405,24 @@ public:
 private:
 
 #ifdef RTOS
-	std::atomic_uint8_t numReaders;						// MSB is set if a task is writing or write pending, lower bits are the number of readers
-	// The following assertion fails for SAMC21
-//	static_assert(std::atomic_uint8_t::is_always_lock_free);
-	TaskBase *_ecv_from null volatile writeLockOwner;	// handle of the task that owns the write lock
+	struct LockRecord;
+	LockRecord *_ecv_null volatile readLocks;			// linked list of tasks that own or want to own a read lock
+	LockRecord *_ecv_null volatile writeLocks;			// linked list of tasks that own or want to own a write lock
 #endif
 };
+
+#ifndef RTOS
+
+// Dummy lock functions
+inline void ReadWriteLock::LockForReading() noexcept { }
+inline bool ReadWriteLock::ConditionalLockForReading() noexcept { return true; }
+inline void ReadWriteLock::ReleaseReader() noexcept { }
+inline void ReadWriteLock::LockForWriting() noexcept { }
+inline bool ReadWriteLock::ConditionalLockForWriting() noexcept { return true; }
+inline void ReadWriteLock::ReleaseWriter() noexcept { }
+inline void ReadWriteLock::DowngradeWriter() noexcept { }
+
+#endif
 
 class ReadLocker
 {
@@ -438,17 +463,7 @@ public:
 	WriteLocker(WriteLocker&& other) noexcept : lock(other.lock) { other.lock = nullptr; }
 	~WriteLocker() { if (lock != nullptr) { not_null(lock)->ReleaseWriter(); } }
 	void Release() noexcept { if (lock != nullptr) { not_null(lock)->ReleaseWriter(); lock = nullptr; } }
-	void Downgrade() noexcept
-	{
-		if (   lock != nullptr
-#ifdef RTOS
-			&& not_null(lock)->GetWriteLockOwner() == TaskBase::GetCallerTaskHandle()
-#endif
-		   )
-		{
-			not_null(lock)->DowngradeWriter();
-		}
-	}
+	void Downgrade() noexcept { if (lock != nullptr) { not_null(lock)->DowngradeWriter(); } }
 
 	WriteLocker(const WriteLocker&) = delete;
 	WriteLocker& operator=(const WriteLocker&) = delete;
@@ -475,6 +490,7 @@ private:
 template<class T> class ReadLockedPointer
 {
 public:
+	ReadLockedPointer(ReadWriteLock& p_lock, T* p_ptr) noexcept : locker(p_lock), ptr(p_ptr) { }
 	ReadLockedPointer(ReadLocker& p_locker, T* p_ptr) noexcept : locker(std::move(p_locker)), ptr(p_ptr) { }
 	ReadLockedPointer(std::nullptr_t, T* p_ptr) noexcept : locker(nullptr), ptr(p_ptr) { }
 	ReadLockedPointer(ReadLockedPointer<T>&& other) noexcept : locker(std::move(other.locker)), ptr(other.ptr) { other.ptr = nullptr; }
@@ -482,6 +498,7 @@ public:
 	bool IsNull() const noexcept { return ptr == nullptr; }
 	bool IsNotNull() const noexcept { return ptr != nullptr; }
 	T* operator->() const noexcept { return ptr; }
+	T& operator*() const noexcept { return *ptr; }
 	T* Ptr() const noexcept { return ptr; }
 
 	void Release() noexcept { ptr = nullptr; locker.Release(); }
@@ -497,6 +514,7 @@ private:
 template<class T> class WriteLockedPointer
 {
 public:
+	WriteLockedPointer(ReadWriteLock& p_lock, T* p_ptr) noexcept : locker(p_lock), ptr(p_ptr) { }
 	WriteLockedPointer(WriteLocker& p_locker, T* null p_ptr) noexcept : locker(std::move(p_locker)), ptr(p_ptr) { }
 	WriteLockedPointer(std::nullptr_t, T* null p_ptr) noexcept : locker(nullptr), ptr(p_ptr) { }
 	WriteLockedPointer(WriteLockedPointer<T>&& other) noexcept : locker(std::move(other.locker)), ptr(other.ptr) { other.ptr = nullptr; }
@@ -504,6 +522,7 @@ public:
 	bool IsNull() const noexcept { return ptr == nullptr; }
 	bool IsNotNull() const noexcept { return ptr != nullptr; }
 	T* operator->() const noexcept { return ptr; }
+	T& operator*() const noexcept { return *ptr; }
 	T* Ptr() const noexcept { return ptr; }
 
 	WriteLockedPointer(const WriteLockedPointer<T>&) = delete;

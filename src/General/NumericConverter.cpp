@@ -26,7 +26,7 @@ constexpr int32_t Int32Min = std::numeric_limits<int32_t>::min();
 // On entry, 'c' is the first character to consume and NextChar is the function to get another character
 // Returns true if a valid number was found. If it returns false then characters may have been consumed.
 // On return the value parsed is: lvalue * 2^twos * 5^fives
-bool NumericConverter::Accumulate(char c, OptionsType options, function_ref<char()> NextChar) noexcept
+bool NumericConverter::Accumulate(char c, OptionsType options, function_ref_noexcept<char() noexcept> NextChar) noexcept
 {
 	hadDecimalPoint = hadExponent = isNegative = false;
 	bool hadDigit = false;

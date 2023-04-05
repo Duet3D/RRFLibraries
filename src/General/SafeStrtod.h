@@ -9,6 +9,7 @@
 #define SRC_LIBRARIES_GENERAL_SAFESTRTOD_H_
 
 #include "../ecv_duet3d.h"
+#include <cstdint>
 
 float SafeStrtof(const char *_ecv_array s, const char *_ecv_array *null endptr = nullptr) noexcept;
 
@@ -24,9 +25,6 @@ inline uint32_t StrToU32(char *_ecv_array s, char *_ecv_array *null endptr = nul
 int32_t StrToI32(const char *_ecv_array s, const char *_ecv_array *null endptr = nullptr) noexcept;
 uint32_t StrOptHexToU32(const char *_ecv_array s, const char *_ecv_array *null endptr = nullptr) noexcept;
 uint32_t StrHexToU32(const char *_ecv_array s, const char *_ecv_array *null endptr = nullptr) noexcept;
-
-// This next one was used in places when we may wish to read hex numbers, but we now have alternatives
-[[deprecated("use StrToU32, StrHexToU32 or StrOptHexToU32 instead")]] unsigned long SafeStrtoul(const char *_ecv_array s, const char *_ecv_array *null endptr = nullptr, int base = 10) noexcept;
 
 #define strtod(s, p) Do_not_use_strtod_use_SafeStrtof_instead
 #define strtof(s, p) Do_not_use_strtof_use_SafeStrtof_instead
