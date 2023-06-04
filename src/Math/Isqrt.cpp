@@ -173,6 +173,9 @@ uint32_t isqrt64(uint64_t num) noexcept
 // This is a fast floating point square root function for processors that don't have a FPU.
 // It doesn't handle negative, infinite, NaN or denormalised operands correctly. For normal operands it usually returns exactly the same result as calling sqrtf().
 // On the SAM4S it takes 1.69us compared to 3.25us for sqrtf. On the SAMC21 it takes 4.02us compared to 8.28us for sqrtf.
+#ifdef __SAMC21G18A__
+__attribute__((section(".time_critical")))
+#endif
 float fastSqrtf(float f) noexcept
 {
 	// 1. Represent the IEEE float as unsigned integer so that we can work on the bits.
@@ -208,8 +211,8 @@ float fastSqrtf(float f) noexcept
 	exponent >>= 1;
 
 	// 7. Take the square root of the 32-bit fraction
-# ifdef SAMC21
-	// Use the DIVAS to calculate it.
+#ifdef __SAMC21G18A__
+	// Use the DIVAS to calculate it. This gets us 16 result digits in a few more than 32 clocks.
 	// We need to disable interrupts to prevent other tasks or ISRs using the DIVAS at the same time.
 	const irqflags_t flags = IrqSave();
 	DIVAS->SQRNUM.reg = fraction;
