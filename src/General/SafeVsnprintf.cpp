@@ -240,6 +240,10 @@ bool FormattedPrinter::PutJson(const char *_ecv_array apString) noexcept
 		{
 			ok = PutChar('\\') && PutChar(esc);
 		}
+		else if (c < 0x20)
+		{
+			ok = PutChar('?');		// don't print control characters to JSON strings
+		}
 		else
 		{
 			ok = PutChar(c);
