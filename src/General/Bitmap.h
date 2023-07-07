@@ -217,6 +217,7 @@ public:
 
 	// Iterate over the bits
 	void Iterate(function_ref_noexcept<void(unsigned int, unsigned int) noexcept> func) const noexcept;
+	void IterateWithExceptions(function_ref<void(unsigned int, unsigned int)> func) const;
 	bool IterateWhile(function_ref_noexcept<bool(unsigned int, unsigned int) noexcept> func) const noexcept;
 
 	// Make a bitmap with the lowest n bits set
@@ -293,6 +294,20 @@ template<class BaseType> int Bitmap<BaseType>::GetSetBitNumber(size_t index) con
 
 // Iterate over the bits
 template<class BaseType> void Bitmap<BaseType>::Iterate(function_ref_noexcept<void(unsigned int, unsigned int) noexcept > func) const noexcept
+{
+	BaseType copyBits = bits;
+	unsigned int count = 0;
+	while (copyBits != 0)
+	{
+		const unsigned int index = ::LowestSetBit(copyBits);
+		func(index, count);
+		copyBits &= ~((BaseType)1 << index);
+		++count;
+	}
+}
+
+// Iterate over the bits
+template<class BaseType> void Bitmap<BaseType>::IterateWithExceptions(function_ref<void(unsigned int, unsigned int)> func) const
 {
 	BaseType copyBits = bits;
 	unsigned int count = 0;
