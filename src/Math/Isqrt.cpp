@@ -8,6 +8,7 @@
 # include <component/divas.h>
 
 // Fast 62-bit integer square root function (thanks dmould)
+__attribute__((aligned(8)))			// align on a flash cache line boundary
 uint32_t isqrt64(uint64_t num) noexcept
 {
 	uint32_t numHigh = (uint32_t)(num >> 32);
@@ -212,7 +213,7 @@ float fastSqrtf(float f) noexcept
 	exponent >>= 1;
 
 	// 7. Take the square root of the 32-bit fraction
-#ifdef __SAMC21G18A__
+# ifdef __SAMC21G18A__
 	// Use the DIVAS to calculate it. This gets us 16 result digits in a few more than 32 clocks.
 	// We need to disable interrupts to prevent other tasks or ISRs using the DIVAS at the same time.
 	const irqflags_t flags = IrqSave();
