@@ -262,7 +262,13 @@ bool NumericConverter::Accumulate(char c, OptionsType options, function_ref_noex
 		unsigned int exponent = 0;
 		while ((bool)isdigit(c))
 		{
-			exponent = (10u * exponent) + (unsigned int)(c - '0');		// could overflow, but anyone using such large numbers is being very silly
+			// Limit the exponent range to avoid overflow.
+			// Exponent range for a float is -126..+127 but to allow for denormalised numbers we must support down to about -150.
+			// If we ever add a GetDouble function then we will need to allow about -1060 to +1023.
+			if (exponent < 160)
+			{
+				exponent = (10u * exponent) + (unsigned int)(c - '0');
+			}
 			c = NextChar();
 		}
 
@@ -332,13 +338,13 @@ float NumericConverter::GetFloat() const noexcept
 	double dvalue = (double)lvalue;
 	{
 		int tens = (twos < fives) ? twos : fives;
-		while (tens < 0)
+		while (tens < 0 && dvalue != DOUBLE(0.0))
 		{
 			const size_t power = min<size_t>((size_t)-tens, ARRAY_SIZE(PowersOfTen) - 1);
 			dvalue /= PowersOfTen[power];
 			tens += (int)power;
 		}
-		while (tens > 0)
+		while (tens > 0 && !std::isinf(dvalue))
 		{
 			const size_t power = min<size_t>((size_t)tens, ARRAY_SIZE(PowersOfTen) - 1);
 			dvalue *= PowersOfTen[power];
@@ -353,7 +359,7 @@ float NumericConverter::GetFloat() const noexcept
 	}
 	else
 	{
-		for (int n = fives; n < twos; ++n)
+		for (int n = fives; n < twos && !std::isinf(dvalue); ++n)
 		{
 			dvalue *= 2;
 		}
