@@ -6,6 +6,7 @@
  */
 
 #include "RTOSIface.h"
+#include "RTOSNotifyIndices.h"
 
 #ifdef RTOS
 
@@ -178,12 +179,12 @@ void TaskBase::TerminateAndUnlink() noexcept
 }
 
 // Wake up this task from an ISR
-void TaskBase::GiveFromISR() noexcept
+void TaskBase::GiveFromISR(uint32_t index) noexcept
 {
 	if (taskId != 0)			// check that the task has been created and not terminated
 	{
 		BaseType_t higherPriorityTaskWoken = pdFALSE;
-		vTaskNotifyGiveFromISR(GetFreeRTOSHandle(), &higherPriorityTaskWoken);
+		vTaskNotifyGiveIndexedFromISR(GetFreeRTOSHandle(), index, &higherPriorityTaskWoken);
 		portYIELD_FROM_ISR(higherPriorityTaskWoken);
 	}
 }
@@ -252,7 +253,7 @@ void ReadWriteLock::LockForReading() noexcept
 	RTOSIface::LeaveTaskCriticalSection();
 	do
 	{
-		TaskBase::Take();
+		TaskBase::TakeIndexed(NotifyIndices::ReadWriteLocker);
 	} while (lr->count == 0);
 }
 
@@ -355,7 +356,7 @@ void ReadWriteLock::ReleaseReader() noexcept
 			if (wr != nullptr && wr->count == 0)
 			{
 				++wr->count;
-				wr->owner->Give();
+				wr->owner->Give(NotifyIndices::ReadWriteLocker);
 			}
 		}
 	}
@@ -406,7 +407,7 @@ void ReadWriteLock::LockForWriting() noexcept
 	// Wait until we are given the lock
 	do
 	{
-		TaskBase::Take();
+		TaskBase::TakeIndexed(NotifyIndices::ReadWriteLocker);
 	}
 	while (newLock->count == 0);
 }
@@ -447,7 +448,7 @@ void ReadWriteLock::ReleaseWriter() noexcept
 		{
 			// Another task is waiting for a write lock so pass the lock on to it
 			++wl2->count;
-			wl2->owner->Give();
+			wl2->owner->Give(NotifyIndices::ReadWriteLocker);
 		}
 		else
 		{
@@ -457,7 +458,7 @@ void ReadWriteLock::ReleaseWriter() noexcept
 				if (rl->count == 0)			// this should always be true
 				{
 					++rl->count;
-					rl->owner->Give();
+					rl->owner->Give(NotifyIndices::ReadWriteLocker);
 				}
 			}
 		}
@@ -481,7 +482,7 @@ void ReadWriteLock::DowngradeWriter() noexcept
 		if (rl->count == 0)			// this should always be true
 		{
 			++rl->count;
-			rl->owner->Give();
+			rl->owner->Give(NotifyIndices::ReadWriteLocker);
 		}
 	}
 	RTOSIface::LeaveTaskCriticalSection();

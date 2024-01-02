@@ -156,39 +156,39 @@ public:
 	bool IsRunning() const noexcept { return taskId != 0; }
 
 	// Wake up a task identified by its handle from an ISR. Safe to call with a null handle.
-	static void GiveFromISR(TaskBase *_ecv_from null h) noexcept
+	static void GiveFromISR(TaskBase *_ecv_from null h, uint32_t index) noexcept
 	{
 		if (h != nullptr)				// check that the task exists
 		{
-			not_null(h)->GiveFromISR();
+			not_null(h)->GiveFromISR(index);
 		}
 	}
 
 	// Wake up this task from an ISR
-	void GiveFromISR() noexcept;
+	void GiveFromISR(uint32_t index) noexcept;
 
 	// Wake up this task but not from an ISR
-	void Give() noexcept
+	void Give(uint32_t index) noexcept
 	{
-		xTaskNotifyGive(GetFreeRTOSHandle());
+		xTaskNotifyGiveIndexed(GetFreeRTOSHandle(), index);
 	}
 
 	// Wait until we have been woken up or we time out. Return true if successful, false if we timed out (same as for Mutex::Take()).
-	static bool Take(uint32_t timeout = TimeoutUnlimited) noexcept
+	static bool TakeIndexed(uint32_t index, uint32_t timeout = TimeoutUnlimited) noexcept
 	{
-		return ulTaskNotifyTake(pdTRUE, timeout) != 0;
+		return ulTaskGenericNotifyTake(index, pdTRUE, timeout) != 0;
 	}
 
 	// Clear a task notification count
-	static uint32_t ClearNotifyCount(TaskBase *_ecv_from h, uint32_t bitsToClear = 0xFFFFFFFFu) noexcept
+	static uint32_t ClearNotifyCountIndexed(TaskBase *_ecv_from h, uint32_t index) noexcept
 	{
-		return ulTaskNotifyValueClear(h->GetFreeRTOSHandle(), bitsToClear);
+		return xTaskGenericNotifyStateClear(h->GetFreeRTOSHandle(), index);
 	}
 
 	// Clear the current task notification count
-	static uint32_t ClearCurrentTaskNotifyCount(uint32_t bitsToClear = 0xFFFFFFFFu) noexcept
+	static uint32_t ClearCurrentTaskNotifyCountIndexed(uint32_t index) noexcept
 	{
-		return ulTaskNotifyValueClear(nullptr, bitsToClear);
+		return xTaskGenericNotifyStateClear(nullptr, index);
 	}
 
 	static TaskBase *_ecv_from GetCallerTaskHandle() noexcept { return reinterpret_cast<TaskBase *>(xTaskGetCurrentTaskHandle()); }
