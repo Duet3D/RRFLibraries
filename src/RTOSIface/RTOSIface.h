@@ -180,13 +180,13 @@ public:
 	}
 
 	// Clear a task notification count
-	static uint32_t ClearNotifyCountIndexed(TaskBase *_ecv_from h, uint32_t index) noexcept
+	static uint32_t ClearNotifyCount(TaskBase *_ecv_from h, uint32_t index) noexcept
 	{
 		return xTaskGenericNotifyStateClear(h->GetFreeRTOSHandle(), index);
 	}
 
 	// Clear the current task notification count
-	static uint32_t ClearCurrentTaskNotifyCountIndexed(uint32_t index) noexcept
+	static uint32_t ClearCurrentTaskNotifyCount(uint32_t index) noexcept
 	{
 		return xTaskGenericNotifyStateClear(nullptr, index);
 	}
