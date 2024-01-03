@@ -176,19 +176,19 @@ public:
 	// Wait until we have been woken up or we time out. Return true if successful, false if we timed out (same as for Mutex::Take()).
 	static bool TakeIndexed(uint32_t index, uint32_t timeout = TimeoutUnlimited) noexcept
 	{
-		return ulTaskGenericNotifyTake(index, pdTRUE, timeout) != 0;
+		return ulTaskNotifyTakeIndexed(index, pdTRUE, timeout) != 0;
 	}
 
 	// Clear a task notification count
 	static uint32_t ClearNotifyCount(TaskBase *_ecv_from h, uint32_t index) noexcept
 	{
-		return xTaskGenericNotifyStateClear(h->GetFreeRTOSHandle(), index);
+		return xTaskNotifyStateClearIndexed(h->GetFreeRTOSHandle(), index);
 	}
 
 	// Clear the current task notification count
 	static uint32_t ClearCurrentTaskNotifyCount(uint32_t index) noexcept
 	{
-		return xTaskGenericNotifyStateClear(nullptr, index);
+		return xTaskNotifyStateClearIndexed(nullptr, index);
 	}
 
 	static TaskBase *_ecv_from GetCallerTaskHandle() noexcept { return reinterpret_cast<TaskBase *>(xTaskGetCurrentTaskHandle()); }
