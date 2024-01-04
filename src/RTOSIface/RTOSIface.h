@@ -52,7 +52,7 @@ __attribute__((always_inline)) static inline void DisableInterrupts() noexcept
 	__asm volatile ("cpsid i" : : : "memory");
 }
 
-// Mutex class. This uses the FreeRTOS static semaphore type, but adds a name and links them all together in a list
+// Recursive mutex class. This uses the FreeRTOS static semaphore type, but adds a name and links them all together in a list
 class Mutex final
 #ifdef RTOS
 	: public StaticSemaphore_t
@@ -151,6 +151,7 @@ public:
 
 	void SetPriority(unsigned int priority) noexcept { vTaskPrioritySet(GetFreeRTOSHandle(), priority); }
 
+	static unsigned int GetCurrentTaskPriority() noexcept { return uxTaskPriorityGet(nullptr); }
 	static void SetCurrentTaskPriority(unsigned int priority) noexcept { vTaskPrioritySet(nullptr, priority); }
 
 	bool IsRunning() const noexcept { return taskId != 0; }
