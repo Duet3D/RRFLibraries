@@ -12,6 +12,7 @@
 #include <cstdint>
 #include <cstddef>
 #include <cstring>
+#include <utility>
 
 // Ring buffer template, used for serial I/O
 // We assume the items are small (e.g. characters, floats) so we pass them by value in PutItem
@@ -67,20 +68,16 @@ template<class T> RingBuffer<T>::RingBuffer() noexcept
 
 template<class T> void RingBuffer<T>::Init(size_t numSlots) noexcept
 {
+	capacity = 0;
 	putIndex = 0;
 	getIndex = 0;
-	if (data == nullptr)
+	volatile T *oldData = nullptr;
+	std::swap(data, oldData);
+	delete[] oldData;
+	if (numSlots > 1)
 	{
-		if (numSlots > 1)
-		{
-			capacity = numSlots - 1;
-			data = new T[numSlots];
-		}
-		else
-		{
-			capacity = 0;
-			data = nullptr;
-		}
+		capacity = numSlots - 1;
+		data = new T[numSlots];
 	}
 }
 
