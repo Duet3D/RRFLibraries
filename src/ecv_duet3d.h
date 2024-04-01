@@ -4,7 +4,7 @@
  *  Created on: 31 Oct 2021
  *      Author: David
  *
- *  This is the file we include instead if including ecv.h directly.
+ *  This is the file we include instead of including ecv.h directly.
  *  It includes the standard ecv.h and then #undefs those macros which cause problems for C++ standard include files.
  */
 
