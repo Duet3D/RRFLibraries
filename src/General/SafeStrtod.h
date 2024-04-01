@@ -26,12 +26,12 @@ int32_t StrToI32(const char *_ecv_array s, const char *_ecv_array *null endptr =
 uint32_t StrOptHexToU32(const char *_ecv_array s, const char *_ecv_array *null endptr = nullptr) noexcept;
 uint32_t StrHexToU32(const char *_ecv_array s, const char *_ecv_array *null endptr = nullptr) noexcept;
 
-#define strtod(s, p) Do_not_use_strtod_use_SafeStrtof_instead
-#define strtof(s, p) Do_not_use_strtof_use_SafeStrtof_instead
-#define strtol(s, ...) Do_not_use_strtol_use_StrToI32_instead
-#define strtoul(s, ...) Do_not_use_strtoul_use_StrToU32_instead
-#define atof(s) Do_not_use_atof_use_SafeStrtof_instead
-#define atoi(s) Do_not_use_atoi_use_StrToI32_instead
-#define atol(s) Do_not_use_atol_use_StrToU32_instead
+#define strtod(s, p) Do_not_use_strtod_use_SafeStrtof_instead(s, p)
+#define strtof(s, p) Do_not_use_strtof_use_SafeStrtof_instead(s, p)
+#define strtol(s, ...) Do_not_use_strtol_use_StrToI32_instead(s, __VA_ARGS__)
+#define strtoul(s, ...) Do_not_use_strtoul_use_StrToU32_instead(s, __VA_ARGS__)
+#define atof(s) Do_not_use_atof_use_SafeStrtof_instead(s)
+#define atoi(s) Do_not_use_atoi_use_StrToI32_instead(s)
+#define atol(s) Do_not_use_atol_use_StrToU32_instead(s)
 
 #endif /* SRC_LIBRARIES_GENERAL_SAFESTRTOD_H_ */
