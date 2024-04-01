@@ -120,7 +120,7 @@ inline float fastSqrtf(float f) noexcept
 
 #else
 
-// This function is defined in Math/Isqrt.cpp but declared here for convenience
+// This function is defined in Math/Isqrt.cpp or in Qfplib but declared here for convenience
 extern float fastSqrtf(float f) noexcept;
 
 #endif

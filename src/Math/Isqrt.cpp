@@ -169,7 +169,9 @@ uint32_t isqrt64(uint64_t num) noexcept
 
 #endif
 
-#if !((defined(__FPU_USED) && __FPU_USED != 0) || (defined (__VFP_FP__) && !defined(__SOFTFP__)))
+// The following is no longer used for the SAMC21 because Qfplib-M0 is faster (2.29us vs. 3.60us for this one).
+// So now it's only used by SAM4S builds.
+#if !((defined(__FPU_USED) && __FPU_USED != 0) || (defined (__VFP_FP__) && !defined(__SOFTFP__))) && !defined(__SAMC21G18A__)
 
 // This is a fast floating point square root function for processors that don't have a FPU.
 // It doesn't handle negative, infinite, NaN or denormalised operands correctly. For normal operands it usually returns exactly the same result as calling sqrtf().
