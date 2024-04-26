@@ -330,7 +330,7 @@ template<class BaseType> void Bitmap<BaseType>::IterateWithExceptions(function_r
 	}
 }
 
-// Iterate over the bits
+// Iterate over the bits while the passed function returns true. Return true if we reached the end, false if we terminated because the passed function returned false.
 template<class BaseType> bool Bitmap<BaseType>::IterateWhile(function_ref_noexcept<bool(unsigned int, unsigned int) noexcept > func) const noexcept
 {
 	BaseType copyBits = bits;
