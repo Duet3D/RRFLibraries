@@ -303,7 +303,8 @@ void ReadWriteLock::ReleaseReader() noexcept
 {
 	TaskBase *_ecv_from const me = TaskBase::GetCallerTaskHandle();
 	RTOSIface::EnterTaskCriticalSection();
-	if (writeLocks == nullptr || writeLocks->owner != me)		// if we own the write lock, ignore the read-unlock
+	const LockRecord *const wl = writeLocks;			// capture volatile variable
+	if (wl == nullptr || wl->owner != me)				// if we own the write lock, ignore the read-unlock
 	{
 		// Check whether we already have a read lock, if we do then just increment the count
 		bool foundOwnRecord = false;
