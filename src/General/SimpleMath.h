@@ -114,9 +114,20 @@ inline constexpr bool XNor(bool a, bool b) noexcept
 inline float fastSqrtf(float f) noexcept
 {
 	float ret;
-	asm("vsqrt.f32 %0,%1" : "=t" (ret) : "t" (f));
+	asm("vsqrt.f32 %0, %1" : "=t" (ret) : "t" (f));
 	return ret;
 }
+
+# if (defined(SAME70) && SAME70) || defined(__SAME70Q21__)
+// Built-in double precision square root function that just uses the ARM floating point instruction for best speed
+// This differs from __builtin_sqrt by not checking for a negative operand, which is supposed to set error codes
+inline double fastSqrtd(double d) noexcept
+{
+	double ret;
+	asm("vsqrt.f64 %P0, %P1" : "=w" (ret) : "w" (d));
+	return ret;
+}
+# endif
 
 #else
 
