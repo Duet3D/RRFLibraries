@@ -42,6 +42,7 @@ Mutex::~Mutex()
 			break;
 		}
 	}
+	vSemaphoreDelete(this);
 }
 
 // Take ownership of a mutex returning true if successful, false if timed out
