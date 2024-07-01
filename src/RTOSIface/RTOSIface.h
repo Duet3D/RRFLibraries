@@ -65,6 +65,8 @@ public:
 #endif
 	{ }
 
+	~Mutex();
+
 	void Create(const char *pName) noexcept;						// initialise the mutex. 'pName' must be in global storage because we store a pointer to it in the mutex.
 	bool Take(uint32_t timeout = TimeoutUnlimited) noexcept;		// take ownership of the mutex returning true if successful, false if timed out
 	bool Release() noexcept;

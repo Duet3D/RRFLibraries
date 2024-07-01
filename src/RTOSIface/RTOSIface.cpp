@@ -30,6 +30,20 @@ void Mutex::Create(const char *pName) noexcept
 	mutexList = this;
 }
 
+Mutex::~Mutex()
+{
+	// Unlink this mutex from the mutex list
+	TaskCriticalSectionLocker lock;
+	for (Mutex *_ecv_from null * mpp = &mutexList; *mpp != nullptr; mpp = &not_null(*mpp)->next)
+	{
+		if (*mpp == this)
+		{
+			*mpp = not_null(*mpp)->next;
+			break;
+		}
+	}
+}
+
 // Take ownership of a mutex returning true if successful, false if timed out
 bool Mutex::Take(uint32_t timeout) noexcept
 {
