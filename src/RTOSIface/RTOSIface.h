@@ -528,6 +528,8 @@ public:
 	T& operator*() const noexcept pre(IsNotNull()) { return *_ecv_not_null(ptr); }
 	T* Ptr() const noexcept { return ptr; }
 
+	void Release() noexcept { locker.Release(); }
+
 	WriteLockedPointer(const WriteLockedPointer<T>&) = delete;
 	WriteLockedPointer<T>& operator=(const WriteLockedPointer<T>&) = delete;
 
