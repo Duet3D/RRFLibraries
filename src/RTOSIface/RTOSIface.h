@@ -67,14 +67,14 @@ public:
 
 	~Mutex();
 
-	void Create(const char *pName) noexcept;						// initialise the mutex. 'pName' must be in global storage because we store a pointer to it in the mutex.
+	void Create(const char *_ecv_array pName) noexcept;						// initialise the mutex. 'pName' must be in global storage because we store a pointer to it in the mutex.
 	bool Take(uint32_t timeout = TimeoutUnlimited) noexcept;		// take ownership of the mutex returning true if successful, false if timed out
 	bool Release() noexcept;
 	TaskHandle GetHolder() const noexcept;
 
 #ifdef RTOS
-	const Mutex * null GetNext() const noexcept { return next; }
-	const char * null GetName() const noexcept { return name; }
+	const Mutex * _ecv_null GetNext() const noexcept { return next; }
+	const char *_ecv_array _ecv_null GetName() const noexcept { return name; }
 #endif
 
 	Mutex(const Mutex&) = delete;
@@ -90,7 +90,7 @@ private:
 
 #ifdef RTOS
 	Mutex * null next;
-	const char * null name;
+	const char *_ecv_array _ecv_null name;
 	QueueHandle_t GetHandle() noexcept { return reinterpret_cast<QueueHandle_t>(this); }
 
 	// This next one is dangerous because of the const_cast. Use it only to call FreeRTOS functions that we know don't mutate the queue.
@@ -146,7 +146,7 @@ public:
 	// Link the task into the thread list and allocate a short task ID to it. This function is called directly for tasks that are created by FreeRTOS, so it must be public
 	void AddToList() noexcept;
 	void TerminateAndUnlink() noexcept;
-	TaskBase *_ecv_from null GetNext() noexcept { return next; }
+	TaskBase *_ecv_from _ecv_null GetNext() noexcept { return next; }
 
 	void Suspend() noexcept { vTaskSuspend(GetFreeRTOSHandle()); }
 	void Resume() noexcept { vTaskResume(GetFreeRTOSHandle()); }
@@ -159,7 +159,7 @@ public:
 	bool IsRunning() const noexcept { return taskId != 0; }
 
 	// Wake up a task identified by its handle from an ISR. Safe to call with a null handle.
-	static void GiveFromISR(TaskBase *_ecv_from null h, uint32_t index) noexcept
+	static void GiveFromISR(TaskBase *_ecv_from _ecv_null h, uint32_t index) noexcept
 	{
 		if (h != nullptr)				// check that the task exists
 		{
@@ -185,13 +185,13 @@ public:
 	// Clear a task notification count
 	static uint32_t ClearNotifyCount(TaskBase *_ecv_from h, uint32_t index) noexcept
 	{
-		return ulTaskNotifyValueClearIndexed(h->GetFreeRTOSHandle(), index, 0xFFFFFFFF);
+		return ulTaskNotifyValueClearIndexed(h->GetFreeRTOSHandle(), index, 0xFFFFFFFFu);
 	}
 
 	// Clear the current task notification count
 	static uint32_t ClearCurrentTaskNotifyCount(uint32_t index) noexcept
 	{
-		return ulTaskNotifyValueClearIndexed(nullptr, index, 0xFFFFFFFF);
+		return ulTaskNotifyValueClearIndexed(nullptr, index, 0xFFFFFFFFu);
 	}
 
 	static TaskBase *_ecv_from GetCallerTaskHandle() noexcept { return reinterpret_cast<TaskBase *>(xTaskGetCurrentTaskHandle()); }
@@ -221,7 +221,7 @@ template<unsigned int StackWords> class Task : public TaskBase
 {
 public:
 	// The Create function assumes that only the main task creates other tasks, so we don't need a mutex to protect the task list
-	void Create(TaskFunction_t pxTaskCode, const char * pcName, void *pvParameters, unsigned int uxPriority) noexcept
+	void Create(TaskFunction_t pxTaskCode, const char *_ecv_array pcName, void *pvParameters, unsigned int uxPriority) noexcept
 	{
 		xTaskCreateStatic(pxTaskCode, pcName, StackWords, pvParameters, uxPriority, stack, this);
 		AddToList();
@@ -501,7 +501,7 @@ public:
 	bool IsNull() const noexcept { return ptr == nullptr; }
 	bool IsNotNull() const noexcept { return ptr != nullptr; }
 	T* operator->() const noexcept { return ptr; }
-	T& operator*() const noexcept { return *ptr; }
+	T& operator*() const noexcept pre(IsNotNull()) { return *_ecv_not_null(ptr); }
 	T* Ptr() const noexcept { return ptr; }
 
 	void Release() noexcept { ptr = nullptr; locker.Release(); }
@@ -511,21 +511,21 @@ public:
 
 private:
 	ReadLocker locker;
-	T* null ptr;
+	T* _ecv_null ptr;
 };
 
 template<class T> class WriteLockedPointer
 {
 public:
 	WriteLockedPointer(ReadWriteLock& p_lock, T* p_ptr) noexcept : locker(p_lock), ptr(p_ptr) { }
-	WriteLockedPointer(WriteLocker& p_locker, T* null p_ptr) noexcept : locker(std::move(p_locker)), ptr(p_ptr) { }
-	WriteLockedPointer(std::nullptr_t, T* null p_ptr) noexcept : locker(nullptr), ptr(p_ptr) { }
+	WriteLockedPointer(WriteLocker& p_locker, T* _ecv_null p_ptr) noexcept : locker(std::move(p_locker)), ptr(p_ptr) { }
+	WriteLockedPointer(std::nullptr_t, T* _ecv_null p_ptr) noexcept : locker(nullptr), ptr(p_ptr) { }
 	WriteLockedPointer(WriteLockedPointer<T>&& other) noexcept : locker(std::move(other.locker)), ptr(other.ptr) { other.ptr = nullptr; }
 
 	bool IsNull() const noexcept { return ptr == nullptr; }
 	bool IsNotNull() const noexcept { return ptr != nullptr; }
 	T* operator->() const noexcept { return ptr; }
-	T& operator*() const noexcept { return *ptr; }
+	T& operator*() const noexcept pre(IsNotNull()) { return *_ecv_not_null(ptr); }
 	T* Ptr() const noexcept { return ptr; }
 
 	WriteLockedPointer(const WriteLockedPointer<T>&) = delete;

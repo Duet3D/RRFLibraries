@@ -19,7 +19,7 @@ uint32_t StrToU32(const char *_ecv_array s, const char *_ecv_array *null endptr 
 inline uint32_t StrToU32(char *_ecv_array s, char *_ecv_array *null endptr = nullptr) noexcept
 {
 	// Defining it this way saves duplicating the code
-	return StrToU32(s, const_cast<const char *_ecv_array *null>(endptr));
+	return StrToU32(const_cast<const char *_ecv_array>(s), const_cast<const char *_ecv_array *null>(endptr));
 }
 
 int32_t StrToI32(const char *_ecv_array s, const char *_ecv_array *null endptr = nullptr) noexcept;
