@@ -221,7 +221,7 @@ template<unsigned int StackWords> class Task : public TaskBase
 {
 public:
 	// The Create function assumes that only the main task creates other tasks, so we don't need a mutex to protect the task list
-	void Create(TaskFunction_t pxTaskCode, const char *_ecv_array pcName, void *pvParameters, unsigned int uxPriority) noexcept
+	void Create(TaskFunction_t pxTaskCode, const char *_ecv_array pcName, void *_ecv_null pvParameters, unsigned int uxPriority) noexcept
 	{
 		xTaskCreateStatic(pxTaskCode, pcName, StackWords, pvParameters, uxPriority, stack, this);
 		AddToList();
@@ -256,7 +256,7 @@ public:
 	MutexLocker(MutexLocker&& other) noexcept : handle(other.handle), acquired(other.acquired) { other.handle = nullptr; other.acquired = false; }
 
 private:
-	Mutex *null handle;
+	Mutex *_ecv_null handle;
 	bool acquired;
 };
 
@@ -440,7 +440,7 @@ public:
 	ReadLocker& operator=(const ReadLocker&) = delete;
 
 private:
-	ReadWriteLock* null lock;
+	ReadWriteLock* _ecv_null lock;
 };
 
 class ConditionalReadLocker
@@ -455,7 +455,7 @@ public:
 	ConditionalReadLocker& operator=(const ConditionalReadLocker&) = delete;
 
 private:
-	ReadWriteLock* null lock;
+	ReadWriteLock* _ecv_null lock;
 };
 
 class WriteLocker
@@ -472,7 +472,7 @@ public:
 	WriteLocker& operator=(const WriteLocker&) = delete;
 
 private:
-	ReadWriteLock* null lock;
+	ReadWriteLock* _ecv_null lock;
 };
 
 class ConditionalWriteLocker
@@ -487,7 +487,7 @@ public:
 	ConditionalWriteLocker& operator=(const ConditionalWriteLocker&) = delete;
 
 private:
-	ReadWriteLock* null lock;
+	ReadWriteLock* _ecv_null lock;
 };
 
 template<class T> class ReadLockedPointer
@@ -535,7 +535,7 @@ public:
 
 private:
 	WriteLocker locker;
-	T* null ptr;
+	T* _ecv_null ptr;
 };
 
 #ifdef RTOS
@@ -546,14 +546,14 @@ class QueueBase
 public:
 	QueueBase() noexcept : handle(nullptr), next(nullptr), name(nullptr) { }
 
-	const QueueBase * null GetNext() const noexcept { return next; }
+	const QueueBase * _ecv_null GetNext() const noexcept { return next; }
 
-	static const QueueBase * null GetThread() noexcept { return thread; }
+	static const QueueBase * _ecv_null GetThread() noexcept { return thread; }
 
 protected:
-	QueueHandle_t null handle;
-	QueueBase * null next;
-	const char * null name;
+	QueueHandle_t _ecv_null handle;
+	QueueBase * _ecv_null next;
+	const char * _ecv_null name;
 	StaticQueue_t storage;
 
 	static QueueBase * null thread;
@@ -579,7 +579,7 @@ template <class Message> void MessageQueue<Message>::Create(const char *p_name, 
 	if (handle == nullptr)
 	{
 		messageStorage = new uint8_t[capacity * sizeof(Message)];
-		handle = xQueueCreateStatic(capacity, sizeof(Message), messageStorage, &storage);
+		handle = xQueueCreateStatic(capacity, sizeof(Message), not_null(messageStorage), &storage);
 	}
 }
 
