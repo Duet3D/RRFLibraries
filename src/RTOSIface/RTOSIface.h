@@ -27,10 +27,30 @@
 # include "freertos_task_additions.h"
 # include <atomic>
 
+# ifdef __ECV__
+// Redeclare FreeRTOS function prototypes witrh eCv annotations
+_ecv_spec UBaseType_t uxTaskPriorityGet( const TaskHandle_t _ecv_null xTask );
+_ecv_spec void vTaskPrioritySet( TaskHandle_t _ecv_null xTask, UBaseType_t uxNewPriority );
+_ecv_spec uint32_t ulTaskGenericNotifyValueClear( TaskHandle_t _ecv_null xTask, UBaseType_t uxIndexToClear, uint32_t ulBitsToClear );
+_ecv_spec BaseType_t xTaskGenericNotify( TaskHandle_t xTaskToNotify, UBaseType_t uxIndexToNotify, uint32_t ulValue, eNotifyAction eAction, uint32_t *_ecv_null pulPreviousNotificationValue );
+_ecv_spec TaskHandle_t xTaskCreateStatic( TaskFunction_t pxTaskCode,
+											const char *_ecv_array const pcName,
+											const uint32_t ulStackDepth,
+											void *_ecv_null const pvParameters,
+											UBaseType_t uxPriority,
+											StackType_t *_ecv_array const puxStackBuffer,
+											StaticTask_t *_ecv_from const pxTaskBuffer );
+_ecv_spec QueueHandle_t xQueueGenericCreateStatic( const UBaseType_t uxQueueLength,
+													 const UBaseType_t uxItemSize,
+													 uint8_t *_ecv_array pucQueueStorage,
+													 StaticQueue_t *_ecv_from pxStaticQueue,
+													 const uint8_t ucQueueType );
+# endif
+
 #endif
 
 class TaskBase;						// when compiling without RTOS, this class is never defined and task handles are always nullptr
-typedef TaskBase *TaskHandle;
+typedef TaskBase *_ecv_from TaskHandle;
 
 /** \brief  Enable IRQ Interrupts
 
