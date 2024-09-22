@@ -11,6 +11,7 @@
 #define SRC_LIBRARIES_GENERAL_FREELISTMANAGER_H_
 
 #include <cstddef>
+#include <new>
 #ifdef RTOS
 # include "../RTOSIface/RTOSIface.h"
 #endif
