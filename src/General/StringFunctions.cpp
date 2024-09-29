@@ -59,19 +59,14 @@ bool ReducedStringEquals(const char *_ecv_array s1, const char *_ecv_array s2) n
 
 bool StringStartsWith(const char *_ecv_array string, const char *_ecv_array starting) noexcept
 {
-	const size_t j = strlen(string);
-	const size_t k = strlen(starting);
-	if (k > j)
+	while (*starting != 0)
 	{
-		return false;
-	}
-
-	for (size_t i = 0; i < k; i++)
-	{
-		if (string[i] != starting[i])
+		if (*starting != *string)
 		{
 			return false;
 		}
+		++starting;
+		++string;
 	}
 
 	return true;
@@ -79,19 +74,14 @@ bool StringStartsWith(const char *_ecv_array string, const char *_ecv_array star
 
 bool StringStartsWithIgnoreCase(const char *_ecv_array string, const char *_ecv_array starting) noexcept
 {
-	const size_t j = strlen(string);
-	const size_t k = strlen(starting);
-	if (k > j)
+	while (*starting != 0)
 	{
-		return false;
-	}
-
-	for (size_t i = 0; i < k; i++)
-	{
-		if (tolower((int)string[i]) != tolower((int)starting[i]))
+		if (tolower((int)*starting) != tolower((int)*string))
 		{
 			return false;
 		}
+		++starting;
+		++string;
 	}
 
 	return true;
