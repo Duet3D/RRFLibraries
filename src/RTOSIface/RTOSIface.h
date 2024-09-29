@@ -109,7 +109,7 @@ public:
 private:
 
 #ifdef RTOS
-	Mutex * null next;
+	Mutex *_ecv_null next;
 	const char *_ecv_array _ecv_null name;
 	QueueHandle_t GetHandle() noexcept { return reinterpret_cast<QueueHandle_t>(this); }
 
