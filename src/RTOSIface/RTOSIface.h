@@ -29,6 +29,7 @@
 
 # ifdef __ECV__
 // Redeclare FreeRTOS function prototypes witrh eCv annotations
+_ecv_spec TaskHandle_t /*_ecv_null*/ xTaskGetCurrentTaskHandle( );			//TODO reinstate _ecv_null when eCv allows it
 _ecv_spec UBaseType_t uxTaskPriorityGet( const TaskHandle_t _ecv_null xTask );
 _ecv_spec void vTaskPrioritySet( TaskHandle_t _ecv_null xTask, UBaseType_t uxNewPriority );
 _ecv_spec uint32_t ulTaskGenericNotifyValueClear( TaskHandle_t _ecv_null xTask, UBaseType_t uxIndexToClear, uint32_t ulBitsToClear );
@@ -214,26 +215,26 @@ public:
 		return ulTaskNotifyValueClearIndexed(nullptr, index, 0xFFFFFFFFu);
 	}
 
-	static TaskBase *_ecv_from GetCallerTaskHandle() noexcept { return reinterpret_cast<TaskBase *>(xTaskGetCurrentTaskHandle()); }
+	static TaskBase *_ecv_from _ecv_null GetCallerTaskHandle() noexcept { return reinterpret_cast<TaskBase *_ecv_from _ecv_null>(xTaskGetCurrentTaskHandle()); }
 
-	static TaskId GetCallerTaskId() noexcept { return GetCallerTaskHandle()->taskId; }
+	static TaskId GetCallerTaskId() noexcept { return _ecv_not_null(GetCallerTaskHandle())->taskId; }
 
 	static void Yield() noexcept { taskYIELD(); }
 
 	TaskBase(const TaskBase&) = delete;				// it's not safe to copy these
 	TaskBase& operator=(const TaskBase&) = delete;	// it's not safe to assign these
 
-	static TaskBase *_ecv_from null GetTaskList() noexcept { return taskList; }
+	static TaskBase *_ecv_from _ecv_null GetTaskList() noexcept { return taskList; }
 
 	static const uint32_t *GetCurrentTaskStackBase() noexcept { return pxTaskGetCurrentStackBase(); }
 
 	static constexpr uint32_t TimeoutUnlimited = 0xFFFFFFFFu;
 
 protected:
-	TaskBase *_ecv_from null next;
+	TaskBase *_ecv_from _ecv_null next;
 	TaskId taskId;
 
-	static TaskBase *_ecv_from null taskList;
+	static TaskBase *_ecv_from _ecv_null taskList;
 	static TaskId numTasks;
 };
 
@@ -283,10 +284,10 @@ private:
 // Interface to RTOS or RTOS substitute
 namespace RTOSIface
 {
-	inline TaskBase *GetCurrentTask() noexcept
+	inline TaskBase *_ecv_from _ecv_null GetCurrentTask() noexcept
 	{
 #ifdef RTOS
-		return reinterpret_cast<TaskBase *>(xTaskGetCurrentTaskHandle());
+		return reinterpret_cast<TaskBase *_ecv_from _ecv_null>(xTaskGetCurrentTaskHandle());
 #else
 		return nullptr;
 #endif
