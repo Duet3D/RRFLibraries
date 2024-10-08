@@ -33,15 +33,16 @@ namespace FreelistManager
 
 	template<size_t Sz> void *Freelist<Sz>::AllocateItem() noexcept
 	{
-#ifdef RTOS
-		TaskCriticalSectionLocker lock;
-#endif
-
-		if (freelist != nullptr)
 		{
-			void * const p = freelist;
-			freelist = *reinterpret_cast<void **>(p);
-			return p;
+#ifdef RTOS
+			TaskCriticalSectionLocker lock;
+#endif
+			if (freelist != nullptr)
+			{
+				void * const p = freelist;
+				freelist = *reinterpret_cast<void **>(p);
+				return p;
+			}
 		}
 		return ::operator new(Sz);
 	}
@@ -51,7 +52,6 @@ namespace FreelistManager
 #ifdef RTOS
 		TaskCriticalSectionLocker lock;
 #endif
-
 		*reinterpret_cast<void **>(p) = freelist;
 		freelist = p;
 	}
