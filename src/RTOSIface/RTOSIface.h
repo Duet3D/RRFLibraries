@@ -28,24 +28,42 @@
 # include <atomic>
 
 # ifdef __ECV__
-// Redeclare FreeRTOS function prototypes witrh eCv annotations
-_ecv_spec TaskHandle_t /*_ecv_null*/ xTaskGetCurrentTaskHandle( );			//TODO reinstate _ecv_null when eCv allows it
-_ecv_spec UBaseType_t uxTaskPriorityGet( const TaskHandle_t _ecv_null xTask );
-_ecv_spec void vTaskPrioritySet( TaskHandle_t _ecv_null xTask, UBaseType_t uxNewPriority );
-_ecv_spec uint32_t ulTaskGenericNotifyValueClear( TaskHandle_t _ecv_null xTask, UBaseType_t uxIndexToClear, uint32_t ulBitsToClear );
-_ecv_spec BaseType_t xTaskGenericNotify( TaskHandle_t xTaskToNotify, UBaseType_t uxIndexToNotify, uint32_t ulValue, eNotifyAction eAction, uint32_t *_ecv_null pulPreviousNotificationValue );
+// Redeclare FreeRTOS function prototypes with noexcept and eCv annotations where needed
+_ecv_spec TaskHandle_t /*_ecv_null*/ xTaskGetCurrentTaskHandle( ) noexcept;			//TODO reinstate _ecv_null when eCv allows it
+_ecv_spec UBaseType_t uxTaskPriorityGet( const TaskHandle_t _ecv_null xTask ) noexcept;
+_ecv_spec void vTaskPrioritySet( TaskHandle_t _ecv_null xTask, UBaseType_t uxNewPriority ) noexcept;
+_ecv_spec uint32_t ulTaskGenericNotifyValueClear( TaskHandle_t _ecv_null xTask, UBaseType_t uxIndexToClear, uint32_t ulBitsToClear ) noexcept;
+_ecv_spec BaseType_t xTaskGenericNotify( TaskHandle_t xTaskToNotify, UBaseType_t uxIndexToNotify, uint32_t ulValue, eNotifyAction eAction, uint32_t *_ecv_null pulPreviousNotificationValue ) noexcept;
 _ecv_spec TaskHandle_t xTaskCreateStatic( TaskFunction_t pxTaskCode,
 											const char *_ecv_array const pcName,
 											const uint32_t ulStackDepth,
 											void *_ecv_null const pvParameters,
 											UBaseType_t uxPriority,
 											StackType_t *_ecv_array const puxStackBuffer,
-											StaticTask_t *_ecv_from const pxTaskBuffer );
+											StaticTask_t *_ecv_from const pxTaskBuffer ) noexcept;
+
+_ecv_spec void vTaskSuspendAll() noexcept;
+_ecv_spec BaseType_t xTaskResumeAll() noexcept;
+_ecv_spec void vTaskSuspend( TaskHandle_t xTaskToSuspend ) noexcept;
+_ecv_spec void vTaskResume( TaskHandle_t xTaskToResume ) noexcept;
+_ecv_spec void vPortEnterCritical() noexcept;
+_ecv_spec void vPortExitCritical() noexcept;
+
 _ecv_spec QueueHandle_t xQueueGenericCreateStatic( const UBaseType_t uxQueueLength,
 													 const UBaseType_t uxItemSize,
 													 uint8_t *_ecv_array pucQueueStorage,
 													 StaticQueue_t *_ecv_from pxStaticQueue,
-													 const uint8_t ucQueueType );
+													 const uint8_t ucQueueType ) noexcept;
+_ecv_spec BaseType_t xQueueGenericSend( QueueHandle_t xQueue,
+                              const void * const pvItemToQueue,
+                              TickType_t xTicksToWait,
+                              const BaseType_t xCopyPosition ) noexcept;
+_ecv_spec BaseType_t xQueueReceive( QueueHandle_t xQueue,
+                          void * const pvBuffer,
+                          TickType_t xTicksToWait ) noexcept;
+_ecv_spec uint32_t ulTaskGenericNotifyTake( UBaseType_t uxIndexToWaitOn,
+                                  BaseType_t xClearCountOnExit,
+                                  TickType_t xTicksToWait ) noexcept;
 # endif
 
 #endif
