@@ -39,8 +39,8 @@ namespace FreelistManager
 #endif
 			if (freelist != nullptr)
 			{
-				void * const p = freelist;
-				freelist = *reinterpret_cast<void **>(p);
+				void * const p = _ecv_not_null(freelist);
+				freelist = *reinterpret_cast<void *_ecv_null *>(p);
 				return p;
 			}
 		}
@@ -52,7 +52,7 @@ namespace FreelistManager
 #ifdef RTOS
 		TaskCriticalSectionLocker lock;
 #endif
-		*reinterpret_cast<void **>(p) = freelist;
+		*reinterpret_cast<void *_ecv_null *>(p) = freelist;
 		freelist = p;
 	}
 
