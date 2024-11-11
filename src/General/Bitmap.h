@@ -107,6 +107,11 @@ public:
 		return (bits & (((BaseType)1u << n1) | ((BaseType)1u << n2) | ((BaseType)1u << n3))) != 0;
 	}
 
+	constexpr bool IsOnlyBitSet(unsigned int n) const noexcept
+	{
+		return (bits == ((BaseType)1u << n));
+	}
+
 	constexpr void Clear() noexcept { bits = 0; }
 
 	// Set a bit
