@@ -34,6 +34,7 @@
 #include <cmath>
 
 #include "Strnlen.h"
+#include "SimpleMath.h"
 
 // The following should be enough for 32-bit int/long and 64-bit long long
 constexpr size_t MaxLongDigits = 10;	// to print 4294967296
@@ -467,20 +468,21 @@ bool FormattedPrinter::PrintFloat(double d, char formatLetter) noexcept
 
 	if (flags.printLimit < 0)
 	{
-		flags.printLimit = 6;					// set the default number of decimal digits
+		flags.printLimit = 6;													// set the default number of decimal digits
 	}
 
 	if (formatLetter == 'g' || formatLetter == 'G')
 	{
 		// Convert G format to E or F format
-	    if (exponent > -4 && exponent <= flags.printLimit)
+	    if (exponent >= -3 && exponent <= flags.printLimit + 3)
 	    {
-	    	formatLetter = (char)((int)formatLetter - 1);					// change g to f
-	    	ud = fabs(d);						// restore original value of ud
+	    	formatLetter = (char)((int)formatLetter - 1);						// change g to f
+	    	ud = fabs(d);														// restore original value of ud
+	    	flags.printLimit = max<int>(flags.printLimit - exponent - 1, 0);	// print additional digits to allow for the leading zeros
 	    }
 	    else
 	    {
-	    	formatLetter = (char)((int)formatLetter - 2);					// change g to e
+	    	formatLetter = (char)((int)formatLetter - 2);						// change g to e
 	    }
 	}
 
