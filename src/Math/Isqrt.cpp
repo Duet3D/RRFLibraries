@@ -17,7 +17,7 @@ uint32_t isqrt64(uint64_t num) noexcept
 	{
 		// 32-bit square root. Use the DIVAS to calculate it.
 		// We need to disable interrupts to prevent other tasks or ISRs using the DIVAS at the same time.
-		const irqflags_t flags = IrqSave();
+		const auto flags = IrqSave();
 		DIVAS->SQRNUM.reg = numLow;
 		while (DIVAS->STATUS.bit.BUSY) { }
 		const uint32_t rslt = DIVAS->RESULT.reg;
@@ -36,7 +36,7 @@ uint32_t isqrt64(uint64_t num) noexcept
 	// 62-bit square root. Use the DIVAS to calculate the top 30 bits of the result and the remainder.
 	uint32_t res, rem;
 	{
-		const irqflags_t flags = IrqSave();
+		const auto flags = IrqSave();
 		DIVAS->SQRNUM.reg = numHigh;
 		while (DIVAS->STATUS.bit.BUSY) { }
 		res = DIVAS->RESULT.reg;
