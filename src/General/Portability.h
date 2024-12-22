@@ -13,7 +13,10 @@
 
 // Functions to allow for processor differences, e.g. endianness and alignment requirements
 
+#ifndef FLOAT16_T_DEFINED
+# define FLOAT16_T_DEFINED
 typedef __fp16 float16_t;			///< A 16-bit floating point type
+#endif
 
 // ARM Cortex M0 doesn't support unaligned memory accesses, neither does SAME70 when accessing non-cached memory
 
