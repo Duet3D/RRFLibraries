@@ -58,9 +58,9 @@ bool Mutex::Release() noexcept
 	return xSemaphoreGiveRecursive(GetHandle()) == pdTRUE;
 }
 
-TaskHandle Mutex::GetHolder() const noexcept
+TaskHandle _ecv_null Mutex::GetHolder() const noexcept
 {
-	return reinterpret_cast<TaskBase *>(xSemaphoreGetMutexHolder(GetConstHandle()));
+	return reinterpret_cast<TaskBase *_ecv_null>(xSemaphoreGetMutexHolder(GetConstHandle()));
 }
 
 TaskBase *_ecv_from null TaskBase::taskList = nullptr;

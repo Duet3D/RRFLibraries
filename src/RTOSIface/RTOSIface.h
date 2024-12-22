@@ -29,7 +29,7 @@
 
 # ifdef __ECV__
 // Redeclare FreeRTOS function prototypes with noexcept and eCv annotations where needed
-_ecv_spec TaskHandle_t /*_ecv_null*/ xTaskGetCurrentTaskHandle( ) noexcept;			//TODO reinstate _ecv_null when eCv allows it
+_ecv_spec TaskHandle_t _ecv_null xTaskGetCurrentTaskHandle( ) noexcept;
 _ecv_spec UBaseType_t uxTaskPriorityGet( const TaskHandle_t _ecv_null xTask ) noexcept;
 _ecv_spec void vTaskPrioritySet( TaskHandle_t _ecv_null xTask, UBaseType_t uxNewPriority ) noexcept;
 _ecv_spec uint32_t ulTaskGenericNotifyValueClear( TaskHandle_t _ecv_null xTask, UBaseType_t uxIndexToClear, uint32_t ulBitsToClear ) noexcept;
@@ -64,6 +64,7 @@ _ecv_spec BaseType_t xQueueReceive( QueueHandle_t xQueue,
 _ecv_spec uint32_t ulTaskGenericNotifyTake( UBaseType_t uxIndexToWaitOn,
                                   BaseType_t xClearCountOnExit,
                                   TickType_t xTicksToWait ) noexcept;
+_ecv_spec const volatile StackType_t *_ecv_array pxTaskGetLastStackTop(TaskHandle_t xTask) noexcept;
 # endif
 
 #endif
@@ -109,7 +110,7 @@ public:
 	void Create(const char *_ecv_array pName) noexcept;						// initialise the mutex. 'pName' must be in global storage because we store a pointer to it in the mutex.
 	bool Take(uint32_t timeout = TimeoutUnlimited) noexcept;		// take ownership of the mutex returning true if successful, false if timed out
 	bool Release() noexcept;
-	TaskHandle GetHolder() const noexcept;
+	TaskHandle _ecv_null GetHolder() const noexcept;
 
 #ifdef RTOS
 	const Mutex * _ecv_null GetNext() const noexcept { return next; }
