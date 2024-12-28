@@ -50,14 +50,14 @@ public:
 	;
 
 	// Return a pointer to a specified row, non-const version
-	T* GetRow(size_t r) noexcept
+	T *_ecv_array GetRow(size_t r) noexcept
 	pre(r < ROWS)
 	{
 		return data[r];
 	}
 
 	// Return a pointer to a specified row, const version
-	const T* GetRow(size_t r) const noexcept
+	const T*_ecv_array GetRow(size_t r) const noexcept
 	pre(r < ROWS)
 	{
 		return data[r];

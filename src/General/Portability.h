@@ -8,6 +8,7 @@
 #ifndef SRC_GENERAL_PORTABILITY_H_
 #define SRC_GENERAL_PORTABILITY_H_
 
+#include <ecv_duet3d.h>
 #include <cstdint>
 #include <cstddef>
 
@@ -22,8 +23,8 @@ typedef __fp16 float16_t;			///< A 16-bit floating point type
 
 static inline void copy4bytes(const void *s, void *d) noexcept
 {
-	const char *sc = (const char*)s;
-	char *dc = (char*)d;
+	const char *_ecv_array sc = (const char *_ecv_array)s;
+	char *_ecv_array dc = (char *_ecv_array)d;
 	dc[0] = sc[0];
 	dc[1] = sc[1];
 	dc[2] = sc[2];
@@ -32,8 +33,8 @@ static inline void copy4bytes(const void *s, void *d) noexcept
 
 static inline void copy2bytes(const void *s, void *d) noexcept
 {
-	const char *sc = (const char*)s;
-	char *dc = (char*)d;
+	const char *_ecv_array sc = (const char *_ecv_array)s;
+	char *_ecv_array dc = (char *_ecv_array)d;
 	dc[0] = sc[0];
 	dc[1] = sc[1];
 }
@@ -41,7 +42,7 @@ static inline void copy2bytes(const void *s, void *d) noexcept
 // Load a uint32 from unaligned memory in little endian format
 static inline uint32_t LoadLEU32(const void *p) noexcept
 {
-	const uint8_t * const pp = (const uint8_t *)p;
+	const uint8_t *_ecv_array const pp = (const uint8_t *_ecv_array)p;
 	return ((uint32_t)pp[3] << 24) | ((uint32_t)pp[2] << 16) | ((uint32_t)pp[1] << 8) | pp[0];
 }
 
@@ -54,7 +55,7 @@ static inline uint32_t LoadLEI32(const void *p) noexcept
 // Load a uint16 from unaligned memory in little endian format
 static inline uint16_t LoadLEU16(const void *p) noexcept
 {
-	const uint8_t * const pp = (const uint8_t *)p;
+	const uint8_t *_ecv_array const pp = (const uint8_t *_ecv_array)p;
 	return ((uint16_t)pp[1] << 8) | pp[0];
 }
 
@@ -83,7 +84,7 @@ static inline float LoadLEF16(const void *p) noexcept
 // Store a uint32 into unaligned memory in little endian format
 static inline void StoreLEU32(void *p, uint32_t val) noexcept
 {
-	uint8_t * const pp = (uint8_t *)p;
+	uint8_t *_ecv_array const pp = (uint8_t *_ecv_array)p;
 	pp[0] = (uint8_t)val;
 	pp[1] = (uint8_t)(val >> 8);
 	pp[2] = (uint8_t)(val >> 16);
@@ -93,7 +94,7 @@ static inline void StoreLEU32(void *p, uint32_t val) noexcept
 // Store a uint16 into unaligned memory in little endian format
 static inline void StoreLEU16(void *p, uint16_t val) noexcept
 {
-	uint8_t * const pp = (uint8_t *)p;
+	uint8_t *_ecv_array const pp = (uint8_t *_ecv_array)p;
 	pp[0] = (uint8_t)val;
 	pp[1] = (uint8_t)(val >> 8);
 }
@@ -113,21 +114,21 @@ static inline void StoreLEF16(void *p, const float16_t val) noexcept
 // Load a uint32 from unaligned memory in big endian format
 static inline uint32_t LoadBEU32(const void *p) noexcept
 {
-	const uint8_t* const bp = (const uint8_t*)p;
+	const uint8_t *_ecv_array const bp = (const uint8_t *_ecv_array)p;
 	return ((uint32_t)bp[0] << 24) | ((uint32_t)bp[1] << 16) | ((uint32_t)bp[2] << 8) | (uint32_t)bp[3];
 }
 
 // Load a uint16 from unaligned memory in big endian format
 static inline uint16_t LoadBEU16(const void *p) noexcept
 {
-	const uint8_t* const bp = (const uint8_t*)p;
+	const uint8_t *_ecv_array const bp = (const uint8_t *_ecv_array)p;
 	return ((uint16_t)bp[0] << 8) | (uint16_t)bp[1];
 }
 
 // Store a uint32 into unaligned memory in big endian format
 static inline void StoreBEU32(void *p, uint32_t val) noexcept
 {
-	uint8_t* const bp = (uint8_t*)p;
+	uint8_t *_ecv_array const bp = (uint8_t *_ecv_array)p;
 	bp[0] = (uint8_t)(val >> 24);
 	bp[1] = (uint8_t)(val >> 16);
 	bp[2] = (uint8_t)(val >> 8);
@@ -137,13 +138,13 @@ static inline void StoreBEU32(void *p, uint32_t val) noexcept
 // Store a uint16 into unaligned memory in big endian format
 static inline void StoreBEU16(void *p, uint16_t val) noexcept
 {
-	uint8_t* const bp = (uint8_t*)p;
+	uint8_t *_ecv_array const bp = (uint8_t *_ecv_array)p;
 	bp[0] = (uint8_t)(val >> 8);
 	bp[1] = (uint8_t)val;
 }
 
 // Fetch a uint32_t and increment the pointer
-static inline uint32_t FetchLEU32(const uint8_t *&p) noexcept
+static inline uint32_t FetchLEU32(const uint8_t *_ecv_array &p) noexcept
 {
 	const uint32_t ret = LoadLEU32(p);
 	p += sizeof(uint32_t);
@@ -151,7 +152,7 @@ static inline uint32_t FetchLEU32(const uint8_t *&p) noexcept
 }
 
 // Fetch a int32_t and increment the pointer
-static inline int32_t FetchLEI32(const uint8_t *&p) noexcept
+static inline int32_t FetchLEI32(const uint8_t *_ecv_array &p) noexcept
 {
 	const int32_t ret = LoadLEI32(p);
 	p += sizeof(int32_t);
@@ -159,7 +160,7 @@ static inline int32_t FetchLEI32(const uint8_t *&p) noexcept
 }
 
 // Fetch a uint16_t and increment the pointer
-static inline uint16_t FetchLEU16(const uint8_t *&p) noexcept
+static inline uint16_t FetchLEU16(const uint8_t *_ecv_array &p) noexcept
 {
 	const uint16_t ret = LoadLEU16(p);
 	p += sizeof(uint16_t);
@@ -167,7 +168,7 @@ static inline uint16_t FetchLEU16(const uint8_t *&p) noexcept
 }
 
 // Fetch a uint16_t and increment the pointer
-static inline int16_t FetchLEI16(const uint8_t *&p) noexcept
+static inline int16_t FetchLEI16(const uint8_t *_ecv_array &p) noexcept
 {
 	const int16_t ret = LoadLEI16(p);
 	p += sizeof(int16_t);
@@ -175,7 +176,7 @@ static inline int16_t FetchLEI16(const uint8_t *&p) noexcept
 }
 
 // Fetch a float and increment the pointer
-static inline float FetchLEF32(const uint8_t *&p) noexcept
+static inline float FetchLEF32(const uint8_t *_ecv_array &p) noexcept
 {
 	const float ret = LoadLEF32(p);
 	p += sizeof(float);
@@ -183,7 +184,7 @@ static inline float FetchLEF32(const uint8_t *&p) noexcept
 }
 
 // Fetch a float16_t and increment the pointer
-static inline float FetchLEF16(const uint8_t *&p) noexcept
+static inline float FetchLEF16(const uint8_t *_ecv_array &p) noexcept
 {
 	const float ret = LoadLEF16(p);
 	p += sizeof(float16_t);
@@ -194,8 +195,8 @@ static inline float FetchLEF16(const uint8_t *&p) noexcept
 template<class T> class Unaligned
 {
 public:
-	Unaligned(const Unaligned<T>& arg) noexcept;
-	Unaligned(const T& arg) noexcept;
+	explicit Unaligned(const Unaligned<T>& arg) noexcept;
+	explicit Unaligned(const T& arg) noexcept;
 
 	Unaligned<T>& operator=(const T& rhs) noexcept;
 	Unaligned<T>& operator=(const Unaligned<T>& rhs) noexcept;
@@ -208,7 +209,7 @@ private:
 
 template<class T> Unaligned<T>::Unaligned(const Unaligned<T>& arg) noexcept
 {
-	char *p = &arg.val, *q = &val;
+	char *_ecv_array p = &arg.val, *_ecv_array q = &val;
 	for (size_t i = 0; i < sizeof(T); ++i)
 	{
 		*q++ = *p++;
@@ -217,7 +218,7 @@ template<class T> Unaligned<T>::Unaligned(const Unaligned<T>& arg) noexcept
 
 template<class T> Unaligned<T>::Unaligned(const T& arg) noexcept
 {
-	char *p = &arg, *q = &val;
+	char *_ecv_array p = &arg, *_ecv_array q = &val;
 	for (size_t i = 0; i < sizeof(T); ++i)
 	{
 		*q++ = *p++;
@@ -226,7 +227,7 @@ template<class T> Unaligned<T>::Unaligned(const T& arg) noexcept
 
 template<class T> Unaligned<T>& Unaligned<T>::operator=(const T& rhs) noexcept
 {
-	char *p = &rhs, *q = &val;
+	char *_ecv_array p = &rhs, *_ecv_array q = &val;
 	for (size_t i = 0; i < sizeof(T); ++i)
 	{
 		*q++ = *p++;
@@ -236,7 +237,7 @@ template<class T> Unaligned<T>& Unaligned<T>::operator=(const T& rhs) noexcept
 
 template<class T> Unaligned<T>& Unaligned<T>::operator=(const Unaligned<T>& rhs) noexcept
 {
-	char *p = &rhs.val, *q = &val;
+	char *_ecv_array p = &rhs.val, *_ecv_array q = &val;
 	for (size_t i = 0; i < sizeof(T); ++i)
 	{
 		*q++ = *p++;
@@ -247,7 +248,7 @@ template<class T> Unaligned<T>& Unaligned<T>::operator=(const Unaligned<T>& rhs)
 template<class T> T Unaligned<T>::Get() const noexcept
 {
 	T ret;
-	char *p = &val, *q = &ret;
+	char *_ecv_array p = &val, *_ecv_array q = &ret;
 	for (size_t i = 0; i < sizeof(T); ++i)
 	{
 		*q++ = *p++;
@@ -259,12 +260,12 @@ template<class T> T Unaligned<T>::Get() const noexcept
 template<class T> class UnalignedPointer
 {
 public:
-	UnalignedPointer(char* pp) noexcept : p(pp) { }
+	explicit UnalignedPointer(char *_ecv_array pp) noexcept : p(pp) { }
 
 	Unaligned<T>& operator*() noexcept { return *reinterpret_cast<Unaligned<T>*>(p); }
 
 private:
-	char *p;
+	char *_ecv_array p;
 };
 
 #endif /* SRC_GENERAL_PORTABILITY_H_ */
