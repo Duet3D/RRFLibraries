@@ -31,6 +31,9 @@
 *.out
 *.app
 
+# eCv output files
+*_unproven.*
+
 # Misc
 .settings/language.settings.xml
 SAM3X/
