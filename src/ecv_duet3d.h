@@ -27,11 +27,9 @@ typedef _ecv_float16_t __fp16;
 #endif
 
 // Define type names to mean a C string that may or may not be null terminated, and a C string or a null pointer
-typedef const char *_ecv_array raw_c_string;
-typedef const char *_ecv_array _ecv_null raw_c_string_or_null;
+typedef const char *_ecv_array c_string;
+typedef const char *_ecv_array _ecv_null c_string_or_null;
 
-// Define type names similar to the above where the string is guaranteed to be null terminated
-typedef raw_c_string _ecv_invariant(exists i in 0.._ecv_value.upb :- _ecv_value[i] == 0) c_string;
-typedef raw_c_string_or_null _ecv_invariant(_ecv_value == nullptr || (exists i in 0.._ecv_not_null(_ecv_value).upb :- _ecv_not_null(_ecv_value)[i] == 0)) c_string_or_null;
+#define nullTerm(_x) _ecv_isNullTerminated(_x)
 
 #endif /* SRC_GENERAL_ECV_DUET3D_H_ */
