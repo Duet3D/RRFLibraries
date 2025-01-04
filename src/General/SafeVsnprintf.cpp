@@ -75,7 +75,7 @@ class FormattedPrinter
 {
 public:
 	explicit FormattedPrinter(const PutcFunc_t& pcf) noexcept;
-	int Print(const char *_ecv_array format, va_list args) noexcept;
+	int Print(c_string format, va_list args) noexcept;
 
 private:
 	PutcFunc_t putcharFunc;
@@ -83,8 +83,8 @@ private:
 	xPrintFlags flags;
 
 	void Init() noexcept;
-	bool PutString(const char *_ecv_array apString) noexcept;
-	bool PutJson(const char *_ecv_array apString) noexcept;
+	bool PutString(c_string apString) noexcept;
+	bool PutJson(c_string apString) noexcept;
 	bool PrintLL(long long i) noexcept;
 	bool PrintI(int i) noexcept;
 	bool PrintFloat(double d, char formatLetter) noexcept;
@@ -119,7 +119,7 @@ bool FormattedPrinter::PutChar(char c) noexcept
 /*-----------------------------------------------------------*/
 
 // Print the string s to the string buffer adding any necessary padding
-bool FormattedPrinter::PutString(const char *_ecv_array apString) noexcept
+bool FormattedPrinter::PutString(c_string apString) noexcept
 {
 	int count;
 	if (flags.printLimit > 0 && flags.u.b.isString)
@@ -203,7 +203,7 @@ bool FormattedPrinter::PutString(const char *_ecv_array apString) noexcept
 }
 
 // Write a string in JSON format returning true if successful. Width specifiers are ignored.
-bool FormattedPrinter::PutJson(const char *_ecv_array apString) noexcept
+bool FormattedPrinter::PutJson(c_string apString) noexcept
 {
 	bool ok = true;
 	while (ok)
@@ -549,7 +549,7 @@ bool FormattedPrinter::PrintFloat(double d, char formatLetter) noexcept
 
 /*-----------------------------------------------------------*/
 
-int FormattedPrinter::Print(const char *_ecv_array format, va_list args) noexcept
+int FormattedPrinter::Print(c_string format, va_list args) noexcept
 {
 	for (;;)
 	{
@@ -656,7 +656,7 @@ int FormattedPrinter::Print(const char *_ecv_array format, va_list args) noexcep
 
 		if (ch == 's')
 		{
-			const char *_ecv_array null s = va_arg(args, const char *_ecv_array null);
+			c_string_or_null s = va_arg(args, c_string_or_null);
 			flags.u.b.isString = true;
 			// RRF extension: if the current format specifier is exactly "%.s" then perform JSON escaping.
 			// We would like to use "%j" instead, but that gives rise to gcc warnings about unrecognised format specifiers and extra arguments.
@@ -757,13 +757,13 @@ int FormattedPrinter::Print(const char *_ecv_array format, va_list args) noexcep
 
 /*-----------------------------------------------------------*/
 
-int vuprintf(PutcFunc_t putc_f, const char *_ecv_array format, va_list args) noexcept
+int vuprintf(PutcFunc_t putc_f, c_string format, va_list args) noexcept
 {
 	FormattedPrinter fp(putc_f);
 	return fp.Print(format, args);
 }
 
-int uprintf(PutcFunc_t putc_f, const char *_ecv_array format, ...) noexcept
+int uprintf(PutcFunc_t putc_f, c_string format, ...) noexcept
 {
 	va_list vargs;
 	va_start(vargs, format);
@@ -773,7 +773,7 @@ int uprintf(PutcFunc_t putc_f, const char *_ecv_array format, ...) noexcept
 	return ret;
 }
 
-int SafeVsnprintf(char *_ecv_array buffer, size_t maxLen, const char *_ecv_array format, va_list args) noexcept
+int SafeVsnprintf(char *_ecv_array buffer, size_t maxLen, c_string format, va_list args) noexcept
 {
 	// Declare the lambda function separately from declaring the FormattedPrinter so that it doesn't go out of scope before the FormattedPrinter does
 	auto lambda = [&buffer, &maxLen](char c) noexcept -> bool
@@ -792,7 +792,7 @@ int SafeVsnprintf(char *_ecv_array buffer, size_t maxLen, const char *_ecv_array
 	return ret;
 }
 
-int SafeSnprintf(char *_ecv_array buffer, size_t buf_size, const char *_ecv_array format, ...) noexcept
+int SafeSnprintf(char *_ecv_array buffer, size_t buf_size, c_string format, ...) noexcept
 {
 	va_list vargs;
 	va_start(vargs, format);

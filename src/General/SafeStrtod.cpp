@@ -34,7 +34,7 @@ constexpr int32_t Int32Min = std::numeric_limits<int32_t>::min();
 
 #include "NumericConverter.h"
 
-float SafeStrtof(const char *_ecv_array s, const char *_ecv_array *null endptr) noexcept
+float SafeStrtof(c_string s, c_string *_ecv_null endptr) noexcept
 {
 	// Save the end pointer in case of failure
 	if (endptr != nullptr)
@@ -56,7 +56,7 @@ float SafeStrtof(const char *_ecv_array s, const char *_ecv_array *null endptr) 
 	return 0.0f;
 }
 
-static uint32_t StrToU32Opt(const char *_ecv_array s, const char *_ecv_array *null endptr, NumericConverter::OptionsType options) noexcept
+static uint32_t StrToU32Opt(c_string s, c_string *_ecv_null endptr, NumericConverter::OptionsType options) noexcept
 {
 	// Save the end pointer in case of failure
 	if (endptr != nullptr)
@@ -78,22 +78,22 @@ static uint32_t StrToU32Opt(const char *_ecv_array s, const char *_ecv_array *nu
 	return 0;
 }
 
-uint32_t StrToU32(const char *_ecv_array s, const char *_ecv_array *null endptr) noexcept
+uint32_t StrToU32(c_string s, c_string *_ecv_null endptr) noexcept
 {
 	return StrToU32Opt(s, endptr, NumericConverter::AcceptOnlyUnsignedDecimal);
 }
 
-uint32_t StrOptHexToU32(const char *_ecv_array s, const char *_ecv_array *null endptr) noexcept
+uint32_t StrOptHexToU32(c_string s, c_string *_ecv_null endptr) noexcept
 {
 	return StrToU32Opt(s, endptr, NumericConverter::AcceptHex);
 }
 
-uint32_t StrHexToU32(const char *_ecv_array s, const char *_ecv_array *null endptr) noexcept
+uint32_t StrHexToU32(c_string s, c_string *_ecv_null endptr) noexcept
 {
 	return StrToU32Opt(s, endptr, NumericConverter::DefaultHex);
 }
 
-int32_t StrToI32(const char *_ecv_array s, const char *_ecv_array *null endptr) noexcept
+int32_t StrToI32(c_string s, c_string *_ecv_null endptr) noexcept
 {
 	// Save the end pointer in case of failure
 	if (endptr != nullptr)

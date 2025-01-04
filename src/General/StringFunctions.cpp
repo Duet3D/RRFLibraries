@@ -9,17 +9,18 @@
 #include <cstring>
 #include <cctype>
 
-bool StringEndsWithIgnoreCase(const char *_ecv_array string, const char *_ecv_array ending) noexcept
+bool StringEndsWithIgnoreCase(c_string string, c_string ending) noexcept
 {
+	(void)strlen(string);
 	const size_t j = strlen(string);
 	const size_t k = strlen(ending);
 	return k <= j && StringEqualsIgnoreCase(string + (j - k), ending);
 }
 
-bool StringEqualsIgnoreCase(const char *_ecv_array s1, const char *_ecv_array s2) noexcept
+bool StringEqualsIgnoreCase(c_string s1, c_string s2) noexcept
 {
 	size_t i = 0;
-	while (s1[i] != 0 && s2[i] != 0)
+	while (s1[i] != 0 && s2[i] != 0) keep(i < s1.upb; i < s2.upb)
 	{
 		if (tolower((int)s1[i]) != tolower((int)s2[i]))
 		{
@@ -31,9 +32,9 @@ bool StringEqualsIgnoreCase(const char *_ecv_array s1, const char *_ecv_array s2
 	return s1[i] == 0 && s2[i] == 0;
 }
 
-bool ReducedStringEquals(const char *_ecv_array s1, const char *_ecv_array s2) noexcept
+bool ReducedStringEquals(c_string s1, c_string s2) noexcept
 {
-	while (*s1 != 0 && *s2 != 0)
+	while (*s1 != 0 && *s2 != 0) keep(s1 < old s1 + (old s1).lim; s2 < old s2 + (old s2).lim)
 	{
 		if (*s1 == '-' || *s1 == '_')
 		{
@@ -57,7 +58,7 @@ bool ReducedStringEquals(const char *_ecv_array s1, const char *_ecv_array s2) n
 	return *s1 == 0 && *s2 == 0;
 }
 
-bool StringStartsWith(const char *_ecv_array string, const char *_ecv_array starting) noexcept
+bool StringStartsWith(c_string string, c_string starting) noexcept
 {
 	while (*starting != 0)
 	{
@@ -72,7 +73,7 @@ bool StringStartsWith(const char *_ecv_array string, const char *_ecv_array star
 	return true;
 }
 
-bool StringStartsWithIgnoreCase(const char *_ecv_array string, const char *_ecv_array starting) noexcept
+bool StringStartsWithIgnoreCase(c_string string, c_string starting) noexcept
 {
 	while (*starting != 0)
 	{
@@ -87,7 +88,7 @@ bool StringStartsWithIgnoreCase(const char *_ecv_array string, const char *_ecv_
 	return true;
 }
 
-int StringContains(const char *_ecv_array string, const char *_ecv_array match) noexcept
+int StringContains(c_string string, c_string match) noexcept
 {
 	int i = 0;
 	int count = 0;
@@ -112,14 +113,14 @@ int StringContains(const char *_ecv_array string, const char *_ecv_array match) 
 }
 
 // Version of strncpy that ensures the result is null terminated
-void SafeStrncpy(char *_ecv_array dst, const char *_ecv_array src, size_t length) noexcept
+void SafeStrncpy(char *_ecv_array dst, c_string src, size_t length) noexcept
 {
 	strncpy(dst, src, length);
 	dst[length - 1] = 0;
 }
 
 // Version of strcat that takes the original buffer size as the limit and ensures the result is null terminated
-void SafeStrncat(char *_ecv_array dst, const char *_ecv_array src, size_t length) noexcept
+void SafeStrncat(char *_ecv_array dst, c_string src, size_t length) noexcept
 {
 	dst[length - 1] = 0;
 	const size_t index = strlen(dst);

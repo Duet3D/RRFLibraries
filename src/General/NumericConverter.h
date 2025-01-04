@@ -18,9 +18,9 @@ public:
 	// Values that may be or'ed together in the options parameter to Accumulate
 	typedef uint8_t OptionsType;
 	static constexpr OptionsType AcceptOnlyUnsignedDecimal = 0;						// what it says
-	static constexpr OptionsType AcceptNegative = 0x01;								// allow a leading plus or minus sign (else not allowed)
+	static constexpr OptionsType AcceptNegative = 0x01;								// allow a leading minus sign (else not allowed). A leading plus sign is always allowed.
 	static constexpr OptionsType AcceptFloat = 0x02;								// allow decimal floating point numbers (else integer only)
-	static constexpr OptionsType AcceptHex = 0x04;									// allow 0x followed by hex digits, or 0B follows by binary digits
+	static constexpr OptionsType AcceptHex = 0x04;									// allow 0x followed by hex digits, or 0b follows by binary digits
 	static constexpr OptionsType DefaultHex = 0x08;									// always interpret the number as in hex. Not compatible with AcceptFloat.
 	static constexpr OptionsType AcceptSignedFloat = AcceptNegative | AcceptFloat;
 

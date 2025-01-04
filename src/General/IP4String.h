@@ -20,7 +20,7 @@ public:
 	explicit IP4String(uint32_t ip) noexcept;
 	explicit IP4String(IPAddress ip) noexcept : IP4String(ip.GetV4LittleEndian()) {}
 
-	const char *_ecv_array c_str() const noexcept { return buf; }
+	c_string c_str() const noexcept { return buf; }
 
 private:
 	char buf[16];		// long enough for e.g. "255.255.255.255" including a null terminator

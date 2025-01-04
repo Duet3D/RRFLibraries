@@ -35,7 +35,7 @@ _ecv_spec void vTaskPrioritySet( TaskHandle_t _ecv_null xTask, UBaseType_t uxNew
 _ecv_spec uint32_t ulTaskGenericNotifyValueClear( TaskHandle_t _ecv_null xTask, UBaseType_t uxIndexToClear, uint32_t ulBitsToClear ) noexcept;
 _ecv_spec BaseType_t xTaskGenericNotify( TaskHandle_t xTaskToNotify, UBaseType_t uxIndexToNotify, uint32_t ulValue, eNotifyAction eAction, uint32_t *_ecv_null pulPreviousNotificationValue ) noexcept;
 _ecv_spec TaskHandle_t xTaskCreateStatic( TaskFunction_t pxTaskCode,
-											const char *_ecv_array const pcName,
+											c_string const pcName,
 											const uint32_t ulStackDepth,
 											void *_ecv_null const pvParameters,
 											UBaseType_t uxPriority,
@@ -107,14 +107,14 @@ public:
 
 	~Mutex();
 
-	void Create(const char *_ecv_array pName) noexcept;						// initialise the mutex. 'pName' must be in global storage because we store a pointer to it in the mutex.
+	void Create(c_string pName) noexcept;							// initialise the mutex. 'pName' must be in global storage because we store a pointer to it in the mutex.
 	bool Take(uint32_t timeout = TimeoutUnlimited) noexcept;		// take ownership of the mutex returning true if successful, false if timed out
 	bool Release() noexcept;
 	TaskHandle _ecv_null GetHolder() const noexcept;
 
 #ifdef RTOS
 	const Mutex * _ecv_null GetNext() const noexcept { return next; }
-	const char *_ecv_array _ecv_null GetName() const noexcept { return name; }
+	c_string _ecv_null GetName() const noexcept { return name; }
 #endif
 
 	Mutex(const Mutex&) = delete;
@@ -130,7 +130,7 @@ private:
 
 #ifdef RTOS
 	Mutex *_ecv_null next;
-	const char *_ecv_array _ecv_null name;
+	c_string _ecv_null name;
 	QueueHandle_t GetHandle() noexcept { return reinterpret_cast<QueueHandle_t>(this); }
 
 	// This next one is dangerous because of the const_cast. Use it only to call FreeRTOS functions that we know don't mutate the queue.
@@ -261,7 +261,7 @@ template<unsigned int StackWords> class Task : public TaskBase
 {
 public:
 	// The Create function assumes that only the main task creates other tasks, so we don't need a mutex to protect the task list
-	void Create(TaskFunction_t pxTaskCode, const char *_ecv_array pcName, void *_ecv_null pvParameters, unsigned int uxPriority) noexcept
+	void Create(TaskFunction_t pxTaskCode, c_string pcName, void *_ecv_null pvParameters, unsigned int uxPriority) noexcept
 	{
 		xTaskCreateStatic(pxTaskCode, pcName, StackWords, pvParameters, uxPriority, stack, this);
 		AddToList();
@@ -593,7 +593,7 @@ public:
 protected:
 	QueueHandle_t _ecv_null handle;
 	QueueBase * _ecv_null next;
-	const char * _ecv_null name;
+	c_string _ecv_null name;
 	StaticQueue_t storage;
 
 	static QueueBase * null thread;
@@ -604,7 +604,7 @@ template <class Message> class MessageQueue : public QueueBase
 public:
 	MessageQueue() noexcept : messageStorage(nullptr) { }
 
-	void Create(const char *p_name, size_t capacity) noexcept;
+	void Create(c_string p_name, size_t capacity) noexcept;
 	bool PutToBack(const Message &m, uint32_t timeout) noexcept;
 	bool PutToFront(const Message &m, uint32_t timeout) noexcept;
 	bool Get(Message& m, uint32_t timeout) noexcept;
@@ -614,7 +614,7 @@ private:
 	uint8_t * _ecv_array null messageStorage;
 };
 
-template <class Message> void MessageQueue<Message>::Create(const char *p_name, size_t capacity) noexcept
+template <class Message> void MessageQueue<Message>::Create(c_string p_name, size_t capacity) noexcept
 {
 	if (handle == nullptr)
 	{

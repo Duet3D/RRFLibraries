@@ -11,20 +11,20 @@
 #include "../ecv_duet3d.h"
 #include <cstdint>
 
-float SafeStrtof(const char *_ecv_array s, const char *_ecv_array *null endptr = nullptr) noexcept;
+float SafeStrtof(c_string s, c_string *_ecv_null endptr = nullptr) noexcept;
 
-uint32_t StrToU32(const char *_ecv_array s, const char *_ecv_array *null endptr = nullptr) noexcept;
+uint32_t StrToU32(c_string s, c_string *_ecv_null endptr = nullptr) noexcept;
 
 // This overload is used by the 12864 menu code in RepRapFirmware
-inline uint32_t StrToU32(char *_ecv_array s, char *_ecv_array *null endptr = nullptr) noexcept
+inline uint32_t StrToU32(char *_ecv_array s, char *_ecv_array *_ecv_null endptr = nullptr) noexcept
 {
 	// Defining it this way saves duplicating the code
-	return StrToU32(const_cast<const char *_ecv_array>(s), const_cast<const char *_ecv_array *null>(endptr));
+	return StrToU32(const_cast<c_string>(s), const_cast<c_string *_ecv_null>(endptr));
 }
 
-int32_t StrToI32(const char *_ecv_array s, const char *_ecv_array *null endptr = nullptr) noexcept;
-uint32_t StrOptHexToU32(const char *_ecv_array s, const char *_ecv_array *null endptr = nullptr) noexcept;
-uint32_t StrHexToU32(const char *_ecv_array s, const char *_ecv_array *null endptr = nullptr) noexcept;
+int32_t StrToI32(c_string s, c_string *_ecv_null endptr = nullptr) noexcept;
+uint32_t StrOptHexToU32(c_string s, c_string *_ecv_null endptr = nullptr) noexcept;
+uint32_t StrHexToU32(c_string s, c_string *_ecv_null endptr = nullptr) noexcept;
 
 #define strtod(s, p) Do_not_use_strtod_use_SafeStrtof_instead(s, p)
 #define strtof(s, p) Do_not_use_strtof_use_SafeStrtof_instead(s, p)

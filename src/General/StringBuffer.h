@@ -20,7 +20,7 @@ public:
 	StringRef GetRef() const noexcept { return StringRef(p + used, len - used); }
 
 	// Get a c-style string pointer to the latest string
-	const char *_ecv_array LatestCStr() const noexcept { return p + used; }
+	c_string LatestCStr() const noexcept { return p + used; }
 
 	// Clear the current string
 	void ClearLatest() noexcept { p[used] = 0; }
@@ -30,10 +30,10 @@ public:
 
 	// Concatenate two strings, placing the result at the end of the buffer. Return true if insufficient space.
 	// One or both strings may already be in the buffer, and we don't need to keep them intact. Optimise storage where possible.
-	bool Concat(const char *_ecv_array s1, const char *_ecv_array s2) noexcept;
+	bool Concat(c_string s1, c_string s2) noexcept;
 
 	// Say that we have finished using a string, which may be in the buffer. If it is the last string in the buffer, we can delete it.
-	void FinishedUsing(const char *_ecv_array s) noexcept;
+	void FinishedUsing(c_string s) noexcept;
 
 	// Reset the buffer to be empty
 	void Reset() noexcept { used = 0; }

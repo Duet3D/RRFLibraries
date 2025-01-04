@@ -16,13 +16,13 @@
 # include "semphr.h"
 # include <atomic>
 
-extern "C" [[noreturn]] void vAssertCalled(uint32_t line, const char *file) noexcept;
+extern "C" [[noreturn]] void vAssertCalled(uint32_t line, c_string file) noexcept;
 #define RTOS_ASSERT(_expr)	if (!(_expr)) { vAssertCalled(__LINE__, __FILE__); }
 
 static_assert(Mutex::TimeoutUnlimited == portMAX_DELAY, "Bad value for TimeoutUnlimited");
 
 // Create the semaphore. A semaphore must only be created once. The name is not copied, so pName must point to read-only or persistent storage.
-void Mutex::Create(const char *pName) noexcept
+void Mutex::Create(c_string pName) noexcept
 {
 	xSemaphoreCreateRecursiveMutexStatic(this);
 	name = pName;
@@ -70,7 +70,7 @@ Mutex *null Mutex::mutexList = nullptr;
 
 #else
 
-void Mutex::Create(const char *pName) noexcept
+void Mutex::Create(c_string pName) noexcept
 {
 }
 
