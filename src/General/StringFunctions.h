@@ -27,7 +27,7 @@ pre(nullTerm(s1); nullTerm(s2));
 bool ReducedStringEquals(c_string s1, c_string s2) noexcept
 pre(nullTerm(s1); nullTerm(s2));
 
-int StringContains(c_string str, c_string match) noexcept
+int StringContains(c_string string, c_string match) noexcept
 pre(nullTerm(string); nullTerm(match));
 
 void SafeStrncpy(char *_ecv_array dst, c_string src, size_t length) noexcept
