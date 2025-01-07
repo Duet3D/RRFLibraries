@@ -23,9 +23,10 @@ public:
 
 	bool Full() const noexcept { return filled == N; }
 
-	constexpr size_t Capacity() const noexcept { return N; }
+	static constexpr size_t Capacity() noexcept { return N; }
 
 	size_t Size() const noexcept { return filled; }
+	size_t Count() const noexcept { return filled; }
 
 	bool IsEmpty() const noexcept { return filled == 0; }
 
@@ -45,17 +46,19 @@ public:
 
 	const T* _ecv_array c_ptr() noexcept { return storage; }
 
-	void Sort(function_ref_noexcept<bool(T, T) noexcept> sortfunc) noexcept;
+	void Sort(function_ref_noexcept<bool(T, T) noexcept> cmpfunc) noexcept;
 
 	bool Replace(T oldVal, T newVal) noexcept;
 
 	bool IterateWhile(function_ref_noexcept<bool(T&, size_t) noexcept> func, size_t startAt = 0) noexcept;
-
 	bool IterateWhile(function_ref_noexcept<bool(const T&, size_t) noexcept> func, size_t startAt = 0) const noexcept;
 
+	bool Exists(function_ref_noexcept<bool(const T&) noexcept> func) const noexcept;
+	bool Forall(function_ref_noexcept<bool(const T&) noexcept> func) const noexcept;
+
 protected:
-	T storage[N];
 	size_t filled;
+	T storage[N];
 };
 
 template<class T, size_t N> Vector<T, N>::Vector(const size_t n, const T& fill) noexcept
@@ -91,14 +94,14 @@ template<class T, size_t N> bool Vector<T, N>::Add(const T* _ecv_array p, size_t
 	return true;
 }
 
-// The sort function has to return true if the first element is greater than the second element
-template<class T, size_t N> void Vector<T, N>::Sort(function_ref_noexcept<bool(T, T) noexcept> sortfunc) noexcept
+// The compare function must return true if the first parameter value should come later in the vector than the second parameter value after sorting
+template<class T, size_t N> void Vector<T, N>::Sort(function_ref_noexcept<bool(T, T) noexcept> cmpfunc) noexcept
 {
 	for (size_t i = 1; i < filled; ++i)
 	{
 		for (size_t j = 0; j < i; ++j)
 		{
-			if (sortfunc(storage[j], storage[i]))
+			if (cmpfunc(storage[j], storage[i]))
 			{
 				T temp = storage[i];
 				// Insert element i just before element j
@@ -181,6 +184,24 @@ template<class T, size_t N> bool Vector<T, N>::IterateWhile(function_ref_noexcep
 			return false;
 		}
 		++count;
+	}
+	return true;
+}
+
+template<class T, size_t N> bool Vector<T, N>::Exists(function_ref_noexcept<bool(const T&) noexcept> func) const noexcept
+{
+	for (size_t i = 0; i < Size(); ++i)
+	{
+		if (func(storage[i])) { return true; }
+	}
+	return false;
+}
+
+template<class T, size_t N> bool Vector<T, N>::Forall(function_ref_noexcept<bool(const T&) noexcept> func) const noexcept
+{
+	for (size_t i = 0; i < Size(); ++i)
+	{
+		if (func(storage[i])) { return false; }
 	}
 	return true;
 }
