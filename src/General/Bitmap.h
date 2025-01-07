@@ -81,9 +81,10 @@ template<class T> inline constexpr T ExtractTwoBits(T val, unsigned int fromBitN
 	}
 }
 
-template<class BaseType> class Bitmap
+template<class T> class Bitmap
 {
 public:
+	typedef T BaseType;
 	constexpr Bitmap() noexcept : bits(0) { }
 	explicit constexpr Bitmap(BaseType n) noexcept : bits(n) { }
 
@@ -278,7 +279,7 @@ private:
 };
 
 // Count the number of set bits
-template<class BaseType> unsigned int Bitmap<BaseType>::CountSetBits() const noexcept
+template<class T> unsigned int Bitmap<T>::CountSetBits() const noexcept
 {
 	unsigned int count = 0;
 	BaseType b = bits;
@@ -291,7 +292,7 @@ template<class BaseType> unsigned int Bitmap<BaseType>::CountSetBits() const noe
 }
 
 // Get the position of the Nth set bit, or -1 if too few bits set
-template<class BaseType> int Bitmap<BaseType>::GetSetBitNumber(size_t index) const noexcept
+template<class T> int Bitmap<T>::GetSetBitNumber(size_t index) const noexcept
 {
 	BaseType b = bits;
 	while (b != 0)
@@ -308,7 +309,7 @@ template<class BaseType> int Bitmap<BaseType>::GetSetBitNumber(size_t index) con
 }
 
 // Iterate over the bits
-template<class BaseType> void Bitmap<BaseType>::Iterate(function_ref_noexcept<void(unsigned int, unsigned int) noexcept > func) const noexcept
+template<class T> void Bitmap<T>::Iterate(function_ref_noexcept<void(unsigned int, unsigned int) noexcept > func) const noexcept
 {
 	BaseType copyBits = bits;
 	unsigned int count = 0;
@@ -322,7 +323,7 @@ template<class BaseType> void Bitmap<BaseType>::Iterate(function_ref_noexcept<vo
 }
 
 // Iterate over the bits
-template<class BaseType> void Bitmap<BaseType>::IterateWithExceptions(function_ref<void(unsigned int, unsigned int)> func) const
+template<class T> void Bitmap<T>::IterateWithExceptions(function_ref<void(unsigned int, unsigned int)> func) const
 {
 	BaseType copyBits = bits;
 	unsigned int count = 0;
@@ -336,7 +337,7 @@ template<class BaseType> void Bitmap<BaseType>::IterateWithExceptions(function_r
 }
 
 // Iterate over the bits while the passed function returns true. Return true if we reached the end, false if we terminated because the passed function returned false.
-template<class BaseType> bool Bitmap<BaseType>::IterateWhile(function_ref_noexcept<bool(unsigned int, unsigned int) noexcept > func) const noexcept
+template<class T> bool Bitmap<T>::IterateWhile(function_ref_noexcept<bool(unsigned int, unsigned int) noexcept > func) const noexcept
 {
 	BaseType copyBits = bits;
 	unsigned int count = 0;
@@ -354,7 +355,7 @@ template<class BaseType> bool Bitmap<BaseType>::IterateWhile(function_ref_noexce
 }
 
 // Convert an array of unsigned longs to a bit map with overflow checking
-template<class BaseType> Bitmap<BaseType> Bitmap<BaseType>::MakeFromArray(const uint32_t *_ecv_array arr, size_t numEntries) noexcept
+template<class T> Bitmap<T> Bitmap<T>::MakeFromArray(const uint32_t *_ecv_array arr, size_t numEntries) noexcept
 {
 	BaseType res = 0;
 	for (size_t i = 0; i < numEntries; ++i)
@@ -369,7 +370,7 @@ template<class BaseType> Bitmap<BaseType> Bitmap<BaseType>::MakeFromArray(const 
 }
 
 // Convert an array of longs to a bit map with overflow checking
-template<class BaseType> Bitmap<BaseType> Bitmap<BaseType>::MakeFromArray(const int32_t *_ecv_array arr, size_t numEntries) noexcept
+template<class T> Bitmap<T> Bitmap<T>::MakeFromArray(const int32_t *_ecv_array arr, size_t numEntries) noexcept
 {
 	BaseType res = 0;
 	for (size_t i = 0; i < numEntries; ++i)
