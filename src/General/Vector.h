@@ -50,6 +50,9 @@ public:
 
 	bool Replace(T oldVal, T newVal) noexcept;
 
+	void Iterate(function_ref_noexcept<void(T&, size_t) noexcept> func, size_t startAt = 0) noexcept;
+	void Iterate(function_ref_noexcept<void(const T&, size_t) noexcept> func, size_t startAt = 0) const noexcept;
+
 	bool IterateWhile(function_ref_noexcept<bool(T&, size_t) noexcept> func, size_t startAt = 0) noexcept;
 	bool IterateWhile(function_ref_noexcept<bool(const T&, size_t) noexcept> func, size_t startAt = 0) const noexcept;
 
@@ -150,21 +153,48 @@ template<class T, size_t N> bool Vector<T, N>::Replace(T oldVal, T newVal) noexc
 }
 
 
+template<class T, size_t N> void Vector<T, N>::Iterate(function_ref_noexcept<void(T&, size_t) noexcept> func, size_t startAt) noexcept
+{
+	const size_t totalElements = Size();
+	if (startAt < totalElements)
+	{
+		size_t count = 0;
+		for (size_t i = startAt; i < totalElements; ++i)
+		{
+			func(storage[i], count);
+			++count;
+		}
+	}
+}
+
+template<class T, size_t N> void Vector<T, N>::Iterate(function_ref_noexcept<void(const T&, size_t) noexcept> func, size_t startAt) const noexcept
+{
+	const size_t totalElements = Size();
+	if (startAt < totalElements)
+	{
+		size_t count = 0;
+		for (size_t i = startAt; i < totalElements; ++i)
+		{
+			func(storage[i], count);
+			++count;
+		}
+	}
+}
+
 template<class T, size_t N> bool Vector<T, N>::IterateWhile(function_ref_noexcept<bool(T&, size_t) noexcept> func, size_t startAt) noexcept
 {
 	const size_t totalElements = Size();
-	if (startAt >= totalElements)
+	if (startAt < totalElements)
 	{
-		return true;
-	}
-	size_t count = 0;
-	for (size_t i = startAt; i < totalElements; ++i)
-	{
-		if (!func(storage[i], count))
+		size_t count = 0;
+		for (size_t i = startAt; i < totalElements; ++i)
 		{
-			return false;
+			if (!func(storage[i], count))
+			{
+				return false;
+			}
+			++count;
 		}
-		++count;
 	}
 	return true;
 }
@@ -172,18 +202,17 @@ template<class T, size_t N> bool Vector<T, N>::IterateWhile(function_ref_noexcep
 template<class T, size_t N> bool Vector<T, N>::IterateWhile(function_ref_noexcept<bool(const T&, size_t) noexcept> func, size_t startAt) const noexcept
 {
 	const size_t totalElements = Size();
-	if (startAt >= totalElements)
+	if (startAt < totalElements)
 	{
-		return true;
-	}
-	size_t count = 0;
-	for (size_t i = startAt; i < totalElements; ++i)
-	{
-		if (!func(storage[i], count))
+		size_t count = 0;
+		for (size_t i = startAt; i < totalElements; ++i)
 		{
-			return false;
+			if (!func(storage[i], count))
+			{
+				return false;
+			}
+			++count;
 		}
-		++count;
 	}
 	return true;
 }
