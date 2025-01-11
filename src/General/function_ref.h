@@ -30,10 +30,10 @@ template<typename Fn> class function_ref;
 template<typename RetType, typename ...Params>
 class function_ref<RetType(Params...)>
 {
-	RetType (*callback)(void *callable, Params ...params);
+	RetType (*callback)(void *callable, Params ...params) noexcept(false);
 	void *callable;
 
-	template<typename Callable> static RetType callback_fn(void *callable2, Params ...params)
+	template<typename Callable> static RetType callback_fn(void *callable2, Params ...params) noexcept(false)
 	{
 		return (*reinterpret_cast<Callable*>(callable2))(std::forward<Params>(params)...);
 	}
@@ -48,7 +48,7 @@ public:
     constexpr function_ref(const function_ref<RetType(Params...)> &rhs) noexcept = default;
 
     /// Call the stored callable with the given arguments
-    RetType operator()(Params ...params) const
+    RetType operator()(Params ...params) const noexcept(false)
 	{
 		return callback(callable, std::forward<Params>(params)...);
 	}
