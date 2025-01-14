@@ -86,31 +86,31 @@ template<class T> class Bitmap
 public:
 	typedef T BaseType;
 	constexpr Bitmap() noexcept : bits(0) { }
-	explicit constexpr Bitmap(BaseType n) noexcept : bits(n) { }
+	explicit constexpr Bitmap(T n) noexcept : bits(n) { }
 
-	static constexpr unsigned int MaxBits() noexcept { return sizeof(BaseType) * CHAR_BIT; }
-	constexpr BaseType GetRaw() const noexcept { return bits; }
+	static constexpr unsigned int MaxBits() noexcept { return sizeof(T) * CHAR_BIT; }
+	constexpr T GetRaw() const noexcept { return bits; }
 	constexpr bool IsEmpty() const noexcept { return bits == 0; }
 	constexpr bool IsNonEmpty() const noexcept { return bits != 0; }
 
 	constexpr bool IsBitSet(unsigned int n) const noexcept
 	{
-		return (bits & ((BaseType)1u << n)) != 0;
+		return (bits & ((T)1u << n)) != 0;
 	}
 
 	constexpr bool IsAnyBitSet(unsigned int n1, unsigned int n2) const noexcept
 	{
-		return (bits & (((BaseType)1u << n1) | ((BaseType)1u << n2))) != 0;
+		return (bits & (((T)1u << n1) | ((T)1u << n2))) != 0;
 	}
 
 	constexpr bool IsAnyBitSet(unsigned int n1, unsigned int n2, unsigned int n3) const noexcept
 	{
-		return (bits & (((BaseType)1u << n1) | ((BaseType)1u << n2) | ((BaseType)1u << n3))) != 0;
+		return (bits & (((T)1u << n1) | ((T)1u << n2) | ((T)1u << n3))) != 0;
 	}
 
 	constexpr bool IsOnlyBitSet(unsigned int n) const noexcept
 	{
-		return (bits == ((BaseType)1u << n));
+		return (bits == ((T)1u << n));
 	}
 
 	constexpr void Clear() noexcept { bits = 0; }
@@ -118,23 +118,23 @@ public:
 	// Set a bit
 	constexpr void SetBit(unsigned int n) noexcept
 	{
-		bits |= ((BaseType)1u << n);
+		bits |= ((T)1u << n);
 	}
 
 	// Clear a bit
 	constexpr void ClearBit(unsigned int n) noexcept
 	{
-		bits &= ~((BaseType)1u << n);
+		bits &= ~((T)1u << n);
 	}
 
 	// Invert a bit
 	constexpr void InvertBit(unsigned int n) noexcept
 	{
-		bits ^= ((BaseType)1u << n);
+		bits ^= ((T)1u << n);
 	}
 
 	// Clear multiple bits
-	constexpr void ClearBits(Bitmap<BaseType> other) noexcept
+	constexpr void ClearBits(Bitmap<T> other) noexcept
 	{
 		bits &= ~other.bits;
 	}
@@ -144,78 +144,78 @@ public:
 	{
 		if (b)
 		{
-			bits |= ((BaseType)1u << n);
+			bits |= ((T)1u << n);
 		}
 		else
 		{
-			bits &= ~((BaseType)1u << n);
+			bits &= ~((T)1u << n);
 		}
 	}
 
-	constexpr Bitmap<BaseType> operator & (Bitmap<BaseType> other) const noexcept
+	constexpr Bitmap<T> operator & (Bitmap<T> other) const noexcept
 	{
-		return Bitmap<BaseType>(bits & other.bits);
+		return Bitmap<T>(bits & other.bits);
 	}
 
-	constexpr Bitmap<BaseType>& operator &= (Bitmap<BaseType> other) noexcept
+	constexpr Bitmap<T>& operator &= (Bitmap<T> other) noexcept
 	{
 		bits &= other.bits;
 		return *this;
 	}
 
-	constexpr Bitmap<BaseType> operator | (Bitmap<BaseType> other) const noexcept
+	constexpr Bitmap<T> operator | (Bitmap<T> other) const noexcept
 	{
-		return Bitmap<BaseType>(bits | other.bits);
+		return Bitmap<T>(bits | other.bits);
 	}
 
-	constexpr Bitmap<BaseType> operator ~ () const noexcept
+	constexpr Bitmap<T> operator ~ () const noexcept
 	{
-		return Bitmap<BaseType>(~bits);
+		return Bitmap<T>(~bits);
 	}
 
-	constexpr Bitmap<BaseType>& operator |= (Bitmap<BaseType> other) noexcept
+	constexpr Bitmap<T>& operator |= (Bitmap<T> other) noexcept
 	{
 		bits |= other.bits;
 		return *this;
 	}
 
-	constexpr Bitmap<BaseType> operator - (Bitmap<BaseType> other) const noexcept
+	constexpr Bitmap<T> operator - (Bitmap<T> other) const noexcept
 	{
-		return Bitmap<BaseType>(bits & ~other.bits);
+		return Bitmap<T>(bits & ~other.bits);
 	}
 
-	constexpr bool operator == (Bitmap<BaseType> other) const noexcept
+	constexpr bool operator == (Bitmap<T> other) const noexcept
 	{
 		return bits == other.bits;
 	}
 
-	constexpr bool operator != (Bitmap<BaseType> other) const noexcept
+	constexpr bool operator != (Bitmap<T> other) const noexcept
 	{
 		return bits != other.bits;
 	}
 
-	constexpr bool Intersects(Bitmap<BaseType> other) const noexcept
+	constexpr bool Intersects(Bitmap<T> other) const noexcept
 	{
 		return (bits & other.bits) != 0;
 	}
 
-	constexpr bool Disjoint(Bitmap<BaseType> other) const noexcept
+	constexpr bool Disjoint(Bitmap<T> other) const noexcept
 	{
 		return (bits & other.bits) == 0;
 	}
 
-	constexpr bool Contains(Bitmap<BaseType> other) const noexcept
+	constexpr bool Contains(Bitmap<T> other) const noexcept
 	{
 		return (~bits & other.bits) == 0;
 	}
 
-	constexpr Bitmap<BaseType> ShiftUp(unsigned int n) const noexcept
+	constexpr Bitmap<T> ShiftUp(unsigned int n) const noexcept
 	{
-		return Bitmap<BaseType>(bits << n);
+		return Bitmap<T>(bits << n);
 	}
 
 	// Set the bits from a base type bitmap
-	constexpr void SetFromRaw(BaseType b) noexcept
+	constexpr void SetFromRaw(T b) noexcept
 	{
 		bits = b;
 	}
@@ -237,52 +237,52 @@ public:
 	bool IterateWhile(function_ref_noexcept<bool(unsigned int, unsigned int) noexcept> func) const noexcept;
 
 	// Make a bitmap with the lowest n bits set
-	static constexpr Bitmap<BaseType> MakeLowestNBits(unsigned int n) noexcept
+	static constexpr Bitmap<T> MakeLowestNBits(unsigned int n) noexcept
 	{
-		return Bitmap<BaseType>((n < MaxBits()) ? ((BaseType)1u << n) - 1 : ~(BaseType)0);
+		return Bitmap<T>((n < MaxBits()) ? ((T)1u << n) - 1 : ~(T)0);
 	}
 
 	// Convert an unsigned integer to a bit in a bitmap
-	static constexpr Bitmap<BaseType> MakeFromBits(unsigned int b1) noexcept
+	static constexpr Bitmap<T> MakeFromBits(unsigned int b1) noexcept
 	{
-		return Bitmap<BaseType>((BaseType)1u << b1);
+		return Bitmap<T>((T)1u << b1);
 	}
 
 	// Convert an unsigned integer to a bit in a bitmap
-	static constexpr Bitmap<BaseType> MakeFromBits(unsigned int b1, unsigned int b2) noexcept
+	static constexpr Bitmap<T> MakeFromBits(unsigned int b1, unsigned int b2) noexcept
 	{
-		return Bitmap<BaseType>((BaseType)1u << b1 | (BaseType)1u << b2);
+		return Bitmap<T>((T)1u << b1 | (T)1u << b2);
 	}
 
 	// Convert an unsigned integer to a bit in a bitmap
-	static constexpr Bitmap<BaseType> MakeFromBits(unsigned int b1, unsigned int b2, unsigned int b3) noexcept
+	static constexpr Bitmap<T> MakeFromBits(unsigned int b1, unsigned int b2, unsigned int b3) noexcept
 	{
-		return Bitmap<BaseType>((BaseType)1u << b1 | (BaseType)1u << b2 |  (BaseType)1u << b3);
+		return Bitmap<T>((T)1u << b1 | (T)1u << b2 |  (T)1u << b3);
 	}
 
 	// Convert an unsigned integer to a bit in a bitmap
-	static constexpr Bitmap<BaseType> MakeFromRaw(BaseType b) noexcept
+	static constexpr Bitmap<T> MakeFromRaw(T b) noexcept
 	{
-		return Bitmap<BaseType>(b);
+		return Bitmap<T>(b);
 	}
 
 	// Convert an array of unsigned longs to a bit map with overflow checking
-	static Bitmap<BaseType> MakeFromArray(const uint32_t *_ecv_array arr, size_t numEntries) noexcept;
+	static Bitmap<T> MakeFromArray(const uint32_t *_ecv_array arr, size_t numEntries) noexcept;
 
 	// Convert an array of longs to a bit map with overflow checking
-	static Bitmap<BaseType> MakeFromArray(const int32_t *_ecv_array arr, size_t numEntries) noexcept;
+	static Bitmap<T> MakeFromArray(const int32_t *_ecv_array arr, size_t numEntries) noexcept;
 
 private:
 	static constexpr uint8_t BitCount[16] = { 0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4 };
 
-	BaseType bits;
+	T bits;
 };
 
 // Count the number of set bits
 template<class T> unsigned int Bitmap<T>::CountSetBits() const noexcept
 {
 	unsigned int count = 0;
-	BaseType b = bits;
+	T b = bits;
 	while (b != 0)
 	{
 		count += BitCount[b & 0x0F];
@@ -294,7 +294,7 @@ template<class T> unsigned int Bitmap<T>::CountSetBits() const noexcept
 // Get the position of the Nth set bit, or -1 if too few bits set
 template<class T> int Bitmap<T>::GetSetBitNumber(size_t index) const noexcept
 {
-	BaseType b = bits;
+	T b = bits;
 	while (b != 0)
 	{
 		const unsigned int lowestBit = ::LowestSetBit(b);
@@ -302,7 +302,7 @@ template<class T> int Bitmap<T>::GetSetBitNumber(size_t index) const noexcept
 		{
 			return (int)lowestBit;
 		}
-		b &= ~((BaseType)1u << lowestBit);
+		b &= ~((T)1u << lowestBit);
 		--index;
 	}
 	return -1;
@@ -311,13 +311,13 @@ template<class T> int Bitmap<T>::GetSetBitNumber(size_t index) const noexcept
 // Iterate over the bits
 template<class T> void Bitmap<T>::Iterate(function_ref_noexcept<void(unsigned int, unsigned int) noexcept > func) const noexcept
 {
-	BaseType copyBits = bits;
+	T copyBits = bits;
 	unsigned int count = 0;
 	while (copyBits != 0)
 	{
 		const unsigned int index = ::LowestSetBit(copyBits);
 		func(index, count);
-		copyBits &= ~((BaseType)1 << index);
+		copyBits &= ~((T)1 << index);
 		++count;
 	}
 }
@@ -325,13 +325,13 @@ template<class T> void Bitmap<T>::Iterate(function_ref_noexcept<void(unsigned in
 // Iterate over the bits
 template<class T> void Bitmap<T>::IterateWithExceptions(function_ref<void(unsigned int, unsigned int)> func) const noexcept(false)
 {
-	BaseType copyBits = bits;
+	T copyBits = bits;
 	unsigned int count = 0;
 	while (copyBits != 0)
 	{
 		const unsigned int index = ::LowestSetBit(copyBits);
 		func(index, count);
-		copyBits &= ~((BaseType)1 << index);
+		copyBits &= ~((T)1u << index);
 		++count;
 	}
 }
@@ -339,7 +339,7 @@ template<class T> void Bitmap<T>::IterateWithExceptions(function_ref<void(unsign
 // Iterate over the bits while the passed function returns true. Return true if we reached the end, false if we terminated because the passed function returned false.
 template<class T> bool Bitmap<T>::IterateWhile(function_ref_noexcept<bool(unsigned int, unsigned int) noexcept > func) const noexcept
 {
-	BaseType copyBits = bits;
+	T copyBits = bits;
 	unsigned int count = 0;
 	while (copyBits != 0)
 	{
@@ -348,7 +348,7 @@ template<class T> bool Bitmap<T>::IterateWhile(function_ref_noexcept<bool(unsign
 		{
 			return false;
 		}
-		copyBits &= ~((BaseType)1 << index);
+		copyBits &= ~((T)1u << index);
 		++count;
 	}
 	return true;
@@ -357,31 +357,31 @@ template<class T> bool Bitmap<T>::IterateWhile(function_ref_noexcept<bool(unsign
 // Convert an array of unsigned longs to a bit map with overflow checking
 template<class T> Bitmap<T> Bitmap<T>::MakeFromArray(const uint32_t *_ecv_array arr, size_t numEntries) noexcept
 {
-	BaseType res = 0;
+	T res = 0;
 	for (size_t i = 0; i < numEntries; ++i)
 	{
 		const uint32_t f = arr[i];
-		if (f < Bitmap<BaseType>::MaxBits())
+		if (f < Bitmap<T>::MaxBits())
 		{
-			res |= (BaseType)1 << f;
+			res |= (T)1u << f;
 		}
 	}
-	return Bitmap<BaseType>(res);
+	return Bitmap<T>(res);
 }
 
 // Convert an array of longs to a bit map with overflow checking
 template<class T> Bitmap<T> Bitmap<T>::MakeFromArray(const int32_t *_ecv_array arr, size_t numEntries) noexcept
 {
-	BaseType res = 0;
+	T res = 0;
 	for (size_t i = 0; i < numEntries; ++i)
 	{
 		const int32_t f = arr[i];
-		if (f >= 0 && f < (int32_t)Bitmap<BaseType>::MaxBits())
+		if (f >= 0 && f < (int32_t)Bitmap<T>::MaxBits())
 		{
-			res |= (BaseType)1 << (unsigned int)f;
+			res |= (T)1u << (unsigned int)f;
 		}
 	}
-	return Bitmap<BaseType>(res);
+	return Bitmap<T>(res);
 }
 
 // Class to hold a bitmap that won't fit into a single object f integral type
