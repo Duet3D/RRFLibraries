@@ -580,6 +580,26 @@ private:
 
 #ifdef RTOS
 
+// Class to change the priority of the calling task temporarily and restore the original priority when it goes out of scope.
+// Usually used to boost priority, hence the name.
+class PriorityBoost
+{
+public:
+	PriorityBoost(unsigned int tempPriority) noexcept
+	{
+		oldPriority = uxTaskPriorityGet(nullptr);
+		vTaskPrioritySet(nullptr, tempPriority);
+	}
+
+	~PriorityBoost()
+	{
+		vTaskPrioritySet(nullptr, oldPriority);
+	}
+
+private:
+	UBaseType_t oldPriority;
+};
+
 // Queue support
 class QueueBase
 {
