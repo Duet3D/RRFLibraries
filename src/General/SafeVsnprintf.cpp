@@ -553,13 +553,18 @@ int FormattedPrinter::Print(c_string format, va_list args) noexcept
 {
 	for (;;)
 	{
-		char ch;
-		while ((ch = *format++) != '%')
+		char ch = *format++;
+		if (ch == 0)
+		{
+			break;
+		}
+		if (ch != '%')
 		{
 			if (!PutChar(ch))
 			{
-				goto quit;		// double break
+				break;
 			}
+			continue;
 		}
 
 		// If we get here then ch == '%'. Get the next character.
@@ -751,7 +756,7 @@ int FormattedPrinter::Print(c_string format, va_list args) noexcept
 			continue;
 		}
 	}
-quit:
+
 	(void)PutChar('\0');
 	return curLen;
 }
