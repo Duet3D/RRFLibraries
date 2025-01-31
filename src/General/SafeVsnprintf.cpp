@@ -558,7 +558,7 @@ int FormattedPrinter::Print(c_string format, va_list args) noexcept
 		{
 			if (!PutChar(ch))
 			{
-				return curLen;
+				goto quit;		// double break
 			}
 		}
 
@@ -572,7 +572,7 @@ int FormattedPrinter::Print(c_string format, va_list args) noexcept
 		{
 			if (!PutChar(ch))
 			{
-				return curLen;
+				break;
 			}
 			continue;
 		}
@@ -682,7 +682,7 @@ int FormattedPrinter::Print(c_string format, va_list args) noexcept
 			{
 				if (!PutChar(c2))
 				{
-					return curLen;
+					break;
 				}
 			}
 
@@ -751,7 +751,8 @@ int FormattedPrinter::Print(c_string format, va_list args) noexcept
 			continue;
 		}
 	}
-	PutChar('\0');
+quit:
+	(void)PutChar('\0');
 	return curLen;
 }
 
