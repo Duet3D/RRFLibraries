@@ -178,18 +178,22 @@ void TaskBase::TerminateAndUnlink() noexcept
 	if (taskId != 0)
 	{
 		taskId = 0;
-		vTaskDelete(GetFreeRTOSHandle());
 
 		// Unlink the task from the thread list
-		TaskCriticalSectionLocker lock;
-		for (TaskBase *_ecv_from null * tpp = &taskList; *tpp != nullptr; tpp = &not_null(*tpp)->next)
 		{
-			if (*tpp == this)
+			TaskCriticalSectionLocker lock;
+			for (TaskBase *_ecv_from null * tpp = &taskList; *tpp != nullptr; tpp = &not_null(*tpp)->next)
 			{
-				*tpp = not_null(*tpp)->next;
-				break;
+				if (*tpp == this)
+				{
+					*tpp = not_null(*tpp)->next;
+					break;
+				}
 			}
 		}
+
+		// Delete the task last in case it is deleting itself
+		vTaskDelete(GetFreeRTOSHandle());
 	}
 }
 
