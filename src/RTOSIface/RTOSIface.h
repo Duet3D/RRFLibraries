@@ -51,11 +51,13 @@ _ecv_spec void vPortExitCritical() noexcept;
 
 _ecv_spec QueueHandle_t xQueueGenericCreateStatic( const UBaseType_t uxQueueLength,
 													 const UBaseType_t uxItemSize,
-													 uint8_t *_ecv_array pucQueueStorage,
+													 uint8_t *_ecv_array _ecv_null pucQueueStorage,
 													 StaticQueue_t *_ecv_from pxStaticQueue,
 													 const uint8_t ucQueueType ) noexcept;
+_ecv_spec QueueHandle_t xQueueCreateMutexStatic( const uint8_t ucQueueType,
+                                       StaticQueue_t *_ecv_from pxStaticQueue ) noexcept;
 _ecv_spec BaseType_t xQueueGenericSend( QueueHandle_t xQueue,
-                              const void * const pvItemToQueue,
+                              const void *_ecv_null const pvItemToQueue,
                               TickType_t xTicksToWait,
                               const BaseType_t xCopyPosition ) noexcept;
 _ecv_spec BaseType_t xQueueReceive( QueueHandle_t xQueue,
@@ -418,6 +420,8 @@ private:
 // - You can downgrade a write lock to a read lock
 // - There is no facility to upgrade a read lock to a write lock, because the system would deadlock if two tasks tried to do that at the same time
 // - Except where noted, the member functions are not safe to call from an ISR.
+struct LockRecord;
+
 class ReadWriteLock
 {
 public:
@@ -448,7 +452,6 @@ public:
 private:
 
 #ifdef RTOS
-	struct LockRecord;
 	LockRecord *_ecv_null volatile readLocks;			// linked list of tasks that own or want to own a read lock
 	LockRecord *_ecv_null volatile writeLocks;			// linked list of tasks that own or want to own a write lock
 #endif
@@ -585,7 +588,7 @@ private:
 class PriorityBoost
 {
 public:
-	PriorityBoost(unsigned int tempPriority) noexcept
+	explicit PriorityBoost(unsigned int tempPriority) noexcept
 	{
 		oldPriority = uxTaskPriorityGet(nullptr);
 		vTaskPrioritySet(nullptr, tempPriority);

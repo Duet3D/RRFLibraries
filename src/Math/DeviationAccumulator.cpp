@@ -8,7 +8,7 @@
 #include "DeviationAccumulator.h"
 #include "../General/SimpleMath.h"
 
-DeviationAccumulator::DeviationAccumulator() : numValues(0), sum(0.0), sumOfSquares(0.0)
+DeviationAccumulator::DeviationAccumulator() noexcept : numValues(0), sum(0.0), sumOfSquares(0.0)
 {
 }
 

@@ -241,7 +241,7 @@ bool FormattedPrinter::PutJson(c_string apString) noexcept
 		{
 			ok = PutChar('\\') && PutChar(esc);
 		}
-		else if (c < 0x20)
+		else if (c < (char)0x20)
 		{
 			ok = PutChar('?');		// don't print control characters to JSON strings
 		}
