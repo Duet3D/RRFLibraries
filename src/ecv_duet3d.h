@@ -30,6 +30,8 @@ typedef _ecv_float16_t __fp16;
 typedef const char *_ecv_array c_string;
 typedef const char *_ecv_array _ecv_null c_string_or_null;
 
-#define nullTerm(_x) _ecv_isNullTerminated(_x)
+// Define shorthand macros to express the concept that a C string is null terminated, and the data in it up to but not including the null
+#define nullTerm(_x)	_ecv_isNullTerminated(_x)
+#define ntData(_x)		_ecv_asSeq(_x)
 
 #endif /* SRC_GENERAL_ECV_DUET3D_H_ */
