@@ -136,6 +136,8 @@ extern float fastSqrtf(float f) noexcept;
 
 #endif
 
+float fastCubeRootf(float f) noexcept;
+
 // Macro to give us the number of elements in an array
 #ifndef ARRAY_SIZE
 # define ARRAY_SIZE(_x)	(sizeof(_x)/sizeof((_x)[0]))
