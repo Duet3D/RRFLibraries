@@ -12,6 +12,7 @@
 #include <cstddef>
 #include <cmath>
 #include "gcc_builtins.h"
+#include "../ecv_duet3d.h"
 
 template<class X> inline constexpr X min(X _a, X _b) noexcept
 {
@@ -136,7 +137,13 @@ extern float fastSqrtf(float f) noexcept;
 
 #endif
 
+// Return the real cube root of a float. Twice as fast as calling cbrt() but possibly less accurate.
 float fastCubeRootf(float f) noexcept;
+
+// Solve a cubic equation. We are only interested in real solutions. Returns the number of real solutions. The solutions are stored returned in rslt.
+size_t SolveCubic(float a, float b, float c, float d, float *rslt) noexcept
+pre(rslt.lim >= 3)
+post(_ecv_result <= 3);
 
 // Macro to give us the number of elements in an array
 #ifndef ARRAY_SIZE
@@ -145,6 +152,5 @@ float fastCubeRootf(float f) noexcept;
 
 // Macro to give us the highest valid index into an array i.e. one less than the size
 #define ARRAY_UPB(_x)	(ARRAY_SIZE(_x) - 1)
-
 
 #endif /* SRC_GENERAL_SIMPLEMATH_H_ */

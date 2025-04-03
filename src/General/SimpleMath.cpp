@@ -7,6 +7,7 @@
 
 #include "SimpleMath.h"
 #include <cmath>
+#include <complex>
 
 extern "C" void debugPrintf(const char *fmt, ...) noexcept;
 
@@ -51,6 +52,77 @@ float fastCubeRootf(float f) noexcept
 #endif
 
 	return ret;
+}
+
+// Solve a cubic equation
+// We are only interested in real solutions. The solutions are stored returned in rslt and the return value is the number of solutions
+// See https://en.wikipedia.org/wiki/Cubic_equation.
+size_t SolveCubic(float a, float b, float c, float d, float *rslt) noexcept
+{
+	if (a == 0.0)
+	{
+		// The equation is actually quadratic
+		const float discriminant = fsquare(c) - 4 * b * d;
+		if (discriminant == 0.0)
+		{
+			rslt[0] = -c/(2 * b);
+			return 1;
+		}
+		if (discriminant > 0.0)
+		{
+			const float s = fastSqrtf(discriminant);
+			rslt[0] = (s - c)/(2 * b);
+			rslt[1] = -(s + c)/(2 * b);
+			return 2;
+		}
+		return 0;
+	}
+	else
+	{
+		const float delta0 = fsquare(b) - (a * c * 3);
+		const float delta1 = (2 * fcube(b)) - (a * c * b * 9) + (27 * fsquare(a) * d);
+		if (delta0 == 0.0)
+		{
+			if (delta1 == 0.0)
+			{
+				// One real root with multiplicity 3
+				rslt[0] = -b/(3 * a);
+				return 1;
+			}
+
+			// Else the discriminant must be positive and we have one real root
+			const float bigC = fastCubeRootf(delta1);
+			rslt[0] = -(b + bigC)/(3 * a);
+			return 1;
+		}
+
+		const float minusDiscriminant = fsquare(delta1) - 4 * fcube(delta0);
+		if (minusDiscriminant == 0.0)
+		{
+			// We have one real root with multiplicity 2 and one other real root
+			rslt[0] = ((9 * a * d) - (b * c))/(2 * delta0);									// root with multiplicity 2
+			rslt[1] = ((4 * a * b * c) - (9 * fsquare(a) * d) - fcube(b))/(a * delta0);		// simple root
+			return 2;
+		}
+
+		if (minusDiscriminant > 0.0)
+		{
+			// One real root and two complex conjugate roots
+			const float bigC = fastCubeRootf((delta1 + fastSqrtf(minusDiscriminant)) * 0.5);
+			rslt[0] = -(b + bigC + delta0/bigC)/(3 * a);
+			return 1;
+		}
+
+		// Else there are three real roots and we need complex arithmetic (or equivalently, trigonometry) to find them
+		std::complex<float> cube(0.5 * delta1, 0.5 * fastSqrtf(-minusDiscriminant));
+		std::complex<float> bigC0 = std::polar<float>(fastCubeRootf(abs(cube)), arg(cube)/3.0);
+		std::complex<float> bigC1 = bigC0 * std::complex<float>(-0.5, 0.5 * sqrtf(3.0));
+		std::complex<float> bigC2 = bigC0 * std::complex<float>(-0.5, -0.5 * sqrtf(3.0));
+		rslt[0] = -(b + bigC0.real() + (delta0/bigC0).real())/(3 * a);
+		rslt[1] = -(b + bigC1.real() + (delta0/bigC1).real())/(3 * a);
+		rslt[2] = -(b + bigC2.real() + (delta0/bigC2).real())/(3 * a);
+		return 3;
+	}
 }
 
 // End
