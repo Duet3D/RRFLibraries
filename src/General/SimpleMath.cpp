@@ -11,13 +11,21 @@
 
 extern "C" void debugPrintf(const char *fmt, ...) noexcept;
 
+#define SACRIFICE_RANGE		(0)
+
 float fastCubeRootf(float f) noexcept
 {
-	if (f == 0.0) { return 0.0; }						// estimating the reciprocal cube root fails if the operand is zero
+	if (f == 0.0 || std::isnan(f) || std::isinf(f)) { return f; }						// estimating the reciprocal cube root fails if the operand is zero
 
 	// First calculate the approximate value of f^-(2/3).
 	// See "Generalising the Fast Reciprocal Square Root Algorithm" by Mike Day, https://arxiv.org/pdf/2307.15600
+	// We need to either square the operand here (which gives the best accuracy), or square the intermediate result a few lines down (which gives greater range but lower initial accuracy)
+#if SACRIFICE_RANGE
 	const float f2 = fsquare(f);
+#else
+	const float f2 = fabsf(f);
+#endif
+	// If we switch to C++20 or later then we can use bit_cast instead of reinterpret_cast in the following, then we won't need these pragmas
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wstrict-aliasing"
 	const uint32_t i = *reinterpret_cast<const uint32_t*>(&f2);
@@ -25,7 +33,11 @@ float fastCubeRootf(float f) noexcept
 	const float y = *reinterpret_cast<const float*>(&i2);
 #pragma GCC diagnostic pop
 	const float z = f2 * y * y * y;
+#if SACRIFICE_RANGE
 	const float f1 = y * (1.3739948 - z * (0.47285829 - z * 0.092823250));
+#else
+	const float f1 = fsquare(y * (1.3739948 - z * (0.47285829 - z * 0.092823250)));
+#endif
 
 	// f1 is now an approximation of f^-(2/3). Multiply by f to get an approximation of f^(1/3).
 	const float r1 = f1 * f;
@@ -47,7 +59,7 @@ float fastCubeRootf(float f) noexcept
 	   )
 	{
 		const float r3 = ret - (fcube(ret) - f) * f1 * (1.0/3.0);
-		debugPrintf("%7e %7e %7e %7e %7e %7e %7e %7e %7e\n", (double)ret, (double)f, (double)prevRet, (double)prevCube, (double)nextRet, (double)nextCube, (double)r1, (double)r2, (double)r3);
+		debugPrintf("%7e %7e %7e %7e %7e %7e %7e %7e %7e %7e\n", (double)f1, (double)ret, (double)f, (double)prevRet, (double)prevCube, (double)nextRet, (double)nextCube, (double)r1, (double)r2, (double)r3);
 	}
 #endif
 
@@ -55,7 +67,7 @@ float fastCubeRootf(float f) noexcept
 }
 
 // Solve a cubic equation
-// We are only interested in real solutions. The solutions are stored returned in rslt and the return value is the number of solutions
+// We are only interested in real solutions. The solutions are stored returned in rslt and the return value is the number of solutions.
 // See https://en.wikipedia.org/wiki/Cubic_equation.
 size_t SolveCubic(float a, float b, float c, float d, float *rslt) noexcept
 {
@@ -115,6 +127,7 @@ size_t SolveCubic(float a, float b, float c, float d, float *rslt) noexcept
 
 		// Else there are three real roots and we need complex arithmetic (or equivalently, trigonometry) to find them
 		std::complex<float> cube(0.5 * delta1, 0.5 * fastSqrtf(-minusDiscriminant));
+		// Instead of evaluating fastCubeRootf(abs(cube)) in the following we could take the 6th root of norm(cube), which should be a little faster but needs more code
 		std::complex<float> bigC0 = std::polar<float>(fastCubeRootf(abs(cube)), arg(cube)/3.0);
 		std::complex<float> bigC1 = bigC0 * std::complex<float>(-0.5, 0.5 * sqrtf(3.0));
 		std::complex<float> bigC2 = bigC0 * std::complex<float>(-0.5, -0.5 * sqrtf(3.0));
