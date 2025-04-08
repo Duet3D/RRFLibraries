@@ -145,6 +145,9 @@ size_t SolveCubic(float a, float b, float c, float d, float *rslt) noexcept
 pre(rslt.lim >= 3)
 post(_ecv_result <= 3);
 
+// Return the smallest non-negative root of the equation
+float SmallestNonNegativeCubicSolution(float a, float b, float c, float d) noexcept;
+
 // Macro to give us the number of elements in an array
 #ifndef ARRAY_SIZE
 # define ARRAY_SIZE(_x)	(sizeof(_x)/sizeof((_x)[0]))
