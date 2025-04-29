@@ -20,7 +20,14 @@ bool StringEndsWithIgnoreCase(c_string string, c_string ending) noexcept
 bool StringEqualsIgnoreCase(c_string s1, c_string s2) noexcept
 {
 	size_t i = 0;
-	while (s1[i] != 0 && s2[i] != 0) keep(i < s1.upb; i < s2.upb)
+	while (s1[i] != 0 && s2[i] != 0)
+	keep(	i < s1.lim;
+			i < s2.lim;
+			forall k in 0..(i-1) :- s1[k] != 0 && s2[k] != 0;
+			i < strlen(s1);
+			i < strlen(s2);
+			forall k in 0..(i-1) :- tolower((int)s1[k]) != tolower((int)s2[k]))
+	decrease(strlen(s1) - i)
 	{
 		if (tolower((int)s1[i]) != tolower((int)s2[i]))
 		{
@@ -34,7 +41,9 @@ bool StringEqualsIgnoreCase(c_string s1, c_string s2) noexcept
 
 bool ReducedStringEquals(c_string s1, c_string s2) noexcept
 {
-	while (*s1 != 0 && *s2 != 0) keep(s1 < old s1 + (old s1).lim; s2 < old s2 + (old s2).lim)
+	while (*s1 != 0 && *s2 != 0)
+	keep(s1 < old s1 + (old s1).lim; s2 < old s2 + (old s2).lim)
+	decrease(strlen(s1))
 	{
 		if (*s1 == '-' || *s1 == '_')
 		{
@@ -61,6 +70,7 @@ bool ReducedStringEquals(c_string s1, c_string s2) noexcept
 bool StringStartsWith(c_string string, c_string starting) noexcept
 {
 	while (*starting != 0)
+	decrease(strlen(string))
 	{
 		if (*starting != *string)
 		{
@@ -76,6 +86,7 @@ bool StringStartsWith(c_string string, c_string starting) noexcept
 bool StringStartsWithIgnoreCase(c_string string, c_string starting) noexcept
 {
 	while (*starting != 0)
+	decrease(strlen(string))
 	{
 		if (tolower((int)*starting) != tolower((int)*string))
 		{
@@ -94,6 +105,8 @@ int StringContains(c_string string, c_string match) noexcept
 	int count = 0;
 
 	while (string[i] != 0)
+	keep(i <= strlen(string); forall j in 0..(i - 1) :- j + strlen(match) > strlen(string) || ntData(string).drop(j).take(strlen(match)) != ntData(match))
+	decrease(strlen(string) - i)
 	{
 		if (string[i++] == match[count])
 		{
