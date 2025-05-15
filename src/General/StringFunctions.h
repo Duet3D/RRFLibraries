@@ -24,15 +24,15 @@ pre(nullTerm(string); nullTerm(starting));
 
 bool StringEqualsIgnoreCase(c_string s1, c_string s2) noexcept
 pre(nullTerm(s1); nullTerm(s2))
-_ecv_returns(strlen(s1) == strlen(s2) && (forall i in 0..(strlen(s1) - 1) :- tolower((int)s1[i]) == tolower((int)s2[i])));
+_ecv_returns(strlen(s1) == strlen(s2) && (forall i in 0..((_ecv_integer)strlen(s1) - 1) :- tolower((int)s1[i]) == tolower((int)s2[i])));
 
 bool ReducedStringEquals(c_string s1, c_string s2) noexcept
 pre(nullTerm(s1); nullTerm(s2));
 
 int StringContains(c_string string, c_string match) noexcept
 pre(nullTerm(string); nullTerm(match))
-post(   (_ecv_result == -1 && !(exists i in 0..(strlen(string) - strlen(match)) :- ntData(string).drop(i).take(strlen(match)) == ntData(match)))
-     || (_ecv_result in 0..(strlen(string) - strlen(match)) && ntData(string).drop(_ecv_result).take(strlen(match)) == ntData(match))
+post(   (_ecv_result == -1 && !(exists i in 0..((_ecv_integer)strlen(string) - (_ecv_integer)strlen(match)) :- ntData(string).drop(i).take(strlen(match)) == ntData(match)))
+     || (_ecv_result in 0..((_ecv_integer)strlen(string) - (_ecv_integer)strlen(match)) && ntData(string).drop(_ecv_result).take(strlen(match)) == ntData(match))
 	);
 
 void SafeStrncpy(char *_ecv_array dst, c_string src, size_t length) noexcept
@@ -46,7 +46,7 @@ post(src.all == old src.all;
 	);
 
 void SafeStrncat(char *_ecv_array dst, c_string src, size_t length) noexcept
-pre(length != 0; dst.lim >= length; nullTerm(src); nullTerm(dst); disjoint(src.all, dst.all))
+pre(length != 0; dst.lim >= length; nullTerm(src); nullTerm(dst); strlen(dst) < length; disjoint(src.all, dst.all))
 post(src.all == old src.all;
 	 nullTerm(dst);
 	 ntData(dst) == ((old(strlen(dst)) + strlen(src) < length)
