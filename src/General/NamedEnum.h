@@ -126,7 +126,7 @@ public: \
 	constexpr BaseType ToBaseType() const noexcept { return static_cast<BaseType>(v); }							/* convert to integral base type */ \
 	static constexpr BaseType ToBaseType(RawType arg) noexcept { return static_cast<BaseType>(arg); }			/* convert to integral base type */ \
 	c_string ToString() const noexcept { return ToString(v); }													/* conversion to C string */ \
-	static c_string ToString(RawType v) noexcept { return ((BaseType)v < NumValues) ? SkipLeadingUnderscore(_names[(BaseType)v]) : "invalid"; }	/* conversion to C string */ \
+	static c_string ToString(RawType _v) noexcept { return ((BaseType)_v < NumValues) ? SkipLeadingUnderscore(_names[(BaseType)_v]) : "invalid"; }	/* conversion to C string */ \
 	void Assign(BaseType arg) noexcept { v = static_cast<RawType>(arg); }										/* assignment from integral base type */ \
 	bool IsValid() const noexcept { return (BaseType)v < NumValues; }											/* check validity */ \
 private: \
