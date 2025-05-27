@@ -23,11 +23,11 @@ bool StringEqualsIgnoreCase(c_string s1, c_string s2) noexcept
 	while (s1[i] != 0 && s2[i] != 0)
 	keep(	i < s1.lim;
 			i < s2.lim;
-			forall k in 0..(i-1) :- s1[k] != 0 && s2[k] != 0;
-			i < strlen(s1);
-			i < strlen(s2);
-			forall k in 0..(i-1) :- tolower((int)s1[k]) != tolower((int)s2[k]))
-	decrease(strlen(s1) - i)
+			forall k in 0..((_ecv_integer)i-1) :- s1[k] != 0 && s2[k] != 0;
+			i <= strlen(s1);
+			i <= strlen(s2);
+			forall k in 0..((_ecv_integer)i-1) :- tolower((int)s1[k]) == tolower((int)s2[k]))
+	decrease((_ecv_integer)strlen(s1) - i)
 	{
 		if (tolower((int)s1[i]) != tolower((int)s2[i]))
 		{
@@ -42,8 +42,10 @@ bool StringEqualsIgnoreCase(c_string s1, c_string s2) noexcept
 bool ReducedStringEquals(c_string s1, c_string s2) noexcept
 {
 	while (*s1 != 0 && *s2 != 0)
-	keep(s1 < old s1 + (old s1).lim; s2 < old s2 + (old s2).lim)
-	decrease(strlen(s1))
+	keep(s1.base == (old s1).base; s1 < old s1 + (old s1).lim; s1 <= (old s1) + strlen(old s1);
+		s2.base == (old s2).base; s2 < old s2 + (old s2).lim; s2 <= (old s2) + strlen(old s2);
+		_ecv_isNullTerminated(s1))
+	decrease(strlen(s1) + strlen(s2))
 	{
 		if (*s1 == '-' || *s1 == '_')
 		{
@@ -70,6 +72,11 @@ bool ReducedStringEquals(c_string s1, c_string s2) noexcept
 bool StringStartsWith(c_string string, c_string starting) noexcept
 {
 	while (*starting != 0)
+	keep(starting.base == (old starting).base; starting < old starting + (old starting).lim; starting <= (old starting) + strlen(old starting);
+		 string.base == (old string).base; string < old string + (old string).lim; string <= (old string) + strlen(old string);
+		 starting - old starting == string - old string;
+		 forall i in 0..((starting - old starting) - 1) :- (old starting)[i] == (old string)[i]
+		)
 	decrease(strlen(string))
 	{
 		if (*starting != *string)
