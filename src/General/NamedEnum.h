@@ -78,7 +78,7 @@
 // Function to search the table of names for a match. Returns numNames if not found.
 unsigned int NamedEnumLookup(c_string s, c_string const names[], unsigned int numNames) noexcept;
 
-static inline c_string SkipLeadingUnderscore(c_string s) noexcept
+static inline constexpr c_string SkipLeadingUnderscore(c_string s) noexcept
 {
 	return (*s == '_') ? s + 1 : s;
 }
@@ -125,8 +125,8 @@ public: \
 	constexpr RawType RawValue() const noexcept { return v; }													/* return the raw enum value, which we can switch on */ \
 	constexpr BaseType ToBaseType() const noexcept { return static_cast<BaseType>(v); }							/* convert to integral base type */ \
 	static constexpr BaseType ToBaseType(RawType arg) noexcept { return static_cast<BaseType>(arg); }			/* convert to integral base type */ \
-	c_string ToString() const noexcept { return ToString(v); }													/* conversion to C string */ \
-	static c_string ToString(RawType _v) noexcept { return ((BaseType)_v < NumValues) ? SkipLeadingUnderscore(_names[(BaseType)_v]) : "invalid"; }	/* conversion to C string */ \
+	constexpr c_string ToString() const noexcept { return ToString(v); }										/* conversion to C string */ \
+	static constexpr c_string ToString(RawType _v) noexcept { return ((BaseType)_v < NumValues) ? SkipLeadingUnderscore(_names[(BaseType)_v]) : "invalid"; }	/* conversion to C string */ \
 	void Assign(BaseType arg) noexcept { v = static_cast<RawType>(arg); }										/* assignment from integral base type */ \
 	bool IsValid() const noexcept { return (BaseType)v < NumValues; }											/* check validity */ \
 private: \
