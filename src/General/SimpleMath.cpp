@@ -154,19 +154,34 @@ float SmallestNonNegativeCubicSolution(float a, float b, float c, float d) noexc
 	{
 	case 3:
 		if (rslt[2] >= 0.0 && rslt[2] < rslt[1] && rslt[2] < rslt[0]) { return rslt[2]; }
-		// no break
 		//[[fallthrough]]
+		// no break
 	case 2:
 		if (rslt[1] >= 0.0 && rslt[1] < rslt[0]) { return rslt[1]; }
-		// no break
 		//[[fallthrough]]
+		// no break
 	case 1:
 		if (rslt[0] >= 0.0) { return rslt[0]; }
-		// no break
 		//[[fallthrough]]
+		// no break
 	default:
 		return std::numeric_limits<float>::quiet_NaN();
 	}
+}
+
+// Return the smallest non-negative root of the equation. Returns the greatest root if both roots are negative.
+float SmallestNonNegativeQuadraticSolution(float a, float b, float c) noexcept
+{
+	if (a == 0.0)
+	{
+		return -c/b;
+	}
+	const float temp = fastSqrtf(fsquare(b) - 4 * a * c);
+	if (a < 0)
+	{
+		a = -a; b = -b;
+	}
+	return ((b + temp <= 0) ? -(b + temp) : (temp - b))/(2 * a);
 }
 
 // End

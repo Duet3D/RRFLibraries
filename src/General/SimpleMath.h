@@ -147,6 +147,7 @@ post(_ecv_result <= 3);
 
 // Return the smallest non-negative root of the equation
 float SmallestNonNegativeCubicSolution(float a, float b, float c, float d) noexcept;
+float SmallestNonNegativeQuadraticSolution(float a, float b, float c) noexcept;
 
 // Macro to give us the number of elements in an array
 #ifndef ARRAY_SIZE
