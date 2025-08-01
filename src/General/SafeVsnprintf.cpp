@@ -426,7 +426,7 @@ bool FormattedPrinter::PrintFloat(double d, char formatLetter) noexcept
 	}
 	if (std::isinf(d))
 	{
-		return PutString("inf");
+		return PutString((d > (double)0.0) ? "+inf" : "-inf");
 	}
 
 	double ud = fabs(d);
@@ -438,20 +438,20 @@ bool FormattedPrinter::PrintFloat(double d, char formatLetter) noexcept
 	int exponent = 0;
 	if (formatLetter == 'e' || formatLetter == 'E' || formatLetter == 'g' || formatLetter == 'G')
 	{
-		// Using exponent format, so calculate the exponent and normalise ud to be >=1.0 but <10.0
-		// The following loops are inefficient, however we don't expect to print very large or very small numbers
-		while (ud >= (double)100000.0)
-		{
-			ud /= (double)100000.0;
-			exponent += 5;
-		}
-		while (ud >= (double)10.0)
-		{
-			ud /= (double)10.0;
-			++exponent;
-		}
 		if (ud != (double)0.0)
 		{
+			// Using exponent format, so calculate the exponent and normalise ud to be >=1.0 but <10.0
+			// The following loops are inefficient, however we don't expect to print very large or very small numbers
+			while (ud >= (double)100000.0)
+			{
+				ud /= (double)100000.0;
+				exponent += 5;
+			}
+			while (ud >= (double)10.0)
+			{
+				ud /= (double)10.0;
+				++exponent;
+			}
 			while (ud < (double)0.00001)
 			{
 				ud *= (double)100000.0;
