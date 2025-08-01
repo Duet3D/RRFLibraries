@@ -11,6 +11,8 @@
 
 extern "C" void debugPrintf(const char *fmt, ...) noexcept;
 
+#if (defined(SAME70) && SAME70) || defined(__SAME70Q21__)
+
 #define SACRIFICE_RANGE		(0)
 
 float fastCubeRootf(float f) noexcept
@@ -69,77 +71,85 @@ float fastCubeRootf(float f) noexcept
 // Solve a cubic equation
 // We are only interested in real solutions. The solutions are stored returned in rslt and the return value is the number of solutions.
 // See https://en.wikipedia.org/wiki/Cubic_equation.
-size_t SolveCubic(float a, float b, float c, float d, float *rslt) noexcept
+
+// Note, we can easily underflow the range of a float (about +/- 3.4e-38) in this function, therefore we use double arithmetic.
+size_t SolveCubic(float fa, float fb, float fc, float fd, float *rslt) noexcept
 {
-	if (a == 0.0)
+	const double a = (double)fa;
+	const double b = (double)fb;
+	const double c = (double)fc;
+	const double d = (double)fd;
+	if (a == (double)0.0)
 	{
 		// The equation is actually quadratic
-		const float discriminant = fsquare(c) - 4 * b * d;
-		if (discriminant == 0.0)
+		const double discriminant = dsquare((double)c) - 4 * b * d;
+		if (discriminant == (double)0.0)
 		{
 			rslt[0] = -c/(2 * b);
 			return 1;
 		}
-		if (discriminant > 0.0)
+		if (discriminant > (double)0.0)
 		{
-			const float s = fastSqrtf(discriminant);
-			rslt[0] = (s - c)/(2 * b);
-			rslt[1] = -(s + c)/(2 * b);
+			const double s = (float)fastSqrtd(discriminant);
+			rslt[0] = (float)((s - c)/(2 * b));
+			rslt[1] = (float)(-(s + c)/(2 * b));
 			return 2;
 		}
 		return 0;
 	}
 	else
 	{
-		const float bc = b * c;
-		const float ad = a * d;
-		const float a2d = ad * a;
-		const float abc = a * bc;
-		const float threeA = 3 * a;
-		const float delta0 = fsquare(b) - (threeA * c);
-		const float delta1 = (2 * fcube(b)) - (abc * 9) + (27 * a2d);
-		if (delta0 == 0.0)
+		const double bc = b * c;
+		const double ad = a * d;
+		const double a2d = ad * a;
+		const double abc = a * bc;
+		const double threeA = 3 * a;
+		const double delta0 = dsquare(b) - (threeA * c);
+		const double delta1 = (2 * dcube(b)) - (abc * 9) + (27 * a2d);
+		if (delta0 == (double)0.0)
 		{
-			if (delta1 == 0.0)
+			if (delta1 == (double)0.0)
 			{
 				// One real root with multiplicity 3
-				rslt[0] = -b/threeA;
+				rslt[0] = (float)(-b/threeA);
 				return 1;
 			}
 
 			// Else the discriminant must be positive and we have one real root
-			const float bigC = fastCubeRootf(delta1);
-			rslt[0] = -(b + bigC)/threeA;
+			const double bigC = fastCubeRootf(delta1);
+			rslt[0] = (float)(-(b + bigC)/threeA);
 			return 1;
 		}
 
-		const float minusDiscriminant = fsquare(delta1) - 4 * fcube(delta0);
-		if (minusDiscriminant == 0.0)
+		const double minusDiscriminant = dsquare(delta1) - 4 * dcube(delta0);
+//		debugPrintf("md=%.3e\n", minusDiscriminant);
+		if (minusDiscriminant == (double)0.0)
 		{
+			debugPrintf("d0=%.4e d1=%.4e\n", delta0, delta1);
 			// We have one real root with multiplicity 2 and one other real root
-			rslt[0] = ((9 * ad) - bc)/(2 * delta0);									// root with multiplicity 2
-			rslt[1] = ((4 * abc) - (9 * a2d) - fcube(b))/(a * delta0);				// simple root
+			rslt[0] = (float)(((9 * ad) - bc)/(2 * delta0));								// root with multiplicity 2
+			rslt[1] = (float)(((4 * abc) - (9 * a2d) - dcube(b))/(a * delta0));				// simple root
 			return 2;
 		}
 
-		if (minusDiscriminant > 0.0)
+		if (minusDiscriminant > (double)0.0)
 		{
 			// One real root and two complex conjugate roots
-			const float bigC = fastCubeRootf((delta1 + fastSqrtf(minusDiscriminant)) * 0.5);
-			rslt[0] = -(b + bigC + delta0/bigC)/threeA;
+			const double bigC = fastCubeRootd((delta1 + fastSqrtd(minusDiscriminant)) * (double)0.5);
+			rslt[0] = (float)(-(b + bigC + delta0/bigC)/threeA);
 			return 1;
 		}
 
 		// Else there are three real roots and we need complex arithmetic (or equivalently, trigonometry) to find them
-		const std::complex<float> cube(0.5 * delta1, 0.5 * fastSqrtf(-minusDiscriminant));
+		const std::complex<double> cube((double)0.5 * delta1, (double)0.5 * fastSqrtd(-minusDiscriminant));
 		// Instead of evaluating fastCubeRootf(abs(cube)) in the following we could take the 6th root of norm(cube), which should be a little faster but needs more code
-		const std::complex<float> bigC0 = std::polar<float>(fastCubeRootf(abs(cube)), arg(cube)/3.0);
-        const std::complex<float> cbrtMinus1 = std::complex<float>(-0.5, 0.5 * sqrtf(3.0));
-		const std::complex<float> bigC1 = bigC0 * cbrtMinus1;
-		const std::complex<float> bigC2 = bigC0 * conj(cbrtMinus1);
-		rslt[0] = -(b + bigC0.real() + (delta0/bigC0).real())/threeA;
-		rslt[1] = -(b + bigC1.real() + (delta0/bigC1).real())/threeA;
-		rslt[2] = -(b + bigC2.real() + (delta0/bigC2).real())/threeA;
+		const std::complex<double> bigC0 = std::polar<float>(fastCubeRootd(abs(cube)), arg(cube)/(double)3.0);
+        const std::complex<double> cbrtMinus1 = std::complex<float>(-(double)0.5, (double)0.5 * sqrt((double)3.0));
+		const std::complex<double> bigC1 = bigC0 * cbrtMinus1;
+		const std::complex<double> bigC2 = bigC0 * conj(cbrtMinus1);
+		rslt[0] = (float)(-(b + bigC0.real() + (delta0/bigC0).real())/threeA);
+		rslt[1] = (float)(-(b + bigC1.real() + (delta0/bigC1).real())/threeA);
+		rslt[2] = (float)(-(b + bigC2.real() + (delta0/bigC2).real())/threeA);
 		return 3;
 	}
 }
@@ -149,15 +159,19 @@ float SmallestNonNegativeCubicSolution(float a, float b, float c, float d) noexc
 {
 	float rslt[3];
 	const size_t numSolutions = SolveCubic(a, b, c, d, rslt);
-	debugPrintf("%u solutions\n", numSolutions);	//***TEMP!
+	debugPrintf("%u solutions:", numSolutions);	//***TEMP!
+	if (numSolutions >= 1) { debugPrintf(" %.3e", (double)rslt[0]); }
+	if (numSolutions >= 2) { debugPrintf(" %.3e", (double)rslt[1]); }
+	if (numSolutions >= 3) { debugPrintf(" %.3e", (double) rslt[2]); }
+	debugPrintf("\n");
 	switch (numSolutions)
 	{
 	case 3:
-		if (rslt[2] >= 0.0 && rslt[2] < rslt[1] && rslt[2] < rslt[0]) { return rslt[2]; }
+		if (rslt[2] >= 0.0 && (rslt[1] < 0.0 || rslt[2] < rslt[1]) && (rslt[0] < 0.0 || rslt[2] < rslt[0])) { return rslt[2]; }
 		//[[fallthrough]]
 		// no break
 	case 2:
-		if (rslt[1] >= 0.0 && rslt[1] < rslt[0]) { return rslt[1]; }
+		if (rslt[1] >= 0.0 && (rslt[0] < 0.0 || rslt[1] < rslt[0])) { return rslt[1]; }
 		//[[fallthrough]]
 		// no break
 	case 1:
@@ -168,6 +182,8 @@ float SmallestNonNegativeCubicSolution(float a, float b, float c, float d) noexc
 		return std::numeric_limits<float>::quiet_NaN();
 	}
 }
+
+#endif
 
 // Return the smallest non-negative root of the equation. Returns the greatest root if both roots are negative.
 float SmallestNonNegativeQuadraticSolution(float a, float b, float c) noexcept
