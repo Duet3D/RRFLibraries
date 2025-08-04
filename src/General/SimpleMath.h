@@ -142,22 +142,22 @@ extern float fastSqrtf(float f) noexcept;
 
 #endif
 
+#if (defined(SAME70) && SAME70) || defined(__SAME70Q21__)
+
 // Return the real cube root of a float. Twice as fast as calling cbrt() but possibly less accurate.
 float fastCubeRootf(float f) noexcept;
 
-float SmallestNonNegativeQuadraticSolution(float a, float b, float c) noexcept;
-
-#if (defined(SAME70) && SAME70) || defined(__SAME70Q21__)
-
 inline double fastCubeRootd(double d) noexcept { return cbrt(d); }		//TODO can we make this faster?
 
+double SmallestNonNegativeQuadraticSolution(double a, double b, double c) noexcept;
+
 // Solve a cubic equation. We are only interested in real solutions. Returns the number of real solutions. The solutions are returned in rslt.
-size_t SolveCubic(float a, float b, float c, float d, float *rslt) noexcept
+size_t SolveCubic(double a, double b, double c, double d, double *rslt) noexcept
 pre(rslt.lim >= 3)
 post(_ecv_result <= 3);
 
 // Return the smallest non-negative root of the equation
-float SmallestNonNegativeCubicSolution(float a, float b, float c, float d) noexcept;
+double SmallestNonNegativeCubicSolution(double a, double b, double c, double d) noexcept;
 
 #endif
 
