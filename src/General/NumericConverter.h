@@ -32,7 +32,7 @@ public:
 	uint32_t GetUint32() const noexcept;
 	float GetFloat() const noexcept;
 	unsigned int GetDigitsAfterPoint() const noexcept;
-	bool IsNegative() const noexcept { return isNegative; }
+	bool IsNegative() const noexcept;
 
 private:
 	uint32_t lvalue;
@@ -42,5 +42,16 @@ private:
 	bool hadExponent;
 	bool isNegative;
 };
+
+// Given that FitsInUint32() returns true, return the number as a uint32_t
+inline uint32_t NumericConverter::GetUint32() const noexcept
+{
+	return lvalue;
+}
+
+inline bool NumericConverter::IsNegative() const noexcept
+{
+	return isNegative;
+}
 
 #endif /* SRC_GENERAL_NUMERICCONVERTER_H_ */

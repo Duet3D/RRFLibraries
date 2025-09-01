@@ -254,7 +254,7 @@ bool FormattedPrinter::PutJson(c_string apString) noexcept
 	return false;
 }
 
-// Output the string representation of the number to be printed, with a sign uf necessary, padded as required
+// Output the string representation of the number to be printed, with a sign if necessary, padded as required
 // 's' is the string representation of the number to be printed, with space for a sign to be added at the front
 bool FormattedPrinter::PutStringWithSign(char *_ecv_array s, bool isNegative) noexcept
 {
@@ -426,7 +426,7 @@ bool FormattedPrinter::PrintFloat(double d, char formatLetter) noexcept
 	}
 	if (std::isinf(d))
 	{
-		return PutString((d > (double)0.0) ? "+inf" : "-inf");
+		return PutString((std::signbit(d)) ? "-inf" : "+inf");
 	}
 
 	double ud = fabs(d);
@@ -542,7 +542,7 @@ bool FormattedPrinter::PrintFloat(double d, char formatLetter) noexcept
 	}
 	while (u != 0 || digitsAfterPoint >= 0);
 
-	return PutStringWithSign(s, d < (double)0.0);
+	return PutStringWithSign(s, std::signbit(d));
 }
 
 #endif

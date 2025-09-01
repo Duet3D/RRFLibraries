@@ -306,12 +306,6 @@ int32_t NumericConverter::GetInt32() const noexcept
 	return (isNegative) ? -(int32_t)lvalue : (int32_t)lvalue;
 }
 
-// Given that FitsInUint32() returns true, return the number as a uint32_t
-uint32_t NumericConverter::GetUint32() const noexcept
-{
-	return lvalue;
-}
-
 // We need a table of double-precision constants, but we compile with -fsingle-precision-constant.
 // This macro lets us use a double precision constant, by declaring it as a long double one and then casting it to double.
 #define DOUBLE(_x) ((double)( _x ## L ))
