@@ -35,7 +35,7 @@ int StringRef::vprintf(c_string fmt, va_list vargs) const noexcept
 int StringRef::catf(c_string fmt, ...) const noexcept
 {
 	const size_t n = strlen();
-	if (n + 1 < len)		// if room for at least 1 more character and a null
+	if (n < len - 1)		// if room for at least 1 more character and a null
 	{
 		va_list vargs;
 		va_start(vargs, fmt);

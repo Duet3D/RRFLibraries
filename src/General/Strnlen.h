@@ -10,8 +10,11 @@
 
 #include "../ecv_duet3d.h"
 #include <cstddef>
+#include <cstring>
 
 // 'strnlen' isn't ISO standard, so we define our own
-size_t Strnlen(const char *_ecv_array s, size_t n) noexcept;
+size_t Strnlen(const char *_ecv_array s, size_t n) noexcept
+pre(_ecv_isNullTerminated(s) || s.lim >= n)
+post(_ecv_result <= n; _ecv_result <= s.lim; forall i in 0..(_ecv_result - 1) :- s[i] != 0; _ecv_result == n || s[_ecv_result] == 0);
 
 #endif /* SRC_LIBRARIES_GENERAL_STRNLEN_H_ */
