@@ -11,6 +11,7 @@
 #include "../ecv_duet3d.h"
 #include <cstdint>
 #include <cstddef>
+#include <cctype>
 
 bool StringEndsWithIgnoreCase(c_string string, c_string ending) noexcept
 pre(nullTerm(string); nullTerm(ending));
