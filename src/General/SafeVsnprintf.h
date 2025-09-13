@@ -30,12 +30,12 @@ int uprintf(PutcFunc_t putc_f, c_string format, ...) noexcept __attribute__ ((fo
 int SafeVsnprintf(char *_ecv_array buffer, size_t maxLen, c_string format, va_list args) noexcept
 	writes(buffer.all)
 	pre(_ecv_isNullTerminated(format); maxLen != 0; buffer.lim >= maxLen)
-	post(_ecv_result <= maxLen; _ecv_isNullTerminated(buffer); strlen(buffer) < maxLen);
+	post(r : r <= maxLen; _ecv_isNullTerminated(buffer); strlen(buffer) < maxLen);
 
 int SafeSnprintf(char *_ecv_array buffer, size_t maxLen, c_string format, ...) noexcept __attribute__ ((format (printf, 3, 4)))
 	writes(buffer.all)
 	pre(_ecv_isNullTerminated(format); maxLen != 0; buffer.lim >= maxLen)
-	post(_ecv_result <= maxLen; _ecv_isNullTerminated(buffer); strlen(buffer) < maxLen);
+	post(r : r <= maxLen; _ecv_isNullTerminated(buffer); strlen(buffer) < maxLen);
 
 extern "C" [[deprecated("use SafeSnprintf instead of snprintf")]] int snprintf(char *_ecv_array s, size_t n, c_string format, ...);
 extern "C" [[deprecated("use SafeVsnprintf instead of vsnprintf")]] int vsnprintf(char *_ecv_array s, size_t n, c_string format, va_list arg);

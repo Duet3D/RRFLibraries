@@ -43,7 +43,7 @@ public:
 
 	size_t strlen() const noexcept
 		pre(Invariant())
-		post(_ecv_result <= len - 1; forall i in 0..(_ecv_result - 1) :- p[i] != 0; _ecv_result == len - 1 || p[_ecv_result] == 0);
+		post(r : r <= len - 1; forall i in 0..(r - 1) :- p[i] != 0; r == len - 1 || p[r] == 0);
 
 	bool IsEmpty() const noexcept
 		pre(Invariant())
@@ -53,7 +53,7 @@ public:
 	c_string c_str() const noexcept
 		pre(Invariant())
 		returns(p)
-		post(_ecv_isNullTerminated(_ecv_result))
+		post(r : _ecv_isNullTerminated(r))
 		{ return p; }
 	
 	char *_ecv_array Pointer() const noexcept

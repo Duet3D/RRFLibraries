@@ -32,8 +32,8 @@ pre(nullTerm(s1); nullTerm(s2));
 
 int StringContains(c_string string, c_string match) noexcept
 pre(nullTerm(string); nullTerm(match))
-post(   (_ecv_result == -1 && !(exists i in 0..((_ecv_integer)strlen(string) - (_ecv_integer)strlen(match)) :- ntData(string).drop(i).take(strlen(match)) == ntData(match)))
-     || (_ecv_result in 0..((_ecv_integer)strlen(string) - (_ecv_integer)strlen(match)) && ntData(string).drop(_ecv_result).take(strlen(match)) == ntData(match))
+post(r :   (r == -1 && !(exists i in 0..((_ecv_integer)strlen(string) - (_ecv_integer)strlen(match)) :- ntData(string).drop(i).take(strlen(match)) == ntData(match)))
+     || (r in 0..((_ecv_integer)strlen(string) - (_ecv_integer)strlen(match)) && ntData(string).drop(r).take(strlen(match)) == ntData(match))
 	);
 
 void SafeStrncpy(char *_ecv_array dst, c_string src, size_t length) noexcept

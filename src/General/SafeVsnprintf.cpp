@@ -801,11 +801,11 @@ int SafeVsnprintf(char *_ecv_array buffer, size_t maxLen, c_string format, va_li
 	return ret;
 }
 
-int SafeSnprintf(char *_ecv_array buffer, size_t buf_size, c_string format, ...) noexcept
+int SafeSnprintf(char *_ecv_array buffer, size_t maxLen, c_string format, ...) noexcept
 {
 	va_list vargs;
 	va_start(vargs, format);
-	const int ret = SafeVsnprintf(buffer, buf_size, format, vargs);
+	const int ret = SafeVsnprintf(buffer, maxLen, format, vargs);
 	va_end(vargs);
 	return ret;
 }
