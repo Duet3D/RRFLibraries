@@ -322,8 +322,9 @@ bool FormattedPrinter::PrintLL(long long i) noexcept
 	}
 
 	char print_buf[MaxUllDigits + 2];
+	memset(print_buf, 0, sizeof(print_buf));									// to help with stack overflow detection
 	char *_ecv_array s = print_buf + sizeof print_buf - 1;
-	*s = '\0';
+	//*s = '\0';																// reinstate this if we remove the above memset call
 	while (u != 0)
 	{
 		unsigned int t = u % (unsigned int)flags.base;
@@ -364,8 +365,9 @@ bool FormattedPrinter::PrintI(int i) noexcept
 	}
 
 	char print_buf[MaxLongDigits + 2];
+	memset(print_buf, 0, sizeof(print_buf));									// to help with stack overflow detection
 	char *_ecv_array s = print_buf + sizeof print_buf - 1;
-	*s = '\0';
+	//*s = '\0';																// reinstate this if we remove the above memset call
 
 	switch (base)
 	{
@@ -497,8 +499,9 @@ bool FormattedPrinter::PrintFloat(double d, char formatLetter) noexcept
 	}
 
 	char print_buf[MaxUllDigits + MaxLongDigits + 5];
+	memset(print_buf, 0, sizeof(print_buf));									// to help with stack overflow detection
 	char *_ecv_array s = print_buf + sizeof print_buf - 1;
-	*s = '\0';
+	//*s = '\0';																// reinstate this if we remove the above memset call
 
 	long long u = llrint(ud);
 
@@ -542,7 +545,7 @@ bool FormattedPrinter::PrintFloat(double d, char formatLetter) noexcept
 	}
 	while (u != 0 || digitsAfterPoint >= 0);
 
-	return PutStringWithSign(s, std::signbit(d));
+	return PutStringWithSign(s, std::signbit(d));		// using std::signbit is quicker than comparing with 0.0 on Cortex M0 in particular
 }
 
 #endif
