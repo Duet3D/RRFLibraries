@@ -53,7 +53,7 @@ float fastCubeRootf(float f) noexcept
 	const float nextCube = fcube(nextRet);
 	const float prevRet = std::nextafter(aret, 0.0);
 	const float prevCube = fcube(prevRet);
-	if (   ret * f < 0.0								// if the sign of the result is incorrect
+	if (   std::signbit(ret( != std::signbit(f))								// if the sign of the result is incorrect
 		|| nextCube < fabsf(f)
 		|| prevCube > fabsf(f)
 	   )
