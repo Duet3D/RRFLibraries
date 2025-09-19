@@ -133,9 +133,13 @@ size_t SolveCubic(double a, double b, double c, double d, double *rslt) noexcept
 
 		if (minusDiscriminant > (double)0.0)
 		{
-			// One real root and two complex conjugate roots
+			// One real root and two complex conjugate roots. We just want the real one.
 			const double mdsqrt = fastSqrtd(minusDiscriminant);
-			const double temp = (std::signbit(delta1)) ? delta1 - mdsqrt : delta1 + mdsqrt;	// we need to avoid bigC == 0
+			// In the following, in principle we can use either the positive or the negative square root.
+			// However if we choose the one that makes 'temp' in the following very small then we can get underflow,
+			// which results in bigC becoming zero or nearly zero, and rslt[0] becomes infinite.
+			// So we choose the sign of the square root to maximise abs(temp).
+			const double temp = (std::signbit(delta1)) ? delta1 - mdsqrt : delta1 + mdsqrt;
 			const double bigC = fastCubeRootd(temp * (double)0.5);
 			rslt[0] = -(b + bigC + delta0/bigC)/threeA;
 			return 1;
