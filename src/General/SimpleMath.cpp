@@ -134,7 +134,9 @@ size_t SolveCubic(double a, double b, double c, double d, double *rslt) noexcept
 		if (minusDiscriminant > (double)0.0)
 		{
 			// One real root and two complex conjugate roots
-			const double bigC = fastCubeRootd((delta1 + fastSqrtd(minusDiscriminant)) * (double)0.5);
+			const double mdsqrt = fastSqrtd(minusDiscriminant);
+			const double temp = (std::signbit(delta1)) ? delta1 - mdsqrt : delta1 + mdsqrt;	// we need to avoid bigC == 0
+			const double bigC = fastCubeRootd(temp * (double)0.5);
 			rslt[0] = -(b + bigC + delta0/bigC)/threeA;
 			return 1;
 		}
@@ -159,7 +161,7 @@ double SmallestNonNegativeCubicSolution(double a, double b, double c, double d) 
 	double rslt[3];
 	const size_t numSolutions = SolveCubic(a, b, c, d, rslt);
 #if 0
-	debugPrintf("%u solutions:", numSolutions);	//***TEMP!
+	debugPrintf("%u solutions:", numSolutions);
 	if (numSolutions >= 1) { debugPrintf(" %.3e", (double)rslt[0]); }
 	if (numSolutions >= 2) { debugPrintf(" %.3e", (double)rslt[1]); }
 	if (numSolutions >= 3) { debugPrintf(" %.3e", (double) rslt[2]); }
@@ -180,6 +182,14 @@ double SmallestNonNegativeCubicSolution(double a, double b, double c, double d) 
 		//[[fallthrough]]
 		// no break
 	default:
+#if 0
+		debugPrintf("No non-negative solution found: a=%.4g b=%.4g c=%.4g d=%.4g\n", a, b, c, d);
+		debugPrintf("%u solutions:", numSolutions);
+		if (numSolutions >= 1) { debugPrintf(" %.3e", (double)rslt[0]); }
+		if (numSolutions >= 2) { debugPrintf(" %.3e", (double)rslt[1]); }
+		if (numSolutions >= 3) { debugPrintf(" %.3e", (double) rslt[2]); }
+		debugPrintf("\n");
+#endif
 		return std::numeric_limits<double>::quiet_NaN();
 	}
 }
