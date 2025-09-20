@@ -81,7 +81,7 @@ size_t SolveCubic(double a, double b, double c, double d, double *rslt) noexcept
 	if (a == (double)0.0)
 	{
 		// The equation is actually quadratic
-		const double discriminant = dsquare((double)c) - 4 * b * d;
+		const double discriminant = dsquare(c) - 4 * b * d;
 		if (discriminant == (double)0.0)
 		{
 			rslt[0] = -c/(2 * b);
@@ -95,6 +95,25 @@ size_t SolveCubic(double a, double b, double c, double d, double *rslt) noexcept
 			return 2;
 		}
 		return 0;
+	}
+	else if (d == (double)0.0)
+	{
+		// x=0 is a solution, which we can factor out
+		rslt[0] = (double)0.0;
+		const double discriminant = dsquare(b) - 4 * a * c;
+		if (discriminant == (double)0.0)
+		{
+			rslt[1] = -b/(2 * a);
+			return 2;
+		}
+		if (discriminant > (double)0.0)
+		{
+			const double s = fastSqrtd(discriminant);
+			rslt[1] = (s - b)/(2 * a);
+			rslt[2] = -(s + b)/(2 * a);
+			return 3;
+		}
+		return 1;
 	}
 	else
 	{
