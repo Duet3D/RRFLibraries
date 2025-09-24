@@ -47,8 +47,6 @@
 #define old				_ecv_old
 #define out				_ecv_out
 #define over			_ecv_over
-#define post			_ecv_post
-#define pre				_ecv_pre
 #define result			_ecv_result
 #define returns			_ecv_returns
 #define some			_ecv_some
@@ -59,6 +57,12 @@
 #define writes			_ecv_writes
 #define yield			_ecv_yield
 #define zero_init		_ecv_zero_init
+
+#if defined(__ECV__) || !defined(__cplusplus) || (__cplusplus < 202600L)	// TODO replace 202600L by value used in C++26 release
+#define post			_ecv_post
+#define pre				_ecv_pre
+#define contract_assert	_ecv_assert
+#endif
 
 #if defined(__ECV__) || !defined(__STDC_VERSION__) || (__STDC_VERSION__ < 19901L)
 # define restrict		_ecv_restrict
