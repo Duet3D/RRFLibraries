@@ -291,13 +291,13 @@ size_t SolveQuartic(double a, double b, double c, double d, double e, double rsl
 	{
 		// Not bi-quadratic
 		const double delta0 = dsquare(c) - 3 * b * d + 12 * e;
-		const double delta1 = 2 * dcube(c) - 9 * b * c * d + 27 * (dsquare(b) * e + a * dsquare(d)) - 72 * c * e;
+		const double delta1 = 2 * dcube(c) - 9 * b * c * d + 27 * (dsquare(b) * e + dsquare(d)) - 72 * c * e;
 		const double minusDiscriminant = dsquare(delta1) - 4 * dcube(delta0);
 		if (minusDiscriminant < (double)0.0)
 		{
 			// Four real roots or no real roots
 			const double phi = acos(delta1/2 * fastSqrtd(dcube(delta0)));
-			const double TwoSsquared = 2 * sqrt(delta0) * cos(phi/(double)3.0)/((double)3.0 * a) - 2 * p/(double)3.0;
+			const double TwoSsquared = (2 * sqrt(delta0) * cos(phi/(double)3.0) - 2 * p)/(double)3.0;
 			if (TwoSsquared < (double)0.0)
 			{
 				return 0;				// no solutions
@@ -314,9 +314,9 @@ size_t SolveQuartic(double a, double b, double c, double d, double e, double rsl
 		}
 		else
 		{
-			const double Qcubed = (delta1 < (double)0.0) ? delta1 - fastSqrtd(minusDiscriminant) : delta1 + fastSqrtd(minusDiscriminant);
-			const double Q = cbrt(Qcubed);
-			const double TwoSsquared = (Q + delta0/Q - 2 * p)/3;
+			const double TwoQcubed = (delta1 < (double)0.0) ? delta1 - fastSqrtd(minusDiscriminant) : delta1 + fastSqrtd(minusDiscriminant);
+			const double Q = cbrt((double)0.5 * TwoQcubed);
+			const double TwoSsquared = (Q + delta0/Q - 2 * p)/(double)3.0;
 			if (TwoSsquared < (double)0.0)
 			{
 				return 0;
