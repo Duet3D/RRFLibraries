@@ -234,6 +234,8 @@ size_t SolveCubic(double a, double b, double c, double d, double rslt[3]) noexce
 	}
 }
 
+#define DEBUG_QUARTIC	(0)
+
 // Solve a quartic equation. We are only interested in real solutions. Returns the number of real solutions. The solutions are returned in rslt in increasing order.
 // See https://en.wikipedia.org/wiki/Quartic_function#General_formula_for_roots
 size_t SolveQuartic(double a, double b, double c, double d, double e, double rslt[4]) noexcept
@@ -253,10 +255,16 @@ size_t SolveQuartic(double a, double b, double c, double d, double e, double rsl
 	const double p = (8 * c - 3 * dsquare(b)) * ((double)1.0/(double)8.0);
 	const double q = (dcube(b) - 4 * c * b + 8 * d) * ((double)1.0/(double)8.0);
 	const double r = (- 3 * dsquare(dsquare(b)) + 256 * e - 64 * b * d + 16 * dsquare(b) * c) * ((double)1.0/(double)256.0);
+#if DEBUG_QUARTIC
+	debugPrintf("pqr = %.7g %.7g %.7g\n", p, q, r);
+#endif
 
 	if (q == 0)
 	{
 		// The equation is biquadratic: y^4 + py^2 + r = 0 i.e. quadratic in y^2
+#if DEBUG_QUARTIC
+		debugPrintf("bi-quadratic case\n");
+#endif
 		double tempResult[2];
 		const size_t numQuadraticSolutions = SolveQuadratic(1.0, p, r, tempResult);
 		if (numQuadraticSolutions == 0)
@@ -293,30 +301,61 @@ size_t SolveQuartic(double a, double b, double c, double d, double e, double rsl
 		const double delta0 = dsquare(c) - 3 * b * d + 12 * e;
 		const double delta1 = 2 * dcube(c) - 9 * b * c * d + 27 * (dsquare(b) * e + dsquare(d)) - 72 * c * e;
 		const double minusDiscriminant = dsquare(delta1) - 4 * dcube(delta0);
+#if DEBUG_QUARTIC
+		debugPrintf("md = %.7g\n", minusDiscriminant);
+#endif
 		if (minusDiscriminant < (double)0.0)
 		{
 			// Four real roots or no real roots
 			const double phi = acos(delta1/2 * fastSqrtd(dcube(delta0)));
-			const double TwoSsquared = (2 * sqrt(delta0) * cos(phi/(double)3.0) - 2 * p)/(double)3.0;
+			const double TwoSsquared = (2 * fastSqrtd(delta0) * cos(phi/(double)3.0) - 2 * p)/(double)3.0;
 			if (TwoSsquared < (double)0.0)
 			{
 				return 0;				// no solutions
 			}
-			const double S = (double)0.5 * sqrt(TwoSsquared);
+			const double S = (double)0.5 * fastSqrtd(TwoSsquared);
 			const double minusBoverFour = -(double)0.25 * b;
-			const double temp1 = (double)0.5 * fastSqrtd(-(4 * dsquare(S) - 2 * p + q/S));
-			const double temp2 = (double)0.5 * fastSqrtd(-(4 * dsquare(S) - 2 * p - q/S));
+			const double temp1 = (double)0.5 * fastSqrtd(-2 * (TwoSsquared + p) - q/S);
+			const double temp2 = (double)0.5 * fastSqrtd(-2 * (TwoSsquared + p) + q/S);
 			rslt[0] = minusBoverFour - S - temp1;
 			rslt[1] = minusBoverFour - S + temp1;
 			rslt[2] = minusBoverFour + S - temp2;
 			rslt[3] = minusBoverFour + S + temp2;
 			return SortRoots(rslt, 4);
 		}
+		else if (delta0 == (double)0.0 && delta1 == (double)0.0)
+		{
+#if DEBUG_QUARTIC
+			debugPrintf("At least 3 equal roots\n");
+#endif
+			// We have at least three equal roots.
+			// Therefore: (y-s)^3(y-t) is the same polynomial as y^4 + py^2 + qy + r
+			// Therefore: y^4 - (3s + t)y^3 + 3s(s + t)y^2 - s^2(3t + s) + s^3t is the same polynomial as y^4 + py^2 + qy + r
+			// From the coefficients of  y^3, t = -3s
+			// From the coefficients of y^2, 3s(s + t) = p therefore 6s^2 = -p
+			// From the coefficients of y, -(3t + s) = q therefore 8s^3 = q
+			if (p > (double)0.0)
+			{
+				return 0;
+			}
+
+			const double minusBoverFour = -(double)0.25 * b;
+			// We need to pick the correct square root, which we do by choosing the root with the same sign as p
+			const double root = std::copysign(fastSqrtd(-p/(double)6.0), q);
+			rslt[0] = minusBoverFour + std::copysign(root, q);
+			rslt[1] = minusBoverFour - (double)3.0 * root;
+			return SortRoots(rslt, 2);
+		}
 		else
 		{
-			const double TwoQcubed = (delta1 < (double)0.0) ? delta1 - fastSqrtd(minusDiscriminant) : delta1 + fastSqrtd(minusDiscriminant);
+			const double TwoQcubed = (delta0 == (double)0.0) ? 2 * delta1
+										: (delta1 < (double)0.0) ? delta1 - fastSqrtd(minusDiscriminant)
+											: delta1 + fastSqrtd(minusDiscriminant);
 			const double Q = cbrt((double)0.5 * TwoQcubed);
 			const double TwoSsquared = (Q + delta0/Q - 2 * p)/(double)3.0;
+#if DEBUG_QUARTIC
+			debugPrintf("D0 D1, 2Q3, Q, 2s2 = %.15g  %.15g %.15g %.15g %.15g\n", delta0, delta1, TwoQcubed, Q, TwoSsquared);
+#endif
 			if (TwoSsquared < (double)0.0)
 			{
 				return 0;
@@ -324,6 +363,9 @@ size_t SolveQuartic(double a, double b, double c, double d, double e, double rsl
 			const double S = (double)0.5 * sqrt(TwoSsquared);
 			const double temp1 = -4 * dsquare(S) - 2 * p + q/S;
 			const double temp2 = -4 * dsquare(S) - 2 * p - q/S;
+#if DEBUG_QUARTIC
+			debugPrintf("temp1,2 = %.7g %.7g\n", temp1, temp2);
+#endif
 			size_t numSolutions = 0;
 			if (temp1 == (double)0.0)
 			{
