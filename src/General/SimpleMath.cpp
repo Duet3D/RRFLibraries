@@ -70,35 +70,66 @@ float fastCubeRootf(float f) noexcept
 
 // Sort the result vector of an equation. This returns the number of elements passed so that functions that return the number of roots can chain to it.
 static size_t SortRoots(double *rslt, size_t numRoots) noexcept
-pre(numRoots >= 2; numRoots <= 4)
+pre( numRoots <= 4)
 {
-	if (rslt[0] > rslt[1])
+	if (numRoots > 1)
 	{
-		std::swap(rslt[0], rslt[1]);
-	}
-	if (numRoots > 2)
-	{
-		if (numRoots == 4)
+		if (rslt[0] > rslt[1])
 		{
-			if (rslt[2] > rslt[3])
-			{
-				std::swap(rslt[2], rslt[3]);
-			}
-			if (rslt[1] > rslt[3])
-			{
-				std::swap(rslt[1], rslt[3]);
-			}
+			std::swap(rslt[0], rslt[1]);
 		}
-		if (rslt[0] > rslt[2])
+		if (numRoots > 2)
 		{
-			std::swap(rslt[0], rslt[2]);
-		}
-		if (rslt[1] > rslt[2])
-		{
-			std::swap(rslt[1], rslt[2]);
+			if (numRoots == 4)
+			{
+				if (rslt[2] > rslt[3])
+				{
+					std::swap(rslt[2], rslt[3]);
+				}
+				if (rslt[1] > rslt[3])
+				{
+					std::swap(rslt[1], rslt[3]);
+				}
+			}
+			if (rslt[0] > rslt[2])
+			{
+				std::swap(rslt[0], rslt[2]);
+			}
+			if (rslt[1] > rslt[2])
+			{
+				std::swap(rslt[1], rslt[2]);
+			}
 		}
 	}
 	return numRoots;
+}
+
+// Solve a quadratic equation using double arithmetic. We are only interested in real solutions. Returns the number of real solutions. The solutions are returned in rslt in increasing order.
+size_t SolveQuadratic(double a, double b, double c, double rslt[2]) noexcept
+{
+	if (a == (double)0.0)
+	{
+		// The equation is linear
+		rslt[0] = -(c/b);
+		return 1;
+	}
+	const double discriminant = dsquare(b) - 4 * a * c;
+	if (discriminant == (double)0.0)
+	{
+		rslt[0] = -b/(2 * a);
+		return 1;
+	}
+	else if (discriminant > (double)0.0)
+	{
+		const double s = fastSqrtd(discriminant);
+		rslt[0] = (s - b)/(2 * a);
+		rslt[1] = -(s + b)/(2 * a);
+		return SortRoots(rslt, 2);
+	}
+	else
+	{
+		return 0;
+	}
 }
 
 // Solve a cubic equation
@@ -116,45 +147,29 @@ size_t SolveCubic(double a, double b, double c, double d, double rslt[3]) noexce
 	if (a == (double)0.0)
 	{
 		// The equation is actually quadratic
-		const double discriminant = dsquare(c) - 4 * b * d;
-		if (discriminant > (double)0.0)
-		{
-			const double s = fastSqrtd(discriminant);
-			rslt[0] = (s - c)/(2 * b);
-			rslt[1] = -(s + c)/(2 * b);
-			return SortRoots(rslt, 2);
-		}
-		else if (discriminant == (double)0.0)
-		{
-			rslt[0] = -c/(2 * b);
-			return 1;
-		}
-		else
-		{
-			return 0;
-		}
+		return SolveQuadratic(b, c, d, rslt);
 	}
 	else if (d == (double)0.0)
 	{
 		// x=0 is a solution, which we can factor out
-		rslt[0] = (double)0.0;
-		const double discriminant = dsquare(b) - 4 * a * c;
-		if (discriminant == (double)0.0)
+		if (c == (double)0.0)
 		{
-			rslt[1] = -b/(2 * a);
-			return SortRoots(rslt, 2);
+			// x = 0 is a double solution
+			rslt[0] = (double)0.0;
+			if (b == (double)0.0)
+			{
+				// x = 0 is a triple solution
+				return 1;
+			}
+			else
+			{
+				rslt[1] = -b/a;
+				return 2;
+			}
 		}
-		else if (discriminant > (double)0.0)
-		{
-			const double s = fastSqrtd(discriminant);
-			rslt[1] = (s - b)/(2 * a);
-			rslt[2] = -(s + b)/(2 * a);
-			return SortRoots(rslt, 3);
-		}
-		else
-		{
-			return 1;
-		}
+		const size_t numQuadraticSolutions = SolveQuadratic(a, b, c, rslt);
+		rslt[numQuadraticSolutions] = (double)0.0;
+		return SortRoots(rslt, numQuadraticSolutions + 1);
 	}
 	else
 	{
@@ -242,44 +257,35 @@ size_t SolveQuartic(double a, double b, double c, double d, double e, double rsl
 	if (q == 0)
 	{
 		// The equation is biquadratic: y^4 + py^2 + r = 0 i.e. quadratic in y^2
-		const double discrim = dsquare(p) - 4 * r;
-		if (discrim < (double)0.0)
+		double tempResult[2];
+		const size_t numQuadraticSolutions = SolveQuadratic(1.0, p, r, tempResult);
+		if (numQuadraticSolutions == 0)
 		{
 			return 0;
 		}
-		if (discrim == 0)
+		size_t numSolutions = 0;
+		if (tempResult[0] == (double)0.0)
 		{
-			const double y0Squared = -(double)0.5 * p;
-			if (y0Squared >= 0)
-			{
-				rslt[0] = -fastSqrtd(y0Squared) - (double)0.25 * b;
-				rslt[1] = fastSqrtd(y0Squared) - (double)0.25 * b;
-				return 2;
-			}
-			return 0;
+			rslt[numSolutions++] = -(double)0.25 * b;
 		}
-		const double y1Squared = (double)0.5 * (-q + fastSqrtd(discrim));
-		if (y1Squared >= (double)0.0)
+		else if (tempResult[0] > (double)0.0)
 		{
-			rslt[0] = -fastSqrtd(y1Squared) - (double)0.25 * b;
-			const double y0Squared = (double)0.5 * (-q - fastSqrtd(discrim));
-			if (y0Squared >= (double)0.0)
+			rslt[numSolutions++] = -fastSqrtd(tempResult[0]) - (double)0.25 * b;
+			rslt[numSolutions++] = fastSqrtd(tempResult[0]) - (double)0.25 * b;
+		}
+		if (numQuadraticSolutions == 2)
+		{
+			if (tempResult[1] == (double)0.0)
 			{
-				rslt[1] = -fastSqrtd(y0Squared) - (double)0.25 * b;
-				rslt[2] = fastSqrtd(y0Squared) - (double)0.25 * b;
-				rslt[3] = fastSqrtd(y1Squared) - (double)0.25 * b;
-				return 4;
+				rslt[numSolutions++] = -(double)0.25 * b;
 			}
-			else
+			else if (tempResult[1] > (double)0.0)
 			{
-				rslt[1] = fastSqrtd(y1Squared) - (double)0.25 * b;
-				return 2;
+				rslt[numSolutions++] = -fastSqrtd(tempResult[1]) - (double)0.25 * b;
+				rslt[numSolutions++] = fastSqrtd(tempResult[1]) - (double)0.25 * b;
 			}
 		}
-		else
-		{
-			return 0;
-		}
+		return SortRoots(rslt, numSolutions);
 	}
 	else
 	{
@@ -337,7 +343,7 @@ size_t SolveQuartic(double a, double b, double c, double d, double e, double rsl
 				rslt[numSolutions++] = -(double)0.25 * b + S - (double)0.5 * fastSqrtd(temp2);
 				rslt[numSolutions++] = -(double)0.25 * b + S + (double)0.5 * fastSqrtd(temp2);
 			}
-			return (numSolutions >= 2) ? SortRoots(rslt, numSolutions) : numSolutions;
+			return SortRoots(rslt, numSolutions);
 		}
 	}
 }
