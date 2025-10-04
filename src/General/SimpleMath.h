@@ -149,15 +149,15 @@ float fastCubeRootf(float f) noexcept;
 
 inline double fastCubeRootd(double d) noexcept { return cbrt(d); }		//TODO can we make this faster?
 
-double SmallestNonNegativeQuadraticSolution(double a, double b, double c) noexcept;
-
-// Solve a cubic equation. We are only interested in real solutions. Returns the number of real solutions. The solutions are returned in rslt.
-size_t SolveCubic(double a, double b, double c, double d, double *rslt) noexcept
+// Solve a cubic equation. We are only interested in real solutions. Returns the number of real solutions. The solutions are returned in rslt in increasing order.
+size_t SolveCubic(double a, double b, double c, double d, double rslt[3]) noexcept
 pre(rslt.lim >= 3)
 post(_ecv_result <= 3);
 
-// Return the smallest non-negative root of the equation
-double SmallestNonNegativeCubicSolution(double a, double b, double c, double d) noexcept;
+// Solve a quartic equation. We are only interested in real solutions. Returns the number of real solutions. The solutions are returned in rslt in increasing order.
+size_t SolveQuartic(double a, double b, double c, double d, double e, double rslt[4]) noexcept
+pre(rslt.lim >= 4)
+post(_ecv_result <= 4);
 
 #endif
 
