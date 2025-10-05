@@ -221,9 +221,9 @@ size_t SolveCubic(double a, double b, double c, double d, double rslt[3]) noexce
 		}
 
 		// Else there are three real roots and we need complex arithmetic (or equivalently, trigonometry) to find them
-		const std::complex<double> cube((double)0.5 * delta1, (double)0.5 * fastSqrtd(-minusDiscriminant));
-		// Instead of evaluating fastCubeRootf(abs(cube)) in the following we could take the 6th root of norm(cube), which should be a little faster but needs more code
-		const std::complex<double> bigC0 = std::polar<double>(fastCubeRootd(abs(cube)), arg(cube)/(double)3.0);
+		const double phi = atan2(fastSqrtd(-minusDiscriminant), delta1)/(double)3.0;
+		const double absC0 = fastSqrtd(delta0);
+		const std::complex<double> bigC0 = std::polar<double>(absC0, phi);
         const std::complex<double> cbrtMinus1 = std::complex<double>(-(double)0.5, (double)0.5 * sqrt((double)3.0));
 		const std::complex<double> bigC1 = bigC0 * cbrtMinus1;
 		const std::complex<double> bigC2 = bigC0 * conj(cbrtMinus1);
@@ -351,7 +351,7 @@ size_t SolveQuartic(double a, double b, double c, double d, double e, double rsl
 			const double TwoQcubed = (delta0 == (double)0.0) ? 2 * delta1
 										: (delta1 < (double)0.0) ? delta1 - fastSqrtd(minusDiscriminant)
 											: delta1 + fastSqrtd(minusDiscriminant);
-			const double Q = cbrt((double)0.5 * TwoQcubed);
+			const double Q = fastCubeRootd((double)0.5 * TwoQcubed);
 			const double TwoSsquared = (Q + delta0/Q - 2 * p)/(double)3.0;
 #if DEBUG_QUARTIC
 			debugPrintf("D0 D1, 2Q3, Q, 2s2 = %.15g  %.15g %.15g %.15g %.15g\n", delta0, delta1, TwoQcubed, Q, TwoSsquared);
