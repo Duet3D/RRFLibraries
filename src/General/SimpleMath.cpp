@@ -173,6 +173,8 @@ size_t SolveCubic(double a, double b, double c, double d, double rslt[3]) noexce
 	}
 	else
 	{
+		// It's tempting to divide the equation by 3*a here to avoid several divisions by 3*a.
+		// However, if we do that then the case of the discriminant being zero in our test case in RepRapFirmware doesn't occur because of rounding error.
 		const double bc = b * c;
 		const double ad = a * d;
 		const double a2d = ad * a;
@@ -196,10 +198,8 @@ size_t SolveCubic(double a, double b, double c, double d, double rslt[3]) noexce
 		}
 
 		const double minusDiscriminant = dsquare(delta1) - 4 * dcube(delta0);
-//		debugPrintf("md=%.3e\n", minusDiscriminant);
 		if (minusDiscriminant == (double)0.0)
 		{
-			debugPrintf("d0=%.4e d1=%.4e\n", delta0, delta1);
 			// We have one real root with multiplicity 2 and one other real root
 			rslt[0] = ((9 * ad) - bc)/(2 * delta0);									// root with multiplicity 2
 			rslt[1] = ((4 * abc) - (9 * a2d) - dcube(b))/(a * delta0);				// simple root
