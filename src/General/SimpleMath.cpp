@@ -223,6 +223,12 @@ size_t SolveCubic(double a, double b, double c, double d, double rslt[3]) noexce
 		// Else there are three real roots and we need complex arithmetic (or equivalently, trigonometry) to find them
 		const double phi = atan2(fastSqrtd(-minusDiscriminant), delta1)/(double)3.0;
 		const double absC0 = fastSqrtd(delta0);
+#if 1
+		// We can make use of the fact that all of bigC0, bigC1 and bigC2 have magnitude absC0 = sqrt(delta0). This greatly simplifies the complex division operations.
+		rslt[0] = -(b + 2 * absC0 * cos(phi))/threeA;
+		rslt[1] = -(b - absC0 * (cos(phi) + sqrt((double)3.0) * sin(phi)))/threeA;
+		rslt[2] = -(b - absC0 * (cos(phi) - sqrt((double)3.0) * sin(phi)))/threeA;
+#else
 		const std::complex<double> bigC0 = std::polar<double>(absC0, phi);
         const std::complex<double> cbrtMinus1 = std::complex<double>(-(double)0.5, (double)0.5 * sqrt((double)3.0));
 		const std::complex<double> bigC1 = bigC0 * cbrtMinus1;
@@ -230,6 +236,7 @@ size_t SolveCubic(double a, double b, double c, double d, double rslt[3]) noexce
 		rslt[0] = -(b + bigC0.real() + (delta0/bigC0).real())/threeA;
 		rslt[1] = -(b + bigC1.real() + (delta0/bigC1).real())/threeA;
 		rslt[2] = -(b + bigC2.real() + (delta0/bigC2).real())/threeA;
+#endif
 		return SortRoots(rslt, 3);
 	}
 }
