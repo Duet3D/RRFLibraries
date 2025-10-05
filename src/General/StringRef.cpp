@@ -169,7 +169,7 @@ bool StringRef::cat(char c) const noexcept
 size_t StringRef::StripTrailingSpaces() const noexcept
 {
 	size_t slen = strlen();
-	while (slen != 0 && p[slen - 1] == ' ') writes(p.all; slen) decrease(slen)
+	while (slen != 0 && p[slen - 1] == ' ') writes(p.all; slen) keep(slen < p.lim) decrease(slen)
 	{
 		--slen;
 		p[slen] = 0;
