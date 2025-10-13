@@ -10,6 +10,7 @@
 
 #include "../ecv_duet3d.h"
 #include <cstddef>		// for size_t
+#include <cmath>		// for fabs etc.
 
 // Base class for matrices, allows us to write functions that work with any size matrix
 template<class T> class MathMatrix
@@ -90,10 +91,10 @@ template<class T, size_t ROWS, size_t COLS> bool FixedMatrix<T, ROWS, COLS>::Gau
 	for (size_t i = 0; i < numRows; ++i)
 	{
 		// Swap the rows around for stable Gauss-Jordan elimination
-		float vmax = fabsf(data[i][i]);
+		T vmax = std::fabs(data[i][i]);
 		for (size_t j = i + 1; j < numRows; ++j)
 		{
-			const float rmax = fabsf(data[j][i]);
+			const T rmax = std::fabs(data[j][i]);
 			if (rmax > vmax)
 			{
 				SwapRows(i, j, numCols);
