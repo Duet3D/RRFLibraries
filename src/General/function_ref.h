@@ -11,24 +11,14 @@
 #include <type_traits>
 #include <utility>
 
-#ifdef __ECV__
-
-// eCv doesn't yet handle variadic templates or template specialisations, so use dummy definitions for now
-template<typename Fn> class function_ref
-{
-};
-
-template<typename Fn> class function_ref_noexcept
-{
-};
-
-#else
-
 // Version that may throw exceptions
 template<typename Fn> class function_ref;
 
 template<typename RetType, typename ...Params>
 class function_ref<RetType(Params...)>
+#ifdef __ECV__
+;
+#else
 {
 	RetType (*callback)(void *callable, Params ...params) noexcept(false);
 	void *callable;
@@ -53,12 +43,16 @@ public:
 		return callback(callable, std::forward<Params>(params)...);
 	}
 };
+#endif
 
 // Version that never throws exceptions
 template<typename Fn> class function_ref_noexcept;
 
 template<typename RetType, typename ...Params>
 class function_ref_noexcept<RetType(Params...) noexcept>
+#ifdef __ECV__
+;
+#else
 {
 	RetType (*callback)(void *callable, Params ...params) noexcept;
 	void *callable;
@@ -83,7 +77,6 @@ public:
 		return callback(callable, std::forward<Params>(params)...);
 	}
 };
-
 #endif
 
 #endif /* GENERAL_FUNCTION_REF_H */
