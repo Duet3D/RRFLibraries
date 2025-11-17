@@ -154,16 +154,13 @@ float SmallestNonNegativeCubicSolution(float a, float b, float c, float d) noexc
 	{
 	case 3:
 		if (rslt[2] >= 0.0 && rslt[2] < rslt[1] && rslt[2] < rslt[0]) { return rslt[2]; }
-		// no break
-		//[[fallthrough]]
+		[[fallthrough]];
 	case 2:
 		if (rslt[1] >= 0.0 && rslt[1] < rslt[0]) { return rslt[1]; }
-		// no break
-		//[[fallthrough]]
+		[[fallthrough]];
 	case 1:
 		if (rslt[0] >= 0.0) { return rslt[0]; }
-		// no break
-		//[[fallthrough]]
+		[[fallthrough]];
 	default:
 		return std::numeric_limits<float>::quiet_NaN();
 	}
