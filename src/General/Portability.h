@@ -91,6 +91,12 @@ static inline void StoreLEU32(void *p, uint32_t val) noexcept
 	pp[3] = (uint8_t)(val >> 24);
 }
 
+// Store a int32 into unaligned memory in little endian format
+static inline void StoreLEI32(void *p, int32_t val) noexcept
+{
+	StoreLEU32(p, (uint32_t)val);
+}
+
 // Store a uint16 into unaligned memory in little endian format
 static inline void StoreLEU16(void *p, uint16_t val) noexcept
 {
