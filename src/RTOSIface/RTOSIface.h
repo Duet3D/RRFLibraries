@@ -265,8 +265,10 @@ public:
 	// The Create function assumes that only the main task creates other tasks, so we don't need a mutex to protect the task list
 	void Create(TaskFunction_t pxTaskCode, c_string pcName, void *_ecv_null pvParameters, unsigned int uxPriority) noexcept
 	{
-		xTaskCreateStatic(pxTaskCode, pcName, StackWords, pvParameters, uxPriority, stack, this);
+		// Create with lowest priority to prevent a yield to the new task before we call AddToList, otherwise GiveFromIsr won't be able to wake it up
+		const TaskHandle_t handle = xTaskCreateStatic(pxTaskCode, pcName, StackWords, pvParameters, 0, stack, this);
 		AddToList();
+		vTaskPrioritySet(handle, uxPriority);
 	}
 
 	// These functions should be used only to tell FreeRTOS where the corresponding data is
