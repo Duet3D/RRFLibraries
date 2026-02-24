@@ -93,6 +93,7 @@ bool StringStartsWith(c_string string, c_string starting) noexcept
 bool StringStartsWithIgnoreCase(c_string string, c_string starting) noexcept
 {
 	while (*starting != 0)
+	keep(starting.base == old(starting).base; string.base == old(string).base; nullTerm(starting); nullTerm(string))
 	decrease(strlen(string))
 	{
 		if (tolower((int)*starting) != tolower((int)*string))
