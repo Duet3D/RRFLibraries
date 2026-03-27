@@ -37,7 +37,7 @@ SAME70_CXXFLAGS := -c -std=gnu++17 \
 ifeq ($(DEBUG),1)
 	SAME70_CXXFLAGS += -O0 -g3
 else
-	SAME70_CXXFLAGS += -O2
+	SAME70_CXXFLAGS += -Os
 endif
 
 SAME70_OBJS := $(SAME70_CPP_SRCS:%.cpp=$(SAME70_BUILD_DIR)/%.o)

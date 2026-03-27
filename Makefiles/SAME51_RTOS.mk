@@ -33,6 +33,8 @@ SAME51_RTOS_CXXFLAGS := -c -std=gnu++17 \
 	-Wdouble-promotion \
 	-fsingle-precision-constant \
 	-fstack-usage \
+	-fdump-rtl-expand \
+	-Wall \
 	$(SAME51_RTOS_INCLUDES) \
 	$(SAME51_RTOS_DEFINES)
 

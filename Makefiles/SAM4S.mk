@@ -34,7 +34,7 @@ SAM4S_CXXFLAGS := -c -std=gnu++17 \
 ifeq ($(DEBUG),1)
 	SAM4S_CXXFLAGS += -O0 -g3
 else
-	SAM4S_CXXFLAGS += -O2
+	SAM4S_CXXFLAGS += -Os
 endif
 
 SAM4S_OBJS := $(SAM4S_CPP_SRCS:%.cpp=$(SAM4S_BUILD_DIR)/%.o)
