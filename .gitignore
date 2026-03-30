@@ -35,7 +35,7 @@
 *_unproven.*
 
 # Misc
-.settings/language.settings.xml
+/.settings/
 SAM3X/
 SAM3X_RTOS/
 SAM4E_RTOS/
