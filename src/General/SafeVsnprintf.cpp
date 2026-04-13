@@ -444,9 +444,9 @@ bool FormattedPrinter::PrintFloat(double d, char formatLetter) noexcept
 		{
 			// Using exponent format, so calculate the exponent and normalise ud to be >=1.0 but <10.0
 			// The following loops are inefficient, however we don't expect to print very large or very small numbers
-			while (ud >= (double)1'000'000.0)
+			while (ud >= (double)100000.0)
 			{
-				ud /= (double)100'000.0;
+				ud /= (double)100000.0;
 				exponent += 5;
 			}
 			while (ud >= (double)10.0)
@@ -454,9 +454,9 @@ bool FormattedPrinter::PrintFloat(double d, char formatLetter) noexcept
 				ud /= (double)10.0;
 				++exponent;
 			}
-			while (ud < (double)0.0001)
+			while (ud < (double)0.00001)
 			{
-				ud *= (double)100'000.0;
+				ud *= (double)100000.0;
 				exponent -= 5;
 			}
 			while (ud < (double)1.0)
