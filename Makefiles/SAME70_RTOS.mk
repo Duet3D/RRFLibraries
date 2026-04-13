@@ -32,9 +32,17 @@ SAME70_RTOS_CXXFLAGS := -c -std=gnu++17 \
 	-nostdlib \
 	-Wundef \
 	-Wdouble-promotion \
+	-Wfloat-conversion \
+	-Werror=return-type \
+	-Wsuggest-override \
 	-fsingle-precision-constant \
+	-fstack-usage \
 	-O2 \
 	-Wall \
+	-Werror \
+	-Wnoexcept \
+	-Wshadow \
+	-Wsign-promo \
 	$(SAME70_RTOS_INCLUDES) \
 	$(SAME70_RTOS_DEFINES)
 

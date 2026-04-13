@@ -29,7 +29,7 @@ CXXFLAGS := -c -std=gnu++17 \
 	-Wundef \
 	-Wdouble-promotion \
 	-fsingle-precision-constant \
-	-Os \
+	-O2 \
 	$(INCLUDES) \
 	$(DEFINES)
 
