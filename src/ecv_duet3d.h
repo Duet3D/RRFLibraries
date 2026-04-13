@@ -18,7 +18,6 @@
 #undef value
 #undef result	// used in cmsis_gcc.h
 #undef from		// used in RP2040 SDK
-#undef in		// used in Lwip pbuf.h
 
 // C++ doesn't define a 16-bit floating point type, so eCv uses _ecv_float16_t
 
@@ -34,9 +33,5 @@ typedef const char *_ecv_array _ecv_null c_string_or_null;
 // Define shorthand macros to express the concept that a C string is null terminated, and the data in it up to but not including the null
 #define nullTerm(_x)	_ecv_isNullTerminated(_x)
 #define ntData(_x)		_ecv_asSeq(_x)
-
-#ifdef __ECV__
-# define _Pragma(_x)	// temporary until eCv supports _Pragma
-#endif
 
 #endif /* SRC_GENERAL_ECV_DUET3D_H_ */

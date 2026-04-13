@@ -27,12 +27,12 @@ public:
 	// Declare an invariant we can use as a precondition and postcondition for the member functions.
 	// Note that we require the maximum length to be <= maxof(int) so that functions such as printf can return either -1 if an error occurred or the number of characters stored.
 	ghost(
-		bool Invariant() const noexcept returns(len >= 1 && len <= maxof(int) && p.lim >= len && (exists i _ecv_in 0..(len - 1) :- p[i] == 0));
+		bool Invariant() const noexcept returns(len >= 1 && len <= maxof(int) && p.lim >= len && (exists i in 0..(len - 1) :- p[i] == 0));
 	)
 
 	StringRef(char * _ecv_array pp, size_t pl) noexcept
 		writes()
-		pre(pl >= 1; pl <= maxof(int); pp.lim >= pl; exists i _ecv_in 0..(pl - 1) :- pp[i] == 0)
+		pre(pl >= 1; pl <= maxof(int); pp.lim >= pl; exists i in 0..(pl - 1) :- pp[i] == 0)
 		post(Invariant())
 		: p(pp), len(pl) { }
 
@@ -43,7 +43,7 @@ public:
 
 	size_t strlen() const noexcept
 		pre(Invariant())
-		post(r : r <= len - 1; forall i _ecv_in 0..(r - 1) :- p[i] != 0; r == len - 1 || p[r] == 0);
+		post(r : r <= len - 1; forall i in 0..(r - 1) :- p[i] != 0; r == len - 1 || p[r] == 0);
 
 	bool IsEmpty() const noexcept
 		pre(Invariant())
@@ -55,7 +55,7 @@ public:
 		returns(p)
 		post(r : _ecv_isNullTerminated(r))
 		{ return p; }
-
+	
 	char *_ecv_array Pointer() const noexcept
 		pre(Invariant())
 		returns(p)

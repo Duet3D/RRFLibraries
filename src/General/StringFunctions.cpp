@@ -23,10 +23,10 @@ bool StringEqualsIgnoreCase(c_string s1, c_string s2) noexcept
 	while (s1[i] != 0 && s2[i] != 0)
 	keep(	i < s1.lim;
 			i < s2.lim;
-			forall k _ecv_in 0..((_ecv_integer)i-1) :- s1[k] != 0 && s2[k] != 0;
+			forall k in 0..((_ecv_integer)i-1) :- s1[k] != 0 && s2[k] != 0;
 			i <= strlen(s1);
 			i <= strlen(s2);
-			forall k _ecv_in 0..((_ecv_integer)i-1) :- tolower((int)s1[k]) == tolower((int)s2[k]))
+			forall k in 0..((_ecv_integer)i-1) :- tolower((int)s1[k]) == tolower((int)s2[k]))
 	decrease((_ecv_integer)strlen(s1) - i)
 	{
 		if (tolower((int)s1[i]) != tolower((int)s2[i]))
@@ -75,7 +75,7 @@ bool StringStartsWith(c_string string, c_string starting) noexcept
 	keep(starting.base == (old starting).base; starting < old starting + (old starting).lim; starting <= (old starting) + strlen(old starting);
 		 string.base == (old string).base; string < old string + (old string).lim; string <= (old string) + strlen(old string);
 		 starting - old starting == string - old string;
-		 forall i _ecv_in 0..((starting - old starting) - 1) :- (old starting)[i] == (old string)[i]
+		 forall i in 0..((starting - old starting) - 1) :- (old starting)[i] == (old string)[i]
 		)
 	decrease(strlen(string))
 	{
@@ -113,7 +113,7 @@ int StringContains(c_string string, c_string match) noexcept
 	int count = 0;
 
 	while (string[i] != 0)
-	keep(i <= strlen(string); forall j _ecv_in 0..(i - 1) :- j + strlen(match) > strlen(string) || ntData(string).drop(j).take(strlen(match)) != ntData(match))
+	keep(i <= strlen(string); forall j in 0..(i - 1) :- j + strlen(match) > strlen(string) || ntData(string).drop(j).take(strlen(match)) != ntData(match))
 	decrease(strlen(string) - i)
 	{
 		if (string[i++] == match[count])
