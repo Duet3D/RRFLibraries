@@ -31,8 +31,17 @@ SAME51_RTOS_CXXFLAGS := -c -std=gnu++17 \
 	-nostdlib \
 	-Wundef \
 	-Wdouble-promotion \
+	-Wfloat-conversion \
+	-Werror=return-type \
+	-Wsuggest-override \
 	-fsingle-precision-constant \
 	-fstack-usage \
+	-O2 \
+	-Wall \
+	-Werror \
+	-Wnoexcept \
+	-Wshadow \
+	-Wsign-promo \
 	$(SAME51_RTOS_INCLUDES) \
 	$(SAME51_RTOS_DEFINES)
 
