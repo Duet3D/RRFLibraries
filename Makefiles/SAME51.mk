@@ -13,7 +13,7 @@ INCLUDES := \
 DEFINES := \
 	-D__SAME51P20A__
 
-CXXFLAGS := -c -std=gnu++17 \
+CXXFLAGS := -c -std=c++20 \
 	-mcpu=cortex-m4 \
 	-mthumb \
 	-fno-math-errno \
@@ -28,6 +28,7 @@ CXXFLAGS := -c -std=gnu++17 \
 	-nostdlib \
 	-Wundef \
 	-Wdouble-promotion \
+	-Werror -Wnoexcept -Wshadow -Wsign-promo \
 	-fsingle-precision-constant \
 	-Os \
 	$(INCLUDES) \

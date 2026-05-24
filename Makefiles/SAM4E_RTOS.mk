@@ -18,7 +18,7 @@ SAM4E_RTOS_DEFINES := \
 	-D__SAM4E8E__ \
 	-DRTOS
 
-SAM4E_RTOS_CXXFLAGS := -c -std=gnu++17 \
+SAM4E_RTOS_CXXFLAGS := -c -std=c++20 \
 	-mcpu=cortex-m4 \
 	-mthumb \
 	-fno-math-errno \
@@ -36,6 +36,7 @@ SAM4E_RTOS_CXXFLAGS := -c -std=gnu++17 \
 	-Wfloat-conversion \
 	-Werror=return-type \
 	-Wsuggest-override \
+	-Werror -Wnoexcept -Wshadow -Wsign-promo \
 	-fsingle-precision-constant \
 	-fstack-usage \
 	-O2 \

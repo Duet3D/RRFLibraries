@@ -16,7 +16,7 @@ DEFINES := \
 	-D__SAM4S8C__ \
 	-DRTOS
 
-CXXFLAGS := -c -std=gnu++17 \
+CXXFLAGS := -c -std=c++20 \
 	-mcpu=cortex-m4 \
 	-mthumb \
 	-fno-math-errno \
@@ -29,6 +29,7 @@ CXXFLAGS := -c -std=gnu++17 \
 	-nostdlib \
 	-Wundef \
 	-Wdouble-promotion \
+	-Werror -Wnoexcept -Wshadow -Wsign-promo \
 	-fsingle-precision-constant \
 	-O2 \
 	$(INCLUDES) \
