@@ -30,15 +30,11 @@ SAM4E_CXXFLAGS := -c -std=c++20 \
 	-Wdouble-promotion \
 	-Werror -Wnoexcept -Wshadow -Wsign-promo \
 	-fsingle-precision-constant \
+	-Os \
 	$(SAM4E_INCLUDES) \
 	$(SAM4E_DEFINES)
 
-# Add debug flags if DEBUG=1
-ifeq ($(DEBUG),1)
-	SAM4E_CXXFLAGS += -O0 -g3
-else
-	SAM4E_CXXFLAGS += -Os
-endif
+SAM4E_CXXFLAGS += $(DEBUG_FLAGS)
 
 SAM4E_OBJS := $(SAM4E_CPP_SRCS:%.cpp=$(SAM4E_BUILD_DIR)/%.o)
 SAM4E_DEPS := $(SAM4E_OBJS:.o=.d)

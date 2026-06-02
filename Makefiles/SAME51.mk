@@ -34,6 +34,8 @@ CXXFLAGS := -c -std=c++20 \
 	$(INCLUDES) \
 	$(DEFINES)
 
+CXXFLAGS += $(DEBUG_FLAGS)
+
 OBJS := $(CPP_SRCS:%.cpp=$(BUILD_DIR)/%.o)
 DEPS := $(OBJS:.o=.d)
 
