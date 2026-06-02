@@ -16,7 +16,7 @@ SAME51_RTOS_DEFINES := \
 	-D__SAME51N19A__ \
 	-DRTOS
 
-SAME51_RTOS_CXXFLAGS := -c -std=gnu++17 \
+SAME51_RTOS_CXXFLAGS := -c -std=c++20 \
 	-mcpu=cortex-m4 \
 	-mthumb \
 	-fno-math-errno \
@@ -31,6 +31,7 @@ SAME51_RTOS_CXXFLAGS := -c -std=gnu++17 \
 	-nostdlib \
 	-Wundef \
 	-Wdouble-promotion \
+	-Werror -Wnoexcept -Wshadow -Wsign-promo \
 	-fsingle-precision-constant \
 	-fstack-usage \
 	-fdump-rtl-expand \

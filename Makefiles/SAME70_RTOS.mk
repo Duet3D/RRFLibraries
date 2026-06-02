@@ -16,7 +16,7 @@ SAME70_RTOS_DEFINES := \
 	-D__SAME70Q21__ \
 	-DRTOS
 
-SAME70_RTOS_CXXFLAGS := -c -std=gnu++17 \
+SAME70_RTOS_CXXFLAGS := -c -std=c++20 \
 	-mcpu=cortex-m7 \
 	-mthumb \
 	-fno-math-errno \
@@ -32,6 +32,7 @@ SAME70_RTOS_CXXFLAGS := -c -std=gnu++17 \
 	-nostdlib \
 	-Wundef \
 	-Wdouble-promotion \
+	-Werror -Wnoexcept -Wshadow -Wsign-promo \
 	-fsingle-precision-constant \
 	-O2 \
 	-Wall \

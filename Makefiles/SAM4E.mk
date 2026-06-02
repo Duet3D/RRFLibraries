@@ -13,7 +13,7 @@ SAM4E_INCLUDES := \
 SAM4E_DEFINES := \
 	-D__SAM4E8E__
 
-SAM4E_CXXFLAGS := -c -std=gnu++17 \
+SAM4E_CXXFLAGS := -c -std=c++20 \
 	-mcpu=cortex-m4 \
 	-mthumb \
 	-mfpu=fpv4-sp-d16 \
@@ -28,6 +28,7 @@ SAM4E_CXXFLAGS := -c -std=gnu++17 \
 	-nostdlib \
 	-Wundef \
 	-Wdouble-promotion \
+	-Werror -Wnoexcept -Wshadow -Wsign-promo \
 	-fsingle-precision-constant \
 	$(SAM4E_INCLUDES) \
 	$(SAM4E_DEFINES)

@@ -13,7 +13,7 @@ SAME70_INCLUDES := \
 SAME70_DEFINES := \
 	-D__SAME70Q21__
 
-SAME70_CXXFLAGS := -c -std=gnu++17 \
+SAME70_CXXFLAGS := -c -std=c++20 \
 	-mcpu=cortex-m7 \
 	-mthumb \
 	-mfpu=fpv5-d16 \
@@ -29,6 +29,7 @@ SAME70_CXXFLAGS := -c -std=gnu++17 \
 	-nostdlib \
 	-Wundef \
 	-Wdouble-promotion \
+	-Werror -Wnoexcept -Wshadow -Wsign-promo \
 	-fsingle-precision-constant \
 	$(SAME70_INCLUDES) \
 	$(SAME70_DEFINES)

@@ -51,7 +51,7 @@ public:
 	size_t GetCapacity() const noexcept { return capacity; }
 
 	// Clear the buffer
-	void Clear() noexcept { getIndex = putIndex = 0; }
+	void Clear() noexcept { putIndex = 0; getIndex = 0; }
 
 private:
 	size_t capacity;			// must be one less than a power of 2

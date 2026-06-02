@@ -32,6 +32,7 @@
 #include <cstring>
 #include <climits>
 #include <cmath>
+#include <bit>
 
 #include "Strnlen.h"
 #include "SimpleMath.h"
@@ -60,7 +61,9 @@ struct xPrintFlags
 				isString : 1,
 				long32 : 1,
 				long64 : 1,
-				hash : 1;
+				hash : 1,
+				isShort : 1,
+				isShortShort : 1;
 		} b;
 		uint32_t all;
 	} u;
@@ -645,17 +648,6 @@ int FormattedPrinter::Print(c_string format, va_list args) noexcept
 			}
 		}
 
-#ifndef NO_PRINTF_FLOAT
-		if (ch == 'f' || ch == 'e' || ch == 'g' || ch == 'F' || ch == 'E' || ch == 'G')
-		{
-			if (!PrintFloat(va_arg(args, double), ch))
-			{
-				break;
-			}
-			continue;
-		}
-#endif
-
 		// For non-floating point formats, treat a precision of 0 the same as unlimited
 		if (flags.printLimit == 0)
 		{
@@ -682,23 +674,18 @@ int FormattedPrinter::Print(c_string format, va_list args) noexcept
 			continue;
 		}
 
-		if (ch == 'c')
-		{
-			// char are converted to int then pushed on the stack
-			const char c2 = (char)va_arg(args, int);
-			if (c2 != 0)				// don't print it if it is null
-			{
-				if (!PutChar(c2))
-				{
-					break;
-				}
-			}
-
-			continue;
-		}
 		if (ch == 'h')					// used by Lwip debug
 		{
-			ch = *format++;				// we ignore it
+			ch = *format++;
+			if (ch == 'h')
+			{
+				ch = *format++;
+				flags.u.b.isShort = 1;
+			}
+			else
+			{
+				flags.u.b.isShortShort = 1;
+			}
 		}
 		else if (ch == 'l')
 		{
@@ -713,6 +700,42 @@ int FormattedPrinter::Print(c_string format, va_list args) noexcept
 				flags.u.b.long32 = 1;
 			}
 		}
+		// Modifiers j z t L are also allowed in C++ but we don't support them
+
+		if (ch == 'c')
+		{
+			// char are converted to int then pushed on the stack
+			const char c2 = (char)va_arg(args, int);
+			if (c2 != 0)				// don't print it if it is null
+			{
+				if (!PutChar(c2))
+				{
+					break;
+				}
+			}
+
+			continue;
+		}
+
+#ifndef NO_PRINTF_FLOAT
+		if (ch == 'f' || ch == 'e' || ch == 'g' || ch == 'F' || ch == 'E' || ch == 'G')
+		{
+			// Duet 3 extension: %hf etc. takes a 32-bit float argument instead of double
+			if (flags.u.b.isShort)
+			{
+				const float arg = std::bit_cast<float>(va_arg(args, uint32_t));
+				if (!PrintFloat((double)arg, ch))
+				{
+					break;
+				}
+			}
+			else if (!PrintFloat(va_arg(args, double), ch))
+			{
+				break;
+			}
+			continue;
+		}
+#endif
 
 		flags.base = 10;
 		flags.u.b.letBase = (unsigned int)'a';
