@@ -317,7 +317,7 @@ namespace RTOSIface
 	}
 
 #ifndef RTOS
-	static volatile unsigned int interruptCriticalSectionNesting = 0;
+	extern volatile unsigned int interruptCriticalSectionNesting;
 #endif
 
 	// Enter a critical section, where modification to variables by interrupts (and perhaps also other tasks) must be avoided
@@ -327,7 +327,7 @@ namespace RTOSIface
 		taskENTER_CRITICAL();
 #else
 		DisableInterrupts();
-		++interruptCriticalSectionNesting;
+		++*const_cast<unsigned int *>(&interruptCriticalSectionNesting);
 #endif
 	}
 
@@ -337,7 +337,7 @@ namespace RTOSIface
 #ifdef RTOS
 		taskEXIT_CRITICAL();
 #else
-		--interruptCriticalSectionNesting;
+		--*const_cast<unsigned int *>(&interruptCriticalSectionNesting);
 		if (interruptCriticalSectionNesting == 0)
 		{
 			EnableInterrupts();

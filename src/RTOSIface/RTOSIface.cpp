@@ -70,6 +70,8 @@ Mutex *null Mutex::mutexList = nullptr;
 
 #else
 
+volatile unsigned int RTOSIface::interruptCriticalSectionNesting = 0;
+
 void Mutex::Create(c_string pName) noexcept
 {
 }
