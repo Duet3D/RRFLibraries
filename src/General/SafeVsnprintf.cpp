@@ -447,7 +447,7 @@ bool FormattedPrinter::PrintFloat(double d, char formatLetter) noexcept
 		{
 			// Using exponent format, so calculate the exponent and normalise ud to be >=1.0 but <10.0
 			// The following loops are inefficient, however we don't expect to print very large or very small numbers
-			while (ud >= (double)1'000'000.0)
+			while (ud >= (double)100'000.0)
 			{
 				ud /= (double)100'000.0;
 				exponent += 5;
@@ -457,7 +457,7 @@ bool FormattedPrinter::PrintFloat(double d, char formatLetter) noexcept
 				ud /= (double)10.0;
 				++exponent;
 			}
-			while (ud < (double)0.0001)
+			while (ud < (double)0.00001)
 			{
 				ud *= (double)100'000.0;
 				exponent -= 5;
@@ -648,32 +648,6 @@ int FormattedPrinter::Print(c_string format, va_list args) noexcept
 			}
 		}
 
-		// For non-floating point formats, treat a precision of 0 the same as unlimited
-		if (flags.printLimit == 0)
-		{
-			flags.printLimit = -1;		// -1: make it unlimited
-		}
-
-		if (ch == 's')
-		{
-			c_string_or_null s = va_arg(args, c_string_or_null);
-			flags.u.b.isString = true;
-			// RRF extension: if the current format specifier is exactly "%.s" then perform JSON escaping.
-			// We would like to use "%j" instead, but that gives rise to gcc warnings about unrecognised format specifiers and extra arguments.
-			if (*(format - 2) == '.' && *(format - 3) == '%')
-			{
-				if (s != nullptr && !PutJson(s))
-				{
-					break;
-				}
-			}
-			else if (!PutString((s != nullptr) ? s : "<null>"))
-			{
-				break;
-			}
-			continue;
-		}
-
 		if (ch == 'h')					// used by Lwip debug
 		{
 			ch = *format++;
@@ -702,21 +676,6 @@ int FormattedPrinter::Print(c_string format, va_list args) noexcept
 		}
 		// Modifiers j z t L are also allowed in C++ but we don't support them
 
-		if (ch == 'c')
-		{
-			// char are converted to int then pushed on the stack
-			const char c2 = (char)va_arg(args, int);
-			if (c2 != 0)				// don't print it if it is null
-			{
-				if (!PutChar(c2))
-				{
-					break;
-				}
-			}
-
-			continue;
-		}
-
 #ifndef NO_PRINTF_FLOAT
 		if (ch == 'f' || ch == 'e' || ch == 'g' || ch == 'F' || ch == 'E' || ch == 'G')
 		{
@@ -736,6 +695,47 @@ int FormattedPrinter::Print(c_string format, va_list args) noexcept
 			continue;
 		}
 #endif
+
+		// For non-floating point formats, treat a precision of 0 the same as unlimited
+		if (flags.printLimit == 0)
+		{
+			flags.printLimit = -1;		// -1: make it unlimited
+		}
+
+		if (ch == 's')
+		{
+			c_string_or_null s = va_arg(args, c_string_or_null);
+			flags.u.b.isString = true;
+			// RRF extension: if the current format specifier is exactly "%.s" then perform JSON escaping.
+			// We would like to use "%j" instead, but that gives rise to gcc warnings about unrecognised format specifiers and extra arguments.
+			if (*(format - 2) == '.' && *(format - 3) == '%')
+			{
+				if (s != nullptr && !PutJson(s))
+				{
+					break;
+				}
+			}
+			else if (!PutString((s != nullptr) ? s : "<null>"))
+			{
+				break;
+			}
+			continue;
+		}
+
+		if (ch == 'c')
+		{
+			// char are converted to int then pushed on the stack
+			const char c2 = (char)va_arg(args, int);
+			if (c2 != 0)				// don't print it if it is null
+			{
+				if (!PutChar(c2))
+				{
+					break;
+				}
+			}
+
+			continue;
+		}
 
 		flags.base = 10;
 		flags.u.b.letBase = (unsigned int)'a';
