@@ -1,23 +1,24 @@
-# RRFLibraries SAM4S_RTOS Configuration Makefile
+# RRFLibraries RP2040_RTOS Configuration Makefile
 
-BUILD_DIR := SAM4S_RTOS
+BUILD_DIR := RP2040_RTOS
 TARGET := $(BUILD_DIR)/libRRFLibraries.a
 
 SRC_DIR := src
 
-CPP_SRCS := $(shell find $(SRC_DIR) -name '*.cpp' ! -path '*/RP2040/*' ! -path '*/SAME5x_C21/*')
+CPP_SRCS := $(shell find $(SRC_DIR) -name '*.cpp')
 
 INCLUDES := \
 	-I$(SRC_DIR) \
+	-I../CoreN2G/src \
 	-I../FreeRTOS/src/include \
-	-I../FreeRTOS/src/portable/GCC/ARM_CM3
+	-I../FreeRTOS/src/portable/GCC/ARM_CM0
 
 DEFINES := \
-	-D__SAM4S8C__ \
+	-D__RP2040__=1 \
 	-DRTOS
 
 CXXFLAGS := -c -std=c++20 \
-	-mcpu=cortex-m4 \
+	-mcpu=cortex-m0plus \
 	-mthumb \
 	-fno-math-errno \
 	-mfp16-format=ieee \
@@ -29,9 +30,18 @@ CXXFLAGS := -c -std=c++20 \
 	-nostdlib \
 	-Wundef \
 	-Wdouble-promotion \
+	-Wfloat-conversion \
+	-Werror=return-type \
+	-Wsuggest-override \
 	-Werror -Wnoexcept -Wshadow -Wsign-promo \
 	-fsingle-precision-constant \
+	-fstack-usage \
 	-O2 \
+	-Wall \
+	-Werror \
+	-Wnoexcept \
+	-Wshadow \
+	-Wsign-promo \
 	$(INCLUDES) \
 	$(DEFINES)
 
@@ -40,8 +50,8 @@ CXXFLAGS += $(DEBUG_FLAGS)
 OBJS := $(CPP_SRCS:%.cpp=$(BUILD_DIR)/%.o)
 DEPS := $(OBJS:.o=.d)
 
-.PHONY: SAM4S_RTOS
-SAM4S_RTOS: $(TARGET)
+.PHONY: RP2040_RTOS
+RP2040_RTOS: $(TARGET)
 
 $(TARGET): $(OBJS)
 	$(Q)echo "  AR      $@"
@@ -55,7 +65,7 @@ $(BUILD_DIR)/%.o: %.cpp
 
 -include $(DEPS)
 
-.PHONY: clean-SAM4S_RTOS
-clean-SAM4S_RTOS:
+.PHONY: clean-RP2040_RTOS
+clean-RP2040_RTOS:
 	$(Q)echo "  RM      $(BUILD_DIR)"
 	$(Q)rm -rf $(BUILD_DIR)
