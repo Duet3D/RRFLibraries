@@ -53,5 +53,7 @@ SAME70_RTOS_Debug/
 /SAME70/
 /SAM3S_4S/
 /RP2040_RTOS/
+/STM32H5_RTOS/
+/STM32H7_RTOS/
 /.clang-format
 /.clangd
