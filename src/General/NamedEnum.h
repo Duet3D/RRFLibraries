@@ -101,27 +101,28 @@ public: \
 	typedef _baseType BaseType;																					/* alias for the base type */ \
 	enum RawType : BaseType { _v1 = 0, __VA_ARGS__ };															/* underlying enumeration */ \
 	static constexpr unsigned int NumValues = VA_SIZE(__VA_ARGS__) + 1;											/* count of members */ \
-	_typename(RawType arg) noexcept { v = arg; }																/* constructor - cannot be declared 'explicit' because we need the conversion */ \
-	explicit _typename(BaseType arg) noexcept { v = static_cast<RawType>(arg); }								/* constructor */ \
-	explicit _typename(c_string s) noexcept { v = static_cast<RawType>(NamedEnumLookup(s, _names, NumValues)); }	/* constructor from string */ \
-	_typename(const _typename& arg) noexcept { v = arg.v; }														/* copy constructor */ \
-	_typename(const volatile _typename& arg) noexcept { v = arg.v; }											/* copy constructor */ \
-	bool operator==(_typename arg) const noexcept { return v == arg.v; }										/* equality operator */ \
-	bool operator!=(_typename arg) const noexcept { return v != arg.v; }										/* inequality operator */ \
-	bool operator>(_typename arg) const noexcept { return v > arg.v; }											/* greater-than operator */ \
-	bool operator>=(_typename arg) const noexcept { return v >= arg.v; }										/* greater-than-or-equal operator */ \
-	bool operator<(_typename arg) const noexcept { return v < arg.v; }											/* less-than operator */ \
-	bool operator<=(_typename arg) const noexcept { return v <= arg.v; }										/* less-than-or-equal operator */ \
+	_typename(RawType arg) noexcept : v(arg) {}																	/* constructor - cannot be declared 'explicit' because we need the conversion */ \
+	explicit _typename(BaseType arg) noexcept : v(static_cast<RawType>(arg)) {}									/* constructor */ \
+	explicit _typename(c_string s) noexcept : v(static_cast<RawType>(NamedEnumLookup(s, _names, NumValues))) {}	/* constructor from string */ \
+	_typename(const _typename& arg) noexcept : v(arg.v) {}														/* copy constructor */ \
+	_typename(const volatile _typename& arg) noexcept : v(arg.v) {}												/* copy constructor */ \
+	_typename(_typename&& arg) noexcept : v(arg.v) {}															/* move constructor */ \
+	~_typename() = default;																						/* destructor */ \
+	bool operator==(const _typename& arg) const noexcept { return v == arg.v; }									/* equality operator */ \
+	bool operator!=(const _typename& arg) const noexcept { return v != arg.v; }									/* inequality operator */ \
+	bool operator>(const _typename& arg) const noexcept { return v > arg.v; }									/* greater-than operator */ \
+	bool operator>=(const _typename& arg) const noexcept { return v >= arg.v; }									/* greater-than-or-equal operator */ \
+	bool operator<(const _typename& arg) const noexcept { return v < arg.v; }									/* less-than operator */ \
+	bool operator<=(const _typename& arg) const noexcept { return v <= arg.v; }									/* less-than-or-equal operator */ \
 	bool operator==(RawType arg) const noexcept { return v == arg; }											/* equality operator */ \
 	bool operator!=(RawType arg) const noexcept { return v != arg; }											/* inequality operator */ \
 	bool operator>(RawType arg) const noexcept { return v > arg; }												/* greater-than operator */ \
 	bool operator>=(RawType arg) const noexcept { return v >= arg; }											/* greater-than-or-equal operator */ \
 	bool operator<(RawType arg) const noexcept { return v < arg; }												/* less-than operator */ \
 	bool operator<=(RawType arg) const noexcept { return v <= arg; }											/* less-than-or-equal operator */ \
-	const _typename& operator=(RawType arg) noexcept { v = arg; return *this; }									/* assignment operator from underlying enum */ \
-	void operator=(RawType arg) volatile noexcept { v = arg; }													/* assignment operator from underlying enum */ \
-	const _typename& operator=(_typename arg) noexcept { v = arg.v; return *this; }								/* copy assignment operator */ \
-	void operator=(_typename arg) volatile noexcept { v = arg.v; }												/* copy assignment operator */ \
+	_typename& operator=(RawType arg) noexcept { v = arg; return *this; }										/* assignment operator from underlying enum */ \
+	_typename& operator=(const _typename& arg) noexcept { v = arg.v; return *this; }							/* copy assignment operator */ \
+	_typename& operator=(_typename&& arg) noexcept { v = arg.v; return *this; }									/* move assignment operator */ \
 	constexpr RawType RawValue() const noexcept { return v; }													/* return the raw enum value, which we can switch on */ \
 	constexpr BaseType ToBaseType() const noexcept { return static_cast<BaseType>(v); }							/* convert to integral base type */ \
 	static constexpr BaseType ToBaseType(RawType arg) noexcept { return static_cast<BaseType>(arg); }			/* convert to integral base type */ \
