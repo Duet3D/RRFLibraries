@@ -92,7 +92,9 @@ inline unsigned int LowestSetBitNumber(unsigned int val) noexcept
 	return (unsigned int)__builtin_ctz(val);
 }
 
-static_assert(sizeof(uint32_t) == sizeof(unsigned long));
+// Each overload forwards to the builtin for its own parameter type, so the set is correct whether
+// uint32_t/uint64_t map onto unsigned long (ILP32, every Duet MCU) or not (LP64 hosts).
+static_assert(sizeof(unsigned long) >= sizeof(uint32_t));
 inline unsigned int LowestSetBitNumber(unsigned long val) noexcept
 {
 	return (unsigned int)__builtin_ctzl(val);
