@@ -8,7 +8,10 @@ SRC_DIR := src
 CPP_SRCS := $(shell find $(SRC_DIR) -name '*.cpp' ! -path '*/RP2040/*')
 
 INCLUDES := \
-	-I$(SRC_DIR)
+	-I$(SRC_DIR) \
+	-I../CoreN2G/src \
+	-I../CoreN2G/src/arm/CMSIS/5.4.0/CMSIS/Core/Include \
+	-I../CoreN2G/src/atmel/SAMC21_DFP/1.2.176/samc21/include
 
 DEFINES := \
 	-D__SAMC21G18A__

@@ -29,6 +29,15 @@ constexpr char IsoDate[] =
 	0
 };
 
+constexpr char IsoDateTime[] =
+{	compileYear/1000 + '0', (compileYear % 1000)/100 + '0', (compileYear % 100)/10 + '0', compileYear % 10 + '0',
+	'-',  compileMonth/10 + '0', compileMonth%10 + '0',
+	'-',  compileDay/10 + '0', compileDay%10 + '0',
+	' ',																			// this should really be 'T' to be ISO compliant
+	__TIME__[0], __TIME__[1], __TIME__[2], __TIME__[3], __TIME__[4],
+	0
+};
+
 #if 0	// enable this block to test whether IsoDate is correct
 #include <cstring>
 static_assert(strcmp(IsoDate, "2020-11-06") == 0);		// change to today's date when testing
