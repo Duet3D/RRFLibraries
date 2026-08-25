@@ -18,7 +18,7 @@
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-				<configuration artifactExtension="a" artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.staticLib" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.staticLib,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release" cleanCommand="rm -rf" description="" id="cdt.managedbuild.config.gnu.cross.lib.release.1693990866" name="SAM4E_RTOS" optionalBuildProperties="org.eclipse.cdt.docker.launcher.containerbuild.property.volumes=,org.eclipse.cdt.docker.launcher.containerbuild.property.selectedvolumes=" parent="cdt.managedbuild.config.gnu.cross.lib.release">
+				<configuration artifactExtension="a" artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.staticLib" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.staticLib,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release" cleanCommand="rm -rf" description="" id="cdt.managedbuild.config.gnu.cross.lib.release.1693990866" name="SAM4E_RTOS" optionalBuildProperties="org.eclipse.cdt.docker.launcher.containerbuild.property.selectedvolumes=,org.eclipse.cdt.docker.launcher.containerbuild.property.volumes=" parent="cdt.managedbuild.config.gnu.cross.lib.release">
 					<folderInfo id="cdt.managedbuild.config.gnu.cross.lib.release.1693990866." name="/" resourcePath="">
 						<toolChain id="cdt.managedbuild.toolchain.gnu.cross.lib.release.955361531" name="Cross GCC" superClass="cdt.managedbuild.toolchain.gnu.cross.lib.release">
 							<option id="cdt.managedbuild.option.gnu.cross.prefix.1743998284" name="Prefix" superClass="cdt.managedbuild.option.gnu.cross.prefix" value="arm-none-eabi-" valueType="string"/>
@@ -980,21 +980,19 @@
 			<resource resourceType="PROJECT" workspacePath="/RRFLibraries"/>
 		</configuration>
 		<configuration configurationName="SAMC21_RTOS"/>
+		<configuration configurationName="SAME70"/>
 		<configuration configurationName="SAME70_RTOS_Debug"/>
-		<configuration configurationName="SAM3X_RTOS"/>
+		<configuration configurationName="SAM4S"/>
+		<configuration configurationName="SAM3S_4S"/>
 		<configuration configurationName="SAMC21_RTOS_Debug"/>
+		<configuration configurationName="SAM3X_RTOS"/>
 		<configuration configurationName="SAME70_RTOS"/>
-		<configuration configurationName="SAM3X"/>
+		<configuration configurationName="RP2040_RTOS"/>
 		<configuration configurationName="SAM4S_RTOS"/>
 		<configuration configurationName="SAME51_RTOS"/>
-		<configuration configurationName="SAME51">
-			<resource resourceType="PROJECT" workspacePath="/RRFLibraries"/>
-		</configuration>
+		<configuration configurationName="SAME51"/>
 		<configuration configurationName="SAMC21"/>
 		<configuration configurationName="SAM4E_RTOS"/>
-		<configuration configurationName="Release">
-			<resource resourceType="PROJECT" workspacePath="/RRFLibraries"/>
-		</configuration>
 		<configuration configurationName="SAME51_RTOS_Debug"/>
 	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets"/>
