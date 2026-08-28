@@ -22,7 +22,7 @@ endif
 export Q
 
 # Available build configurations
-CONFIGS := SAM4E_RTOS SAME51_RTOS SAME70_RTOS SAMC21_RTOS SAMC21 SAME51 SAM4E SAME70 RP2040_RTOS
+CONFIGS := SAM4E_RTOS SAME51_RTOS SAME70_RTOS SAMC21_RTOS SAMC21 SAME51 SAM4E SAME70 RP2040_RTOS STM32H5_RTOS STM32H7_RTOS
 
 # Default target
 .DEFAULT_GOAL := SAM4E_RTOS
@@ -51,6 +51,8 @@ all:
 	$(Q)$(MAKE) SAME51_RTOS
 	$(Q)$(MAKE) SAME70_RTOS
 	$(Q)$(MAKE) SAMC21_RTOS
+	$(Q)$(MAKE) STM32H5_RTOS
+	$(Q)$(MAKE) STM32H7_RTOS
 
 # Include configuration-specific makefiles only when building that specific config
 ifeq ($(MAKECMDGOALS),SAM4E_RTOS)
@@ -79,6 +81,12 @@ ifeq ($(MAKECMDGOALS),SAME70)
 endif
 ifeq ($(MAKECMDGOALS),RP2040_RTOS)
 -include Makefiles/RP2040_RTOS.mk
+endif
+ifeq ($(MAKECMDGOALS),STM32H5_RTOS)
+-include Makefiles/STM32H5_RTOS.mk
+endif
+ifeq ($(MAKECMDGOALS),STM32H7_RTOS)
+-include Makefiles/STM32H7_RTOS.mk
 endif
 
 # Generic clean target
