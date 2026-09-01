@@ -13,7 +13,7 @@ STM32H7_RTOS_INCLUDES := \
 	-I../FreeRTOS/src/portable/GCC/ARM_CM7/r0p1
 
 STM32H7_RTOS_DEFINES := \
-	-DSTM32H723xx \
+	-DSTM32H743xx \
 	-DRTOS
 
 STM32H7_RTOS_CXXFLAGS := -c -std=c++20 \
@@ -23,6 +23,7 @@ STM32H7_RTOS_CXXFLAGS := -c -std=c++20 \
 	-mfpu=fpv5-d16 \
 	-mfloat-abi=hard \
 	-mfp16-format=ieee \
+	-mno-unaligned-access \
 	-ffunction-sections \
 	-fdata-sections \
 	-fno-threadsafe-statics \

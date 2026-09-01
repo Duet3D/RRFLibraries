@@ -23,6 +23,7 @@ STM32H5_RTOS_CXXFLAGS := -c -std=c++20 \
 	-mfpu=fpv5-sp-d16 \
 	-mfloat-abi=hard \
 	-mfp16-format=ieee \
+	-mno-unaligned-access \
 	-ffunction-sections \
 	-fdata-sections \
 	-fno-threadsafe-statics \

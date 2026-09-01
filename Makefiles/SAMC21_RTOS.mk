@@ -16,7 +16,7 @@ INCLUDES := \
 	-I../FreeRTOS/src/portable/GCC/ARM_CM0
 
 DEFINES := \
-	-D__SAMC21G18A__ \
+	-D__SAMC21G18A__=1 \
 	-DRTOS
 
 CXXFLAGS := -c -std=c++20 \

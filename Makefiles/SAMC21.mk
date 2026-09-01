@@ -14,7 +14,8 @@ INCLUDES := \
 	-I../CoreN2G/src/atmel/SAMC21_DFP/1.2.176/samc21/include
 
 DEFINES := \
-	-D__SAMC21G18A__
+	-D__SAMC21G18A__ \
+	-DNO_PRINTF_FLOAT
 
 CXXFLAGS := -c -std=c++20 \
 	-mcpu=cortex-m0plus \
