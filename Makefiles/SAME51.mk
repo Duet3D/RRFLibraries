@@ -11,7 +11,8 @@ INCLUDES := \
 	-I$(SRC_DIR)
 
 DEFINES := \
-	-D__SAME51P20A__
+	-D__SAME51N19A__ \
+	-DNO_PRINTF_FLOAT
 
 CXXFLAGS := -c -std=c++20 \
 	-mcpu=cortex-m4 \
