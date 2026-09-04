@@ -32,15 +32,11 @@ SAME70_CXXFLAGS := -c -std=c++20 \
 	-Wdouble-promotion \
 	-Werror -Wnoexcept -Wshadow -Wsign-promo \
 	-fsingle-precision-constant \
+	-Os \
 	$(SAME70_INCLUDES) \
 	$(SAME70_DEFINES)
 
-# Add debug flags if DEBUG=1
-ifeq ($(DEBUG),1)
-	SAME70_CXXFLAGS += -O0 -g3
-else
-	SAME70_CXXFLAGS += -Os
-endif
+SAME70_CXXFLAGS += $(DEBUG_FLAGS)
 
 SAME70_OBJS := $(SAME70_CPP_SRCS:%.cpp=$(SAME70_BUILD_DIR)/%.o)
 SAME70_DEPS := $(SAME70_OBJS:.o=.d)

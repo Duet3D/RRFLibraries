@@ -37,15 +37,11 @@ STM32H5_RTOS_CXXFLAGS := -c -std=c++20 \
 	-fstack-usage \
 	-fdump-rtl-expand \
 	-Wall \
+	-O2 \
 	$(STM32H5_RTOS_INCLUDES) \
 	$(STM32H5_RTOS_DEFINES)
 
-# Add debug flags if DEBUG=1
-ifeq ($(DEBUG),1)
-STM32H5_RTOS_CXXFLAGS += -O0 -g3
-else
-STM32H5_RTOS_CXXFLAGS += -O2
-endif
+STM32H5_RTOS_CXXFLAGS += $(DEBUG_FLAGS)
 
 STM32H5_RTOS_OBJS := $(STM32H5_RTOS_CPP_SRCS:%.cpp=$(STM32H5_RTOS_BUILD_DIR)/%.o)
 STM32H5_RTOS_DEPS := $(STM32H5_RTOS_OBJS:.o=.d)
