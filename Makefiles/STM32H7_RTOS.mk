@@ -37,6 +37,7 @@ STM32H7_RTOS_CXXFLAGS := -c -std=c++20 \
 	-fstack-usage \
 	-fdump-rtl-expand \
 	-Wall \
+	-O2 \
 	$(STM32H7_RTOS_INCLUDES) \
 	$(STM32H7_RTOS_DEFINES)
 
