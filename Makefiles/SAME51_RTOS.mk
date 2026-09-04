@@ -36,6 +36,7 @@ SAME51_RTOS_CXXFLAGS := -c -std=c++20 \
 	-fstack-usage \
 	-fdump-rtl-expand \
 	-Wall \
+	-O2 \
 	$(SAME51_RTOS_INCLUDES) \
 	$(SAME51_RTOS_DEFINES)
 
