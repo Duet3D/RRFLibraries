@@ -94,6 +94,8 @@ static inline constexpr c_string SkipLeadingUnderscore(c_string s) noexcept
 // If any of the names is a C++ reserved word or starts with a digit, prefix it with a single underscore
 // BaseType must be unsigned for IsValid and ToString to work correctly.
 
+// TODO: determine if these linting checks are false positives or not
+// NOLINTBEGIN(cppcoreguidelines-c-copy-assignment-signature,misc-unconventional-assign-operator,performance-unnecessary-value-param,cppcoreguidelines-special-member-functions)
 #define NamedEnum(_typename, _baseType, _v1, ...) \
 static_assert((_baseType)0 < (_baseType)-1, "base type must be unsigned"); \
 class _typename final { \
@@ -101,11 +103,13 @@ public: \
 	typedef _baseType BaseType;																					/* alias for the base type */ \
 	enum RawType : BaseType { _v1 = 0, __VA_ARGS__ };															/* underlying enumeration */ \
 	static constexpr unsigned int NumValues = VA_SIZE(__VA_ARGS__) + 1;											/* count of members */ \
-	_typename(RawType arg) noexcept { v = arg; }																/* constructor - cannot be declared 'explicit' because we need the conversion */ \
-	explicit _typename(BaseType arg) noexcept { v = static_cast<RawType>(arg); }								/* constructor */ \
-	explicit _typename(c_string s) noexcept { v = static_cast<RawType>(NamedEnumLookup(s, _names, NumValues)); }	/* constructor from string */ \
-	_typename(const _typename& arg) noexcept { v = arg.v; }														/* copy constructor */ \
-	_typename(const volatile _typename& arg) noexcept { v = arg.v; }											/* copy constructor */ \
+	_typename(RawType arg) noexcept : v(arg) {}																	/* constructor - cannot be declared 'explicit' because we need the conversion */ \
+	explicit _typename(BaseType arg) noexcept : v(static_cast<RawType>(arg)) {}									/* constructor */ \
+	explicit _typename(c_string s) noexcept : v(static_cast<RawType>(NamedEnumLookup(s, _names, NumValues))) {}	/* constructor from string */ \
+	_typename(const _typename& arg) noexcept : v(arg.v) {}														/* copy constructor */ \
+	_typename(const volatile _typename& arg) noexcept : v(arg.v) {}												/* copy constructor */ \
+	_typename(_typename&& arg) noexcept : v(arg.v) {}															/* move constructor */ \
+	~_typename() = default;																						/* destructor */ \
 	bool operator==(_typename arg) const noexcept { return v == arg.v; }										/* equality operator */ \
 	bool operator!=(_typename arg) const noexcept { return v != arg.v; }										/* inequality operator */ \
 	bool operator>(_typename arg) const noexcept { return v > arg.v; }											/* greater-than operator */ \
@@ -133,5 +137,6 @@ private: \
 	RawType v; \
 	static constexpr c_string _names[NumValues] = { STRINGLIST(_v1, __VA_ARGS__) }; \
 }
+// NOLINTEND(cppcoreguidelines-c-copy-assignment-signature,misc-unconventional-assign-operator,performance-unnecessary-value-param,cppcoreguidelines-special-member-functions)
 
 #endif /* SRC_NAMEDENUM_H_ */
