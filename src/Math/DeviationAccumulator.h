@@ -19,8 +19,10 @@ public:
 
 	float GetMean() const noexcept { return (numValues == 0) ? 0.0 : sum/(float)numValues; }
 	float GetDeviation() const noexcept;
+	float GetDeviationFraction() const noexcept;
 	unsigned int GetNumSamples() const noexcept { return numValues; }
 	bool DeviationFractionWithin(float f) const noexcept;
+
 
 private:
 	unsigned int numValues;

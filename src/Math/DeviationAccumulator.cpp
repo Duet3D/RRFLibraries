@@ -42,4 +42,9 @@ bool DeviationAccumulator::DeviationFractionWithin(float f) const noexcept
 	return GetDeviation() <= f * GetMean();
 }
 
+float DeviationAccumulator::GetDeviationFraction() const noexcept
+{
+	return GetDeviation()/GetMean();
+}
+
 // End
