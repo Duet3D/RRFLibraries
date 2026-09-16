@@ -273,10 +273,11 @@ public:
 	static Bitmap<T> MakeFromArray(const int32_t *_ecv_array arr, size_t numEntries) noexcept;
 
 private:
-	static constexpr uint8_t BitCount[16] = { 0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4 };
-
 	T bits;
 };
+
+// Table of how many bits there are in values from 0 to 15
+constexpr uint8_t BitCount[16] = { 0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4 };
 
 // Count the number of set bits
 template<class T> unsigned int Bitmap<T>::CountSetBits() const noexcept
@@ -287,6 +288,28 @@ template<class T> unsigned int Bitmap<T>::CountSetBits() const noexcept
 	{
 		count += BitCount[b & 0x0F];
 		b >>= 4;
+	}
+	return count;
+}
+
+// These are similar to Bitmap::CountSetBits but operate directly on unsigned integral types
+inline unsigned int CountSetBits(uint8_t val) noexcept
+{
+	return BitCount[val & 0x0F] + BitCount[(val >> 4) & 0x0F];
+}
+
+inline unsigned int CountSetBits(uint16_t val) noexcept
+{
+	return BitCount[val & 0x0F] + BitCount[(val >> 4) & 0x0F] + BitCount[(val >> 8) & 0x0F] + BitCount[(val >> 12) & 0x0F];
+}
+
+inline unsigned int CountSetBits(uint32_t val) noexcept
+{
+	unsigned int count = 0;
+	while (val != 0)
+	{
+		count += BitCount[val & 0x0F];
+		val >>= 4;
 	}
 	return count;
 }
