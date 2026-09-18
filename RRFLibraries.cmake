@@ -21,7 +21,7 @@
 #
 # EXTRA_COMPILE_OPTIONS is for options the consumer must impose on this library's own translation
 # units, not just on its usage requirements - a forced include being the motivating case (see
-# float16_t in DuetSbcInterface/src/Compat).
+# float16_t in DuetRealtimeCore/src/Compat).
 
 set(RRFLIBRARIES_DIR "${CMAKE_CURRENT_LIST_DIR}")
 set(RRFLIBRARIES_LIBRARY_FLAGS
