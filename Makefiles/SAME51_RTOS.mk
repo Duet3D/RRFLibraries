@@ -5,7 +5,7 @@ SAME51_RTOS_TARGET := $(SAME51_RTOS_BUILD_DIR)/libRRFLibraries.a
 
 SAME51_RTOS_SRC_DIR := src
 
-SAME51_RTOS_CPP_SRCS := $(shell find $(SAME51_RTOS_SRC_DIR) -name '*.cpp' ! -path '*/RP2040/*')
+SAME51_RTOS_CPP_SRCS := $(filter-out $(SAME51_RTOS_SRC_DIR)/RP2040/%,$(call rwildcard,$(SAME51_RTOS_SRC_DIR),*.cpp))
 
 SAME51_RTOS_INCLUDES := \
 	-I$(SAME51_RTOS_SRC_DIR) \

@@ -5,7 +5,7 @@ SAME70_RTOS_TARGET := $(SAME70_RTOS_BUILD_DIR)/libRRFLibraries.a
 
 SAME70_RTOS_SRC_DIR := src
 
-SAME70_RTOS_CPP_SRCS := $(shell find $(SAME70_RTOS_SRC_DIR) -name '*.cpp' ! -path '*/RP2040/*' ! -path '*/SAME5x_C21/*')
+SAME70_RTOS_CPP_SRCS := $(filter-out $(SAME70_RTOS_SRC_DIR)/RP2040/% $(SAME70_RTOS_SRC_DIR)/SAME5x_C21/%,$(call rwildcard,$(SAME70_RTOS_SRC_DIR),*.cpp))
 
 SAME70_RTOS_INCLUDES := \
 	-I$(SAME70_RTOS_SRC_DIR) \
