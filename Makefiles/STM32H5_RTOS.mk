@@ -5,7 +5,7 @@ STM32H5_RTOS_TARGET := $(STM32H5_RTOS_BUILD_DIR)/libRRFLibraries.a
 
 STM32H5_RTOS_SRC_DIR := src
 
-STM32H5_RTOS_CPP_SRCS := $(shell find $(STM32H5_RTOS_SRC_DIR) -name '*.cpp' ! -path '*/RP2040/*')
+STM32H5_RTOS_CPP_SRCS := $(filter-out $(STM32H5_RTOS_SRC_DIR)/RP2040/%,$(call rwildcard,$(STM32H5_RTOS_SRC_DIR),*.cpp))
 
 STM32H5_RTOS_INCLUDES := \
 	-I$(STM32H5_RTOS_SRC_DIR) \

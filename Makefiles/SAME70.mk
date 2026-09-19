@@ -5,7 +5,7 @@ SAME70_TARGET := $(SAME70_BUILD_DIR)/libRRFLibraries.a
 
 SAME70_SRC_DIR := src
 
-SAME70_CPP_SRCS := $(shell find $(SAME70_SRC_DIR) -name '*.cpp' ! -path '*/RP2040/*')
+SAME70_CPP_SRCS := $(filter-out $(SAME70_SRC_DIR)/RP2040/%,$(call rwildcard,$(SAME70_SRC_DIR),*.cpp))
 
 SAME70_INCLUDES := \
 	-I$(SAME70_SRC_DIR)
