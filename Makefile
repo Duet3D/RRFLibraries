@@ -85,36 +85,47 @@ help:
 # Build all configurations
 .PHONY: all
 all:
+	$(Q)$(MAKE) SAME51
 	$(Q)$(MAKE) SAME51_RTOS
+	$(Q)$(MAKE) SAME70
 	$(Q)$(MAKE) SAME70_RTOS
+	$(Q)$(MAKE) SAMC21
 	$(Q)$(MAKE) SAMC21_RTOS
+	$(Q)$(MAKE) STM32H5
 	$(Q)$(MAKE) STM32H5_RTOS
+	$(Q)$(MAKE) STM32H7
 	$(Q)$(MAKE) STM32H7_RTOS
 
 # Include configuration-specific makefiles only when building that specific config
-ifeq ($(MAKECMDGOALS),SAME51_RTOS)
--include Makefiles/SAME51_RTOS.mk
-endif
-ifeq ($(MAKECMDGOALS),SAME70_RTOS)
--include Makefiles/SAME70_RTOS.mk
-endif
-ifeq ($(MAKECMDGOALS),SAMC21_RTOS)
--include Makefiles/SAMC21_RTOS.mk
-endif
-ifeq ($(MAKECMDGOALS),SAMC21)
--include Makefiles/SAMC21.mk
-endif
 ifeq ($(MAKECMDGOALS),SAME51)
 -include Makefiles/SAME51.mk
+endif
+ifeq ($(MAKECMDGOALS),SAME51_RTOS)
+-include Makefiles/SAME51_RTOS.mk
 endif
 ifeq ($(MAKECMDGOALS),SAME70)
 -include Makefiles/SAME70.mk
 endif
+ifeq ($(MAKECMDGOALS),SAME70_RTOS)
+-include Makefiles/SAME70_RTOS.mk
+endif
+ifeq ($(MAKECMDGOALS),SAMC21)
+-include Makefiles/SAMC21.mk
+endif
+ifeq ($(MAKECMDGOALS),SAMC21_RTOS)
+-include Makefiles/SAMC21_RTOS.mk
+endif
 ifeq ($(MAKECMDGOALS),RP2040_RTOS)
 -include Makefiles/RP2040_RTOS.mk
 endif
+ifeq ($(MAKECMDGOALS),STM32H5)
+-include Makefiles/STM32H5.mk
+endif
 ifeq ($(MAKECMDGOALS),STM32H5_RTOS)
 -include Makefiles/STM32H5_RTOS.mk
+endif
+ifeq ($(MAKECMDGOALS),STM32H7)
+-include Makefiles/STM32H7.mk
 endif
 ifeq ($(MAKECMDGOALS),STM32H7_RTOS)
 -include Makefiles/STM32H7_RTOS.mk

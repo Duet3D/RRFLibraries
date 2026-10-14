@@ -1,0 +1,65 @@
+# RRFLibraries STM32H7 Configuration Makefile
+
+STM32H7_BUILD_DIR := STM32H7
+STM32H7_TARGET := $(STM32H7_BUILD_DIR)/libRRFLibraries.a
+
+STM32H7_SRC_DIR := src
+
+STM32H7_CPP_SRCS := $(filter-out $(STM32H7_SRC_DIR)/RP2040/%,$(call rwildcard,$(STM32H7_SRC_DIR),*.cpp))
+
+STM32H7_INCLUDES := \
+	-I$(STM32H7_SRC_DIR)
+
+STM32H7_DEFINES := \
+	-DSTM32H743xx \
+	-DNO_PRINTF_FLOAT
+
+STM32H7_CXXFLAGS := -c -std=c++20 \
+	-mcpu=cortex-m7 \
+	-mthumb \
+	-fno-math-errno \
+	-mfpu=fpv5-d16 \
+	-mfloat-abi=hard \
+	-mfp16-format=ieee \
+	-mno-unaligned-access \
+	-ffunction-sections \
+	-fdata-sections \
+	-fno-threadsafe-statics \
+	-fno-rtti \
+	-fno-exceptions \
+	-nostdlib \
+	-Wundef \
+	-Wdouble-promotion \
+	-Werror -Wnoexcept -Wshadow -Wsign-promo \
+	-fsingle-precision-constant \
+	-fstack-usage \
+	-fdump-rtl-expand \
+	-Wall \
+	-Os \
+	$(STM32H7_INCLUDES) \
+	$(STM32H7_DEFINES)
+
+STM32H7_CXXFLAGS += $(DEBUG_FLAGS)
+
+STM32H7_OBJS := $(STM32H7_CPP_SRCS:%.cpp=$(STM32H7_BUILD_DIR)/%.o)
+STM32H7_DEPS := $(STM32H7_OBJS:.o=.d)
+
+.PHONY: STM32H7
+STM32H7: $(STM32H7_TARGET)
+
+$(STM32H7_TARGET): $(STM32H7_OBJS)
+	$(Q)echo "  AR      $@"
+	$(Q)mkdir -p $(@D)
+	$(Q)$(AR) rcs $@ $^
+
+$(STM32H7_BUILD_DIR)/%.o: %.cpp
+	$(Q)echo "  CXX     $<"
+	$(Q)mkdir -p $(@D)
+	$(Q)$(CXX) $(STM32H7_CXXFLAGS) -MMD -MP -o $@ $<
+
+-include $(STM32H7_DEPS)
+
+.PHONY: clean-STM32H7
+clean-STM32H7:
+	$(Q)echo "  RM      $(STM32H7_BUILD_DIR)"
+	$(Q)rm -rf $(STM32H7_BUILD_DIR)
