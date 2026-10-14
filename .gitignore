@@ -58,3 +58,4 @@ SAME70_RTOS_Debug/
 /.clang-format
 /.clangd
 /STM32H5_RTOS_Debug/
+/STM32H5/
