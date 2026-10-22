@@ -13,7 +13,7 @@ SAME70_RTOS_INCLUDES := \
 	-I../FreeRTOS/src/portable/GCC/ARM_CM7/r0p1
 
 SAME70_RTOS_DEFINES := \
-	-D__SAME70Q21__ \
+	-D__SAME70Q20B__ \
 	-DRTOS
 
 SAME70_RTOS_CXXFLAGS := -c -std=c++20 \
