@@ -4,6 +4,8 @@
 #   DUET_MCU                    SAME70, SAME5x, SAMC21, STM32H5, or HOST for an ordinary hosted
 #                               (Linux) build
 #   DUET_PART_DEFINE            the macro naming the MCU part, e.g. __SAME70Q20B__ (none for HOST)
+#   DUET_RTL_DUMPS              write each source's RTL (-fdump-rtl-expand), for call graph and
+#                               stack analysis; ccache cannot cache these compiles
 #   DUET_RTOS                   build the RTOS interface against Duet::FreeRTOS, which must already
 #                               exist
 #   RRFLIBRARIES_PRINTF_FLOAT   SafeVsnprintf formats floating point numbers (default ON)
@@ -80,7 +82,7 @@ target_compile_options(RRFLibraries PRIVATE
     -Wsign-promo
     ${_werror}
     -fstack-usage
-    -fdump-rtl-expand
+    $<$<BOOL:${DUET_RTL_DUMPS}>:-fdump-rtl-expand>
     # __FILE__ relative to the library root, so the image does not depend on the checkout location
     -fmacro-prefix-map=${CMAKE_CURRENT_SOURCE_DIR}/=)
 
