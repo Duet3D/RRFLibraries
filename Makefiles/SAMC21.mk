@@ -28,6 +28,7 @@ CXXFLAGS := -c -std=c++20 \
 	-fno-rtti \
 	-fno-exceptions \
 	-nostdlib \
+	-Wall \
 	-Wundef \
 	-Wdouble-promotion \
 	-Werror -Wnoexcept -Wshadow -Wsign-promo \

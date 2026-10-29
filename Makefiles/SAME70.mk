@@ -11,7 +11,7 @@ SAME70_INCLUDES := \
 	-I$(SAME70_SRC_DIR)
 
 SAME70_DEFINES := \
-	-D__SAME70Q21__ \
+	-D__SAME70Q20B__ \
 	-DNO_PRINTF_FLOAT
 
 SAME70_CXXFLAGS := -c -std=c++20 \
@@ -28,6 +28,7 @@ SAME70_CXXFLAGS := -c -std=c++20 \
 	-fno-rtti \
 	-fno-exceptions \
 	-nostdlib \
+	-Wall \
 	-Wundef \
 	-Wdouble-promotion \
 	-Werror -Wnoexcept -Wshadow -Wsign-promo \

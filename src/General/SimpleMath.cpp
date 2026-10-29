@@ -11,7 +11,7 @@
 
 extern "C" void debugPrintf(const char *fmt, ...) noexcept;
 
-#if (defined(SAME70) && SAME70) || defined(__SAME70Q21__)
+#if (defined(SAME70) && SAME70) || defined(__SAME70Q20B__)
 
 #define SACRIFICE_RANGE		(0)
 
