@@ -9,7 +9,6 @@
 #   DUET_RTOS                   build the RTOS interface against Duet::FreeRTOS, which must already
 #                               exist
 #   RRFLIBRARIES_PRINTF_FLOAT   SafeVsnprintf formats floating point numbers (default ON)
-#   RRFLIBRARIES_OPTIMISATION   Release optimisation for this library, if not the build type's
 #
 # Target: Duet::RRFLibraries. On SAMC21 it also needs Duet::CoreN2G, for the DIVAS square root.
 #
@@ -65,7 +64,6 @@ if(DUET_MCU STREQUAL "SAMC21")
 endif()
 
 target_compile_options(RRFLibraries PRIVATE
-    $<$<CONFIG:Release>:${RRFLIBRARIES_OPTIMISATION}>
     ${_options}
     -fno-math-errno
     # Decides whether a literal like 0.0 is float or double, so a HOST build keeps it to compute
