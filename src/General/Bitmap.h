@@ -232,7 +232,7 @@ public:
 	}
 
 	// Iterate over the bits
-	void Iterate(function_ref_noexcept<void(unsigned int, unsigned int) noexcept> func) const noexcept;
+	void __attribute__((noclone)) Iterate(function_ref_noexcept<void(unsigned int, unsigned int) noexcept> func) const noexcept;	// noclone, else GCC puts a private copy into every translation unit
 	void IterateWithExceptions(function_ref<void(unsigned int, unsigned int)> func) const noexcept(false);
 	bool IterateWhile(function_ref_noexcept<bool(unsigned int, unsigned int) noexcept> func) const noexcept;
 
