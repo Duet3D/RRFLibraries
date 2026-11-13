@@ -39,6 +39,7 @@
 // The following should be enough for 32-bit int/long and 64-bit long long
 constexpr size_t MaxLongDigits = 10;	// to print 4294967296
 constexpr size_t MaxUllDigits = 20;		// to print 18446744073709551616
+constexpr size_t MaxUllOctalDigits = 22;	// to print 64 bits in octal
 
 struct xPrintFlags
 {
@@ -321,7 +322,7 @@ bool FormattedPrinter::PrintLL(long long i) noexcept
 		u = -i;
 	}
 
-	char print_buf[MaxUllDigits + 2];
+	char print_buf[MaxUllOctalDigits + 2];
 	memset(print_buf, 0, sizeof(print_buf));									// to help with stack overflow detection
 	char *_ecv_array s = print_buf + sizeof print_buf - 1;
 	//*s = '\0';																// reinstate this if we remove the above memset call
@@ -797,7 +798,10 @@ int SafeVsnprintf(char *_ecv_array buffer, size_t maxLen, c_string format, va_li
 						};
 	FormattedPrinter fp(lambda);
 	const int ret = fp.Print(format, args);
-	*buffer = 0;
+	if (maxLen != 0)
+	{
+		*buffer = 0;
+	}
 	return ret;
 }
 
