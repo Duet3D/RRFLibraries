@@ -109,25 +109,27 @@ bool StringStartsWithIgnoreCase(c_string string, c_string starting) noexcept
 
 int StringContains(c_string string, c_string match) noexcept
 {
-	int i = 0;
-	int count = 0;
+	if (match[0] == 0)
+	{
+		return -1;
+	}
 
+	int i = 0;
 	while (string[i] != 0)
 	keep(i <= strlen(string); forall j _ecv_in 0..(i - 1) :- j + strlen(match) > strlen(string) || ntData(string).drop(j).take(strlen(match)) != ntData(match))
 	decrease(strlen(string) - i)
 	{
-		if (string[i++] == match[count])
+		// Compare from every start position, else a partial match hides a match that starts inside it, e.g. "ab" in "aab"
+		size_t count = 0;
+		while (match[count] != 0 && string[i + count] == match[count])
 		{
 			count++;
-			if (match[count] == 0)
-			{
-				return i - count;
-			}
 		}
-		else
+		if (match[count] == 0)
 		{
-			count = 0;
+			return i;
 		}
+		i++;
 	}
 
 	return -1;
@@ -145,8 +147,7 @@ void SafeStrncat(char *_ecv_array dst, c_string src, size_t length) noexcept
 {
 	dst[length - 1] = 0;
 	const size_t index = strlen(dst);
-	strncat(dst + index, src, length - index);
-	dst[length - 1] = 0;
+	strncat(dst + index, src, length - index - 1);		// strncat appends a null terminator after the characters it copies
 }
 
 // End

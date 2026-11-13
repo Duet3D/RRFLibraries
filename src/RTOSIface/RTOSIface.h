@@ -508,16 +508,40 @@ class WriteLocker
 public:
 	explicit WriteLocker(ReadWriteLock& p_lock) noexcept : lock(&p_lock) { not_null(lock)->LockForWriting(); }
 	explicit WriteLocker(ReadWriteLock * null p_lock) noexcept : lock(p_lock) { if (lock != nullptr) { not_null(lock)->LockForWriting(); } }
-	WriteLocker(WriteLocker&& other) noexcept : lock(other.lock) { other.lock = nullptr; }
-	~WriteLocker() { if (lock != nullptr) { not_null(lock)->ReleaseWriter(); } }
-	void Release() noexcept { if (lock != nullptr) { not_null(lock)->ReleaseWriter(); lock = nullptr; } }
-	void Downgrade() noexcept { if (lock != nullptr) { not_null(lock)->DowngradeWriter(); } }
+	WriteLocker(WriteLocker&& other) noexcept : lock(other.lock), downgraded(other.downgraded) { other.lock = nullptr; }
+	~WriteLocker() { Release(); }
+
+	void Release() noexcept
+	{
+		if (lock != nullptr)
+		{
+			if (downgraded)
+			{
+				not_null(lock)->ReleaseReader();
+			}
+			else
+			{
+				not_null(lock)->ReleaseWriter();
+			}
+			lock = nullptr;
+		}
+	}
+
+	void Downgrade() noexcept
+	{
+		if (lock != nullptr && !downgraded)
+		{
+			not_null(lock)->DowngradeWriter();
+			downgraded = true;
+		}
+	}
 
 	WriteLocker(const WriteLocker&) = delete;
 	WriteLocker& operator=(const WriteLocker&) = delete;
 
 private:
 	ReadWriteLock* _ecv_null lock;
+	bool downgraded = false;				// true if the write lock has been turned into a read lock, which is released differently
 };
 
 class ConditionalWriteLocker
