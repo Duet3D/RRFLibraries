@@ -109,13 +109,8 @@ bool StringStartsWithIgnoreCase(c_string string, c_string starting) noexcept
 
 int StringContains(c_string string, c_string match) noexcept
 {
-	if (match[0] == 0)
-	{
-		return -1;
-	}
-
 	int i = 0;
-	while (string[i] != 0)
+	while (true)
 	keep(i <= strlen(string); forall j _ecv_in 0..(i - 1) :- j + strlen(match) > strlen(string) || ntData(string).drop(j).take(strlen(match)) != ntData(match))
 	decrease(strlen(string) - i)
 	{
@@ -129,10 +124,12 @@ int StringContains(c_string string, c_string match) noexcept
 		{
 			return i;
 		}
+		if (string[i] == 0)
+		{
+			return -1;
+		}
 		i++;
 	}
-
-	return -1;
 }
 
 // Version of strncpy that ensures the result is null terminated
