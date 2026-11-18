@@ -314,6 +314,17 @@ inline unsigned int CountSetBits(uint32_t val) noexcept
 	return count;
 }
 
+inline unsigned int CountSetBits(uint64_t val) noexcept
+{
+	unsigned int count = 0;
+	while (val != 0)
+	{
+		count += BitCount[val & 0x0F];
+		val >>= 4;
+	}
+	return count;
+}
+
 // Get the position of the Nth set bit, or -1 if too few bits set
 template<class T> int Bitmap<T>::GetSetBitNumber(size_t index) const noexcept
 {
