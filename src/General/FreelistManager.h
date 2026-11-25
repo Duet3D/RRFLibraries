@@ -23,6 +23,7 @@ namespace FreelistManager
 	{
 	public:
 		static void *AllocateItem() noexcept;
+		static void *_ecv_null TryAllocateItem() noexcept;		// take an item from the free list, or return null if it is empty; never allocates memory
 		static void ReleaseItem(void *p) noexcept;
 
 	private:
@@ -47,6 +48,19 @@ namespace FreelistManager
 		return ::operator new(Sz);
 	}
 
+	template<size_t Sz> void *_ecv_null Freelist<Sz>::TryAllocateItem() noexcept
+	{
+#ifdef RTOS
+		TaskCriticalSectionLocker lock;
+#endif
+		void *_ecv_null const p = freelist;
+		if (p != nullptr)
+		{
+			freelist = *reinterpret_cast<void *_ecv_null *>(p);
+		}
+		return p;
+	}
+
 	template<size_t Sz> void Freelist<Sz>::ReleaseItem(void *p) noexcept
 	{
 #ifdef RTOS
@@ -68,6 +82,11 @@ namespace FreelistManager
 	template<class T> inline void *Allocate() noexcept
 	{
 		return Freelist<RoundedUpSize(sizeof(T))>::AllocateItem();
+	}
+
+	template<class T> inline void *_ecv_null TryAllocate() noexcept
+	{
+		return Freelist<RoundedUpSize(sizeof(T))>::TryAllocateItem();
 	}
 
 	template<class T> inline void Release(void *p) noexcept
