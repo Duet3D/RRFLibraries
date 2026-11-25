@@ -16,6 +16,8 @@
 # include "../RTOSIface/RTOSIface.h"
 #endif
 
+void *CoreAllocPermanent(size_t sz, std::align_val_t align) noexcept;	// provided by the client application, see syscalls.h in CoreN2G
+
 namespace FreelistManager
 {
 	// Free list manager class
@@ -23,7 +25,6 @@ namespace FreelistManager
 	{
 	public:
 		static void *AllocateItem() noexcept;
-		static void *_ecv_null TryAllocateItem() noexcept;		// take an item from the free list, or return null if it is empty; never allocates memory
 		static void ReleaseItem(void *p) noexcept;
 
 	private:
@@ -45,20 +46,9 @@ namespace FreelistManager
 				return p;
 			}
 		}
-		return ::operator new(Sz);
-	}
-
-	template<size_t Sz> void *_ecv_null Freelist<Sz>::TryAllocateItem() noexcept
-	{
-#ifdef RTOS
-		TaskCriticalSectionLocker lock;
-#endif
-		void *_ecv_null const p = freelist;
-		if (p != nullptr)
-		{
-			freelist = *reinterpret_cast<void *_ecv_null *>(p);
-		}
-		return p;
+		// Items are never returned to the heap, so allocate them permanently. This saves the heap overhead of each item,
+		// and unlike malloc it is allowed while the scheduler is suspended, e.g. when ReadWriteLock needs a lock record
+		return CoreAllocPermanent(Sz, (std::align_val_t)__STDCPP_DEFAULT_NEW_ALIGNMENT__);
 	}
 
 	template<size_t Sz> void Freelist<Sz>::ReleaseItem(void *p) noexcept
@@ -82,11 +72,6 @@ namespace FreelistManager
 	template<class T> inline void *Allocate() noexcept
 	{
 		return Freelist<RoundedUpSize(sizeof(T))>::AllocateItem();
-	}
-
-	template<class T> inline void *_ecv_null TryAllocate() noexcept
-	{
-		return Freelist<RoundedUpSize(sizeof(T))>::TryAllocateItem();
 	}
 
 	template<class T> inline void Release(void *p) noexcept
