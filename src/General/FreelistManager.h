@@ -16,6 +16,8 @@
 # include "../RTOSIface/RTOSIface.h"
 #endif
 
+void *CoreAllocPermanent(size_t sz, std::align_val_t align) noexcept;	// provided by the client application, see syscalls.h in CoreN2G
+
 namespace FreelistManager
 {
 	// Free list manager class
@@ -44,7 +46,9 @@ namespace FreelistManager
 				return p;
 			}
 		}
-		return ::operator new(Sz);
+		// Items are never returned to the heap, so allocate them permanently. This saves the heap overhead of each item,
+		// and unlike malloc it is allowed while the scheduler is suspended, e.g. when ReadWriteLock needs a lock record
+		return CoreAllocPermanent(Sz, (std::align_val_t)__STDCPP_DEFAULT_NEW_ALIGNMENT__);
 	}
 
 	template<size_t Sz> void Freelist<Sz>::ReleaseItem(void *p) noexcept
